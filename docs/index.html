@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>EasyConvert — a native macOS file converter</title>
+<title>EasyConvert: a native macOS file converter</title>
 <meta name="description" content="Convert images, video, and audio on macOS without opening Terminal. Metal-accelerated, hardware video encoding, and a bundled ffmpeg for everything else." />
 <link rel="icon" type="image/png" sizes="16x16" href="icons/icon_16.png" />
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon_32.png" />
@@ -458,6 +458,39 @@
   footer a { text-decoration: none; color: var(--slate); }
   footer a:hover { color: var(--foam); }
 
+  .gh-bubble {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 50;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px 9px 11px;
+    background: var(--ink-raised);
+    border: 1px solid var(--ink-border);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--foam);
+    text-decoration: none;
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 55%, transparent);
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+
+  .gh-bubble:hover {
+    transform: translateY(-2px);
+    border-color: var(--signal);
+  }
+
+  .gh-bubble svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .js-reveal .reveal-item {
@@ -493,7 +526,7 @@
         <h1>Convert almost anything.<br />Without opening Terminal.</h1>
         <p class="hero-sub">
           A native macOS app for images, video, and audio. GPU-accelerated Core Image and
-          hardware VideoToolbox encoding where Apple's own frameworks reach — a bundled,
+          hardware VideoToolbox encoding where Apple's own frameworks reach, and a bundled,
           self-contained ffmpeg for everything else.
         </p>
         <div class="cta-row">
@@ -515,7 +548,7 @@
         <div>
           <h3>20 output formats, including RAW and vector sources</h3>
           <p>
-            PNG, JPEG, HEIC, WebP, AVIF, JPEG XL, TIFF, PSD, ICNS, EXR, and more — plus RAW
+            PNG, JPEG, HEIC, WebP, AVIF, JPEG XL, TIFF, PSD, ICNS, EXR, and more, plus RAW
             straight from a camera (CR2, CR3, ARW, DNG, and most others) and rasterizing SVG
             or PDF pages. Compress to a target file size, resize, or export several
             resolutions from one source in a single pass.
@@ -529,7 +562,7 @@
           <h3>28 containers and codecs</h3>
           <p>
             Hardware-encoded H.264, HEVC, and ProRes via VideoToolbox, or MKV, WebM, AV1,
-            DNxHD, DV, and the rest of the container zoo through a bundled ffmpeg — nothing
+            DNxHD, DV, and the rest of the container zoo through a bundled ffmpeg. Nothing
             to install separately.
           </p>
         </div>
@@ -554,7 +587,7 @@
           <p>
             Times actual conversions on your machine and scores them against a calibrated
             baseline, so the number means the same thing on your Mac as it does on someone
-            else's — not just whatever ran fastest this time.
+            else's, not just whatever ran fastest this time.
           </p>
         </div>
       </div>
@@ -566,7 +599,7 @@
     <div class="wrap">
       <div class="gallery-head reveal-item">
         <h2>See it running</h2>
-        <p class="gallery-hint">Screenshots go in /screenshots — drop in the four files named below.</p>
+        <p class="gallery-hint">Screenshots go in /screenshots: drop in the four files named below.</p>
       </div>
       <div class="filmstrip">
 
@@ -580,7 +613,7 @@
               <div class="shot-placeholder">screenshots/image.png<br />1280 × 800</div>
             </div>
           </div>
-          <figcaption><strong>Images</strong> — drag and drop, target-size compression</figcaption>
+          <figcaption><strong>Images</strong>: drag and drop, target-size compression</figcaption>
         </figure>
 
         <figure class="frame reveal-item">
@@ -593,7 +626,7 @@
               <div class="shot-placeholder">screenshots/video.png<br />1280 × 800</div>
             </div>
           </div>
-          <figcaption><strong>Video</strong> — hardware and ffmpeg-backed formats side by side</figcaption>
+          <figcaption><strong>Video</strong>: hardware and ffmpeg-backed formats side by side</figcaption>
         </figure>
 
         <figure class="frame reveal-item">
@@ -606,7 +639,7 @@
               <div class="shot-placeholder">screenshots/audio.png<br />1280 × 800</div>
             </div>
           </div>
-          <figcaption><strong>Audio</strong> — bitrate and format picker</figcaption>
+          <figcaption><strong>Audio</strong>: bitrate and format picker</figcaption>
         </figure>
 
         <figure class="frame reveal-item">
@@ -619,7 +652,7 @@
               <div class="shot-placeholder">screenshots/benchmark.png<br />1280 × 800</div>
             </div>
           </div>
-          <figcaption><strong>Benchmark</strong> — scored results table</figcaption>
+          <figcaption><strong>Benchmark</strong>: scored results table</figcaption>
         </figure>
 
       </div>
@@ -631,8 +664,8 @@
       <div class="note-inner reveal-item">
         <h2>Why native and ffmpeg</h2>
         <p>
-          Apple's own frameworks are genuinely good at what they cover — RAW decoding, HEIC,
-          hardware H.264/HEVC/ProRes — but they stop well short of MKV, most legacy codecs,
+          Apple's own frameworks are genuinely good at what they cover (RAW decoding, HEIC,
+          hardware H.264/HEVC/ProRes), but they stop well short of MKV, most legacy codecs,
           and most audio formats. Rather than pretend otherwise, EasyConvert uses Core Image
           and VideoToolbox where they reach, and falls back to a bundled, self-contained
           ffmpeg (plus the WebP and JPEG XL reference tools) for everything else. No
@@ -654,6 +687,11 @@
     <a href="https://github.com/thatonemacosdev/easyconvert-macOS">github.com/thatonemacosdev/easyconvert-macOS</a>
   </div>
 </footer>
+
+<a class="gh-bubble" href="https://github.com/thatonemacosdev" target="_blank" rel="noopener noreferrer" aria-label="thatonemacosdev on GitHub">
+  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg>
+  thatonemacosdev
+</a>
 
 <script>
   document.documentElement.classList.add('js-reveal');
