@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EasyConvert — a native macOS file converter</title>
+<meta name="description" content="Convert images, video, and audio on macOS without opening Terminal. Metal-accelerated, hardware video encoding, and a bundled ffmpeg for everything else." />
+<style>
+  :root {
+    --ink: #0a0e14;
+    --ink-raised: #12161f;
+    --ink-border: #1c2230;
+    --foam: #e7ecf3;
+    --slate: #8b93a5;
+    --signal: #5b9bff;
+    --signal-dim: #2c4a7c;
+    --radius: 6px;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  }
+
+  :root[data-theme="light"] {
+    --ink: #f4f6fa;
+    --ink-raised: #ffffff;
+    --ink-border: #dde2ea;
+    --foam: #10141c;
+    --slate: #5b6472;
+    --signal: #2f6fe0;
+    --signal-dim: #b9cdf2;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --ink: #f4f6fa;
+      --ink-raised: #ffffff;
+      --ink-border: #dde2ea;
+      --foam: #10141c;
+      --slate: #5b6472;
+      --signal: #2f6fe0;
+      --signal-dim: #b9cdf2;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--foam);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--mono);
+    font-weight: 600;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  p { margin: 0; }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  /* ---------- nav ---------- */
+
+  header.site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(10px);
+    background: color-mix(in srgb, var(--ink) 82%, transparent);
+    border-bottom: 1px solid var(--ink-border);
+  }
+
+  .site-nav .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+
+  .brand-mark {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    background: var(--signal);
+    flex: none;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    font-family: var(--mono);
+    font-size: 13.5px;
+  }
+
+  .nav-links a.text-link {
+    color: var(--slate);
+    text-decoration: none;
+  }
+  .nav-links a.text-link:hover { color: var(--foam); }
+
+  /* ---------- buttons ---------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 9px 16px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--signal);
+    color: #06101f;
+  }
+  .btn-primary:hover { filter: brightness(1.08); }
+
+  .btn-ghost {
+    border-color: var(--ink-border);
+    color: var(--foam);
+  }
+  .btn-ghost:hover { border-color: var(--signal); }
+
+  /* ---------- hero ---------- */
+
+  .hero {
+    position: relative;
+    padding: 96px 0 84px;
+    overflow: hidden;
+  }
+
+  .hero canvas {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 220px;
+    width: 100%;
+    opacity: 0.5;
+    pointer-events: none;
+    mask-image: linear-gradient(to top, black, transparent);
+  }
+
+  .hero-inner {
+    position: relative;
+    max-width: 640px;
+  }
+
+  .hero h1 {
+    font-size: clamp(34px, 5vw, 52px);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    margin: 18px 0 22px;
+  }
+
+  .hero-sub {
+    font-size: 17px;
+    color: var(--slate);
+    max-width: 52ch;
+    margin-bottom: 34px;
+  }
+
+  .cta-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+
+  .meta-line {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--slate);
+  }
+
+  .meta-line span { color: var(--foam); }
+  .meta-line .sep { color: var(--ink-border); margin: 0 8px; }
+
+  /* ---------- reveal ---------- */
+
+  .js-reveal .reveal-item {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .js-reveal .reveal-item.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ---------- rows section ---------- */
+
+  section.rows {
+    padding: 88px 0;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 32px;
+    padding: 34px 0;
+    border-top: 1px solid var(--ink-border);
+  }
+  .row:first-of-type { border-top: none; padding-top: 0; }
+
+  .row .label {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--signal);
+    padding-top: 4px;
+  }
+
+  .row h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .row p {
+    color: var(--slate);
+    max-width: 62ch;
+    font-size: 15.5px;
+  }
+
+  @media (max-width: 640px) {
+    .row { grid-template-columns: 1fr; gap: 8px; }
+  }
+
+  /* ---------- screenshots ---------- */
+
+  section.gallery {
+    padding: 88px 0;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .gallery-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .gallery-head h2 { font-size: 24px; }
+
+  .gallery-hint {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--slate);
+    max-width: 34ch;
+  }
+
+  .filmstrip {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 14px;
+    margin: 0 -28px;
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .frame {
+    flex: 0 0 auto;
+    width: min(78vw, 460px);
+    scroll-snap-align: start;
+  }
+
+  .window-chrome {
+    background: var(--ink-raised);
+    border: 1px solid var(--ink-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .chrome-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 11px;
+    border-bottom: 1px solid var(--ink-border);
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ink-border);
+  }
+
+  .shot-area {
+    aspect-ratio: 16 / 10;
+    position: relative;
+    background:
+      repeating-linear-gradient(135deg, transparent 0 10px, color-mix(in srgb, var(--slate) 8%, transparent) 10px 11px);
+  }
+
+  .shot-area img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .shot-area img.img-missing { display: none; }
+
+  .shot-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.5;
+  }
+
+  .frame figcaption {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--slate);
+    margin-top: 12px;
+    padding: 0 2px;
+  }
+  .frame figcaption strong { color: var(--foam); }
+
+  /* ---------- honesty section ---------- */
+
+  section.note {
+    padding: 88px 0;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  .note-inner { max-width: 62ch; }
+
+  section.note h2 { font-size: 24px; margin-bottom: 20px; }
+
+  section.note p {
+    color: var(--slate);
+    font-size: 15.5px;
+    margin-bottom: 16px;
+  }
+
+  section.note p:last-of-type { margin-bottom: 0; }
+
+  .license-strip {
+    margin-top: 28px;
+    padding: 14px 18px;
+    border: 1px solid var(--ink-border);
+    border-radius: var(--radius);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--slate);
+  }
+
+  .license-strip a { color: var(--signal); text-decoration: none; }
+  .license-strip a:hover { text-decoration: underline; }
+
+  /* ---------- footer ---------- */
+
+  footer {
+    border-top: 1px solid var(--ink-border);
+    padding: 32px 0 48px;
+  }
+
+  footer .wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--slate);
+  }
+
+  footer a { text-decoration: none; color: var(--slate); }
+  footer a:hover { color: var(--foam); }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .js-reveal .reveal-item {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-nav">
+  <div class="wrap">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      easyconvert
+    </div>
+    <nav class="nav-links">
+      <a class="text-link" href="https://github.com/thatonemacosdev/easyconvert-macOS">GitHub</a>
+      <a class="btn btn-primary" href="https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/stable">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <canvas id="scrub" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <div class="hero-inner">
+        <p class="eyebrow">macOS · universal file converter</p>
+        <h1>Convert almost anything.<br />Without opening Terminal.</h1>
+        <p class="hero-sub">
+          A native macOS app for images, video, and audio. GPU-accelerated Core Image and
+          hardware VideoToolbox encoding where Apple's own frameworks reach — a bundled,
+          self-contained ffmpeg for everything else.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/stable">Download v1.0.0</a>
+          <a class="btn btn-ghost" href="https://github.com/thatonemacosdev/easyconvert-macOS">View source →</a>
+        </div>
+        <p class="meta-line">
+          <span>macOS 14+</span><span class="sep">/</span><span>Apple Silicon &amp; Intel</span><span class="sep">/</span><span>20 MB</span><span class="sep">/</span><span>GPL-3.0</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="rows">
+    <div class="wrap">
+
+      <div class="row reveal-item">
+        <div class="label">Images</div>
+        <div>
+          <h3>20 output formats, including RAW and vector sources</h3>
+          <p>
+            PNG, JPEG, HEIC, WebP, AVIF, JPEG XL, TIFF, PSD, ICNS, EXR, and more — plus RAW
+            straight from a camera (CR2, CR3, ARW, DNG, and most others) and rasterizing SVG
+            or PDF pages. Compress to a target file size, resize, or export several
+            resolutions from one source in a single pass.
+          </p>
+        </div>
+      </div>
+
+      <div class="row reveal-item">
+        <div class="label">Video</div>
+        <div>
+          <h3>28 containers and codecs</h3>
+          <p>
+            Hardware-encoded H.264, HEVC, and ProRes via VideoToolbox, or MKV, WebM, AV1,
+            DNxHD, DV, and the rest of the container zoo through a bundled ffmpeg — nothing
+            to install separately.
+          </p>
+        </div>
+      </div>
+
+      <div class="row reveal-item">
+        <div class="label">Audio</div>
+        <div>
+          <h3>14 formats, lossy and lossless</h3>
+          <p>
+            MP3 through FLAC through Opus. Target-size compression adjusts bitrate for
+            lossy formats and sample rate for PCM ones, depending on what the format
+            actually supports.
+          </p>
+        </div>
+      </div>
+
+      <div class="row reveal-item">
+        <div class="label">Benchmark</div>
+        <div>
+          <h3>A real 0–100 score</h3>
+          <p>
+            Times actual conversions on your machine and scores them against a calibrated
+            baseline, so the number means the same thing on your Mac as it does on someone
+            else's — not just whatever ran fastest this time.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="gallery">
+    <div class="wrap">
+      <div class="gallery-head reveal-item">
+        <h2>See it running</h2>
+        <p class="gallery-hint">Screenshots go in /screenshots — drop in the four files named below.</p>
+      </div>
+      <div class="filmstrip">
+
+        <figure class="frame reveal-item">
+          <div class="window-chrome">
+            <div class="chrome-bar">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+            <div class="shot-area">
+              <img src="screenshots/images.png" alt="Images tab" onerror="this.classList.add('img-missing')" />
+              <div class="shot-placeholder">screenshots/images.png<br />1280 × 800</div>
+            </div>
+          </div>
+          <figcaption><strong>Images</strong> — drag and drop, target-size compression</figcaption>
+        </figure>
+
+        <figure class="frame reveal-item">
+          <div class="window-chrome">
+            <div class="chrome-bar">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+            <div class="shot-area">
+              <img src="screenshots/video.png" alt="Video tab" onerror="this.classList.add('img-missing')" />
+              <div class="shot-placeholder">screenshots/video.png<br />1280 × 800</div>
+            </div>
+          </div>
+          <figcaption><strong>Video</strong> — hardware and ffmpeg-backed formats side by side</figcaption>
+        </figure>
+
+        <figure class="frame reveal-item">
+          <div class="window-chrome">
+            <div class="chrome-bar">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+            <div class="shot-area">
+              <img src="screenshots/audio.png" alt="Audio tab" onerror="this.classList.add('img-missing')" />
+              <div class="shot-placeholder">screenshots/audio.png<br />1280 × 800</div>
+            </div>
+          </div>
+          <figcaption><strong>Audio</strong> — bitrate and format picker</figcaption>
+        </figure>
+
+        <figure class="frame reveal-item">
+          <div class="window-chrome">
+            <div class="chrome-bar">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+            <div class="shot-area">
+              <img src="screenshots/benchmark.png" alt="Benchmark tab" onerror="this.classList.add('img-missing')" />
+              <div class="shot-placeholder">screenshots/benchmark.png<br />1280 × 800</div>
+            </div>
+          </div>
+          <figcaption><strong>Benchmark</strong> — scored results table</figcaption>
+        </figure>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="note">
+    <div class="wrap">
+      <div class="note-inner reveal-item">
+        <h2>Why native and ffmpeg</h2>
+        <p>
+          Apple's own frameworks are genuinely good at what they cover — RAW decoding, HEIC,
+          hardware H.264/HEVC/ProRes — but they stop well short of MKV, most legacy codecs,
+          and most audio formats. Rather than pretend otherwise, EasyConvert uses Core Image
+          and VideoToolbox where they reach, and falls back to a bundled, self-contained
+          ffmpeg (plus the WebP and JPEG XL reference tools) for everything else. No
+          Homebrew, no separate install, no terminal.
+        </p>
+        <div class="license-strip">
+          App code: GPL-3.0. Bundled ffmpeg: GPL (libx264/libx265). WebP &amp; JPEG XL tools: BSD.
+          Details in <a href="https://github.com/thatonemacosdev/easyconvert-macOS/blob/main/Vendor/ffmpeg/LICENSE_NOTICE.md">LICENSE_NOTICE.md</a>.
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 thatonemacosdev</span>
+    <a href="https://github.com/thatonemacosdev/easyconvert-macOS">github.com/thatonemacosdev/easyconvert-macOS</a>
+  </div>
+</footer>
+
+<script>
+  document.documentElement.classList.add('js-reveal');
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if ('IntersectionObserver' in window) {
+    var items = document.querySelectorAll('.reveal-item');
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    items.forEach(function (el) { io.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal-item').forEach(function (el) {
+      el.classList.add('is-visible');
+    });
+  }
+
+  // Ambient hero canvas: a slow scrubber/waveform, evoking a media timeline.
+  (function () {
+    var canvas = document.getElementById('scrub');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w, h, bars = [];
+    var barCount = 64;
+
+    function resize() {
+      w = canvas.clientWidth = canvas.offsetWidth;
+      h = canvas.clientHeight = 220;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      bars = [];
+      for (var i = 0; i < barCount; i++) {
+        bars.push({
+          base: 0.15 + Math.random() * 0.5,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.4 + Math.random() * 0.6
+        });
+      }
+    }
+
+    var signal = getComputedStyle(document.documentElement).getPropertyValue('--signal').trim() || '#5b9bff';
+
+    function draw(t) {
+      ctx.clearRect(0, 0, w, h);
+      var gap = w / barCount;
+      for (var i = 0; i < barCount; i++) {
+        var b = bars[i];
+        var amp = reduceMotion ? b.base : b.base + 0.25 * Math.sin(t * 0.001 * b.speed + b.phase);
+        var barH = Math.max(4, amp * h * 0.8);
+        var x = i * gap + gap * 0.25;
+        var bw = gap * 0.5;
+        ctx.fillStyle = signal;
+        ctx.globalAlpha = 0.22;
+        ctx.fillRect(x, h - barH, bw, barH);
+      }
+      if (!reduceMotion) requestAnimationFrame(draw);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    requestAnimationFrame(draw);
+  })();
+</script>
+
+</body>
+</html>
