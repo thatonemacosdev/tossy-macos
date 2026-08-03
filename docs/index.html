@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>EasyConvert — a native macOS file converter</title>
 <meta name="description" content="Convert images, video, and audio on macOS without opening Terminal. Metal-accelerated, hardware video encoding, and a bundled ffmpeg for everything else." />
+<link rel="icon" type="image/png" sizes="16x16" href="icons/icon_16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon_32.png" />
+<link rel="icon" type="image/png" sizes="64x64" href="icons/icon_64.png" />
+<link rel="apple-touch-icon" sizes="256x256" href="icons/icon_256.png" />
+<meta property="og:title" content="EasyConvert" />
+<meta property="og:description" content="A native macOS file converter for images, video, and audio." />
+<meta property="og:image" content="icons/icon_512.png" />
 <style>
   :root {
     --ink: #0a0e14;
@@ -115,11 +122,11 @@
   }
 
   .brand-mark {
-    width: 9px;
-    height: 9px;
-    border-radius: 2px;
-    background: var(--signal);
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
     flex: none;
+    display: block;
   }
 
   .nav-links {
@@ -442,7 +449,7 @@
 <header class="site-nav">
   <div class="wrap">
     <div class="brand">
-      <span class="brand-mark" aria-hidden="true"></span>
+      <img class="brand-mark" src="icons/icon_64.png" alt="" width="22" height="22" />
       easyconvert
     </div>
     <nav class="nav-links">
