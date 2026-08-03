@@ -1,5 +1,6 @@
 .build/
 .swiftpm/
 EasyConvert.app/
+dist/
 *.xcuserstate
 .DS_Store
