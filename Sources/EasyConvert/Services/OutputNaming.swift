@@ -2,10 +2,11 @@ import Foundation
 
 enum OutputNaming {
     /// Picks a non-colliding output URL for `sourceURL` converted to `fileExtension`,
-    /// placed in `destinationFolder` (or alongside the source if `nil`).
-    static func uniqueOutputURL(for sourceURL: URL, fileExtension: String, destinationFolder: URL?, nameSuffix: String = "") -> URL {
+    /// placed in `destinationFolder` (or alongside the source if `nil`). Pass `baseNameOverride`
+    /// for a custom output filename instead of the one derived from `sourceURL`.
+    static func uniqueOutputURL(for sourceURL: URL, fileExtension: String, destinationFolder: URL?, nameSuffix: String = "", baseNameOverride: String? = nil) -> URL {
         let folder = destinationFolder ?? sourceURL.deletingLastPathComponent()
-        let baseName = sourceURL.deletingPathExtension().lastPathComponent + nameSuffix
+        let baseName = (baseNameOverride ?? sourceURL.deletingPathExtension().lastPathComponent) + nameSuffix
         var candidate = folder.appendingPathComponent(baseName).appendingPathExtension(fileExtension)
 
         var counter = 2

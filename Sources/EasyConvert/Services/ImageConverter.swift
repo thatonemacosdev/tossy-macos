@@ -60,7 +60,8 @@ final class ImageConverter {
         quality: Double,
         destinationFolder: URL?,
         targetSizeBytes: Int64? = nil,
-        targetWidth: Int? = nil
+        targetWidth: Int? = nil,
+        customBaseName: String? = nil
     ) async throws -> ImageConversionResult {
         guard format.isAvailable else {
             throw ConversionError.formatUnavailable(format.unavailabilityReason ?? "This format isn't available.")
@@ -111,7 +112,8 @@ final class ImageConverter {
                 for: sourceURL,
                 fileExtension: format.fileExtension,
                 destinationFolder: destinationFolder,
-                nameSuffix: pageSuffix
+                nameSuffix: pageSuffix,
+                baseNameOverride: customBaseName
             )
 
             if let targetSizeBytes {

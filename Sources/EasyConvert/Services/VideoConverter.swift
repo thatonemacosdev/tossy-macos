@@ -44,6 +44,7 @@ final class VideoConverter {
         destinationFolder: URL?,
         targetSizeBytes: Int64? = nil,
         targetWidth: Int? = nil,
+        customBaseName: String? = nil,
         onProgress: @escaping (Double) -> Void
     ) async throws -> VideoConversionResult {
         guard format.isAvailable else {
@@ -58,14 +59,14 @@ final class VideoConverter {
             guard targetWidth == nil else {
                 throw VideoConversionError.formatUnavailable("Custom resolution isn't supported for hardware-accelerated formats like \(format.displayName). Pick an ffmpeg-backed format (e.g. MKV or WebM) to resize.")
             }
-            let outputURL = try await convertViaAVFoundation(sourceURL: sourceURL, format: format, destinationFolder: destinationFolder, onProgress: onProgress)
+            let outputURL = try await convertViaAVFoundation(sourceURL: sourceURL, format: format, destinationFolder: destinationFolder, customBaseName: customBaseName, onProgress: onProgress)
             return VideoConversionResult(outputURL: outputURL, note: nil)
 
         case .ffmpeg(let muxer, let videoCodec, let audioCodec, let extraArgs):
             return try await convertViaFFmpeg(
                 sourceURL: sourceURL, outputExtension: format.fileExtension, muxer: muxer, videoCodec: videoCodec,
                 audioCodec: audioCodec, extraArgs: extraArgs, destinationFolder: destinationFolder,
-                targetSizeBytes: targetSizeBytes, targetWidth: targetWidth, onProgress: onProgress
+                targetSizeBytes: targetSizeBytes, targetWidth: targetWidth, customBaseName: customBaseName, onProgress: onProgress
             )
         }
     }
@@ -78,13 +79,14 @@ final class VideoConverter {
         destinationFolder: URL?,
         targetSizeBytes: Int64,
         targetWidth: Int? = nil,
+        customBaseName: String? = nil,
         onProgress: @escaping (Double) -> Void
     ) async throws -> VideoConversionResult {
         let ext = sourceURL.pathExtension.isEmpty ? "mp4" : sourceURL.pathExtension.lowercased()
         return try await convertViaFFmpeg(
             sourceURL: sourceURL, outputExtension: ext, muxer: nil, videoCodec: "libx264",
             audioCodec: "aac", extraArgs: [], destinationFolder: destinationFolder,
-            targetSizeBytes: targetSizeBytes, targetWidth: targetWidth, onProgress: onProgress
+            targetSizeBytes: targetSizeBytes, targetWidth: targetWidth, customBaseName: customBaseName, onProgress: onProgress
         )
     }
 
@@ -92,6 +94,7 @@ final class VideoConverter {
         sourceURL: URL,
         format: VideoFormat,
         destinationFolder: URL?,
+        customBaseName: String? = nil,
         onProgress: @escaping (Double) -> Void
     ) async throws -> URL {
         let asset = AVURLAsset(url: sourceURL)
@@ -107,7 +110,8 @@ final class VideoConverter {
         let outputURL = OutputNaming.uniqueOutputURL(
             for: sourceURL,
             fileExtension: format.fileExtension,
-            destinationFolder: destinationFolder
+            destinationFolder: destinationFolder,
+            baseNameOverride: customBaseName
         )
         exportSession.outputURL = outputURL
         exportSession.outputFileType = fileType
@@ -145,6 +149,7 @@ final class VideoConverter {
         destinationFolder: URL?,
         targetSizeBytes: Int64?,
         targetWidth: Int? = nil,
+        customBaseName: String? = nil,
         onProgress: @escaping (Double) -> Void
     ) async throws -> VideoConversionResult {
         guard FFmpegLocator.isAvailable else {
@@ -154,7 +159,8 @@ final class VideoConverter {
         let outputURL = OutputNaming.uniqueOutputURL(
             for: sourceURL,
             fileExtension: outputExtension,
-            destinationFolder: destinationFolder
+            destinationFolder: destinationFolder,
+            baseNameOverride: customBaseName
         )
 
         let duration = MediaProbe.probe(url: sourceURL)?.durationSeconds

@@ -11,9 +11,14 @@ struct AudioConvertView: View {
     @State private var isShowingImporter = false
     @State private var keepOriginalFormat = false
     @State private var targetSizeText = ""
+    @State private var customFilenameText = ""
     @State private var showAdvanced = false
 
     private var targetSizeBytes: Int64? { ByteSize.parse(targetSizeText) }
+    private var customBaseName: String? {
+        let trimmed = customFilenameText.trimmingCharacters(in: .whitespaces)
+        return trimmed.isEmpty ? nil : trimmed
+    }
 
     private let converter = AudioConverter()
 
@@ -80,8 +85,7 @@ struct AudioConvertView: View {
 
                 Spacer()
 
-                Button("Choose Destination…") { chooseDestinationFolder() }
-                    .buttonStyle(.bordered)
+                DestinationButton(destinationFolder: destinationFolder, action: chooseDestinationFolder)
             }
 
             DisclosureGroup("Advanced", isExpanded: $showAdvanced) {
@@ -90,6 +94,15 @@ struct AudioConvertView: View {
                         .toggleStyle(.checkbox)
 
                     TargetSizeField(text: $targetSizeText)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Filename")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        TextField("original name", text: $customFilenameText)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 120)
+                    }
 
                     MaxFileSizeMenu()
 
@@ -103,10 +116,6 @@ struct AudioConvertView: View {
 
     private var bottomBar: some View {
         HStack {
-            Text(destinationSummary)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
             Spacer()
 
             if !jobs.isEmpty {
@@ -128,13 +137,6 @@ struct AudioConvertView: View {
             .disabled(jobs.isEmpty || isConverting)
         }
         .padding(12)
-    }
-
-    private var destinationSummary: String {
-        if let destinationFolder {
-            return "Saving to \(destinationFolder.lastPathComponent)"
-        }
-        return "Saving alongside each original"
     }
 
     private func chooseDestinationFolder() {
@@ -216,7 +218,8 @@ struct AudioConvertView: View {
                 to: effectiveFormat,
                 quality: quality,
                 destinationFolder: destinationFolder,
-                targetSizeBytes: targetSizeBytes
+                targetSizeBytes: targetSizeBytes,
+                customBaseName: customBaseName
             ) { progress in
                 Task { @MainActor in job.status = .converting(progress: progress) }
             }

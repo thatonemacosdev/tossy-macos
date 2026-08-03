@@ -20,6 +20,7 @@ final class AudioConverter {
         quality: Double,
         destinationFolder: URL?,
         targetSizeBytes: Int64? = nil,
+        customBaseName: String? = nil,
         onProgress: @escaping (Double) -> Void
     ) async throws -> AudioConversionResult {
         guard format.isAvailable else {
@@ -32,7 +33,8 @@ final class AudioConverter {
         let outputURL = OutputNaming.uniqueOutputURL(
             for: sourceURL,
             fileExtension: format.fileExtension,
-            destinationFolder: destinationFolder
+            destinationFolder: destinationFolder,
+            baseNameOverride: customBaseName
         )
 
         let duration = MediaProbe.probe(url: sourceURL)?.durationSeconds

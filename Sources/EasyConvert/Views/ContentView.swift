@@ -12,10 +12,15 @@ struct ContentView: View {
     @State private var keepOriginalFormat = false
     @State private var targetSizeText = ""
     @State private var resizeWidthText = ""
+    @State private var customFilenameText = ""
     @State private var showAdvanced = false
 
     private var targetSizeBytes: Int64? { ByteSize.parse(targetSizeText) }
-    private var targetWidth: Int? { Int(resizeWidthText.trimmingCharacters(in: .whitespaces)) }
+    private var exportWidths: [Int] { ResolutionList.parse(resizeWidthText) }
+    private var customBaseName: String? {
+        let trimmed = customFilenameText.trimmingCharacters(in: .whitespaces)
+        return trimmed.isEmpty ? nil : trimmed
+    }
 
     private let converter = ImageConverter()
 
@@ -77,29 +82,49 @@ struct ContentView: View {
 
                 Spacer()
 
-                Button("Choose Destination…") { chooseDestinationFolder() }
-                    .buttonStyle(.bordered)
+                DestinationButton(destinationFolder: destinationFolder, action: chooseDestinationFolder)
             }
 
             DisclosureGroup("Advanced", isExpanded: $showAdvanced) {
-                HStack(spacing: 16) {
-                    Toggle("Keep original format (just recompress)", isOn: $keepOriginalFormat)
-                        .toggleStyle(.checkbox)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 16) {
+                        Toggle("Keep original format (just recompress)", isOn: $keepOriginalFormat)
+                            .toggleStyle(.checkbox)
 
-                    TargetSizeField(text: $targetSizeText)
+                        TargetSizeField(text: $targetSizeText)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Resize width")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        TextField("e.g. 1920", text: $resizeWidthText)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 90)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Filename")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("original name", text: $customFilenameText)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 120)
+                        }
+
+                        MaxFileSizeMenu()
+
+                        Spacer()
                     }
 
-                    MaxFileSizeMenu()
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Export resolutions")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("e.g. 1024, 512, 256", text: $resizeWidthText)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 200)
+                        }
 
-                    Spacer()
+                        if exportWidths.count > 1 {
+                            Text("Exports one file per width, suffixed \(exportWidths.map { "_\($0)" }.joined(separator: ", "))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+                    }
                 }
                 .padding(.top, 6)
             }
@@ -109,10 +134,6 @@ struct ContentView: View {
 
     private var bottomBar: some View {
         HStack {
-            Text(destinationSummary)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
             Spacer()
 
             if !jobs.isEmpty {
@@ -134,13 +155,6 @@ struct ContentView: View {
             .disabled(jobs.isEmpty || isConverting)
         }
         .padding(12)
-    }
-
-    private var destinationSummary: String {
-        if let destinationFolder {
-            return "Saving to \(destinationFolder.lastPathComponent)"
-        }
-        return "Saving alongside each original"
     }
 
     private func chooseDestinationFolder() {
@@ -220,17 +234,39 @@ struct ContentView: View {
             return
         }
         await MainActor.run { job.status = .converting(progress: nil) }
+
+        let baseName = customBaseName ?? job.sourceURL.deletingPathExtension().lastPathComponent
         do {
-            let result = try await converter.convert(
-                sourceURL: job.sourceURL,
-                to: effectiveFormat,
-                quality: quality,
-                destinationFolder: destinationFolder,
-                targetSizeBytes: targetSizeBytes,
-                targetWidth: targetWidth
-            )
-            let note = [formatNote, result.note].compactMap { $0 }.joined(separator: " ")
-            await MainActor.run { job.status = .done(outputURL: result.outputURLs[0], note: note.isEmpty ? nil : note) }
+            if exportWidths.count > 1 {
+                // Multi-resolution export: one output per width, each suffixed with its size.
+                var firstOutput: URL?
+                for width in exportWidths {
+                    let result = try await converter.convert(
+                        sourceURL: job.sourceURL,
+                        to: effectiveFormat,
+                        quality: quality,
+                        destinationFolder: destinationFolder,
+                        targetSizeBytes: targetSizeBytes,
+                        targetWidth: width,
+                        customBaseName: "\(baseName)_\(width)"
+                    )
+                    if firstOutput == nil { firstOutput = result.outputURLs.first }
+                }
+                let note = ([formatNote] + ["Exported \(exportWidths.count) resolutions: \(exportWidths.map(String.init).joined(separator: ", "))"]).compactMap { $0 }.joined(separator: " ")
+                await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
+            } else {
+                let result = try await converter.convert(
+                    sourceURL: job.sourceURL,
+                    to: effectiveFormat,
+                    quality: quality,
+                    destinationFolder: destinationFolder,
+                    targetSizeBytes: targetSizeBytes,
+                    targetWidth: exportWidths.first,
+                    customBaseName: customBaseName
+                )
+                let note = [formatNote, result.note].compactMap { $0 }.joined(separator: " ")
+                await MainActor.run { job.status = .done(outputURL: result.outputURLs[0], note: note.isEmpty ? nil : note) }
+            }
         } catch {
             await MainActor.run { job.status = .failed(error.localizedDescription) }
         }

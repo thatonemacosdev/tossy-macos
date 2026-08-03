@@ -11,10 +11,15 @@ struct VideoConvertView: View {
     @State private var keepOriginalContainer = false
     @State private var targetSizeText = ""
     @State private var resizeWidthText = ""
+    @State private var customFilenameText = ""
     @State private var showAdvanced = false
 
     private var targetSizeBytes: Int64? { ByteSize.parse(targetSizeText) }
-    private var targetWidth: Int? { Int(resizeWidthText.trimmingCharacters(in: .whitespaces)) }
+    private var exportWidths: [Int] { ResolutionList.parse(resizeWidthText) }
+    private var customBaseName: String? {
+        let trimmed = customFilenameText.trimmingCharacters(in: .whitespaces)
+        return trimmed.isEmpty ? nil : trimmed
+    }
 
     private let converter = VideoConverter()
 
@@ -75,8 +80,7 @@ struct VideoConvertView: View {
 
                 Spacer()
 
-                Button("Choose Destination…") { chooseDestinationFolder() }
-                    .buttonStyle(.bordered)
+                DestinationButton(destinationFolder: destinationFolder, action: chooseDestinationFolder)
             }
 
             DisclosureGroup("Advanced", isExpanded: $showAdvanced) {
@@ -88,12 +92,12 @@ struct VideoConvertView: View {
                         TargetSizeField(text: $targetSizeText)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Resize width")
+                            Text("Filename")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                            TextField("e.g. 1280", text: $resizeWidthText)
+                            TextField("original name", text: $customFilenameText)
                                 .textFieldStyle(.roundedBorder)
-                                .frame(width: 90)
+                                .frame(width: 120)
                         }
 
                         MaxFileSizeMenu()
@@ -101,7 +105,26 @@ struct VideoConvertView: View {
                         Spacer()
                     }
 
-                    if targetSizeBytes != nil || targetWidth != nil {
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Export resolutions")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("e.g. 1920, 1280, 854", text: $resizeWidthText)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 200)
+                        }
+
+                        if exportWidths.count > 1 {
+                            Text("One file per width, suffixed \(exportWidths.map { "_\($0)" }.joined(separator: ", "))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+                    }
+
+                    if targetSizeBytes != nil || !exportWidths.isEmpty {
                         Text("Target size/resolution need an ffmpeg-backed format (not the hardware-accelerated MP4/MOV presets) — bitrate is a single-pass estimate, not exact.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -115,10 +138,6 @@ struct VideoConvertView: View {
 
     private var bottomBar: some View {
         HStack {
-            Text(destinationSummary)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
             Spacer()
 
             if !jobs.isEmpty {
@@ -140,13 +159,6 @@ struct VideoConvertView: View {
             .disabled(jobs.isEmpty || isConverting)
         }
         .padding(12)
-    }
-
-    private var destinationSummary: String {
-        if let destinationFolder {
-            return "Saving to \(destinationFolder.lastPathComponent)"
-        }
-        return "Saving alongside each original"
     }
 
     private func chooseDestinationFolder() {
@@ -209,6 +221,9 @@ struct VideoConvertView: View {
             return
         }
 
+        let baseName = customBaseName ?? job.sourceURL.deletingPathExtension().lastPathComponent
+        let widths: [Int?] = exportWidths.count > 1 ? exportWidths.map { $0 } : [exportWidths.first]
+
         if keepOriginalContainer {
             guard let targetSizeBytes else {
                 await MainActor.run { job.status = .failed("\"Keep original container\" needs a target size to compress toward — set one above.") }
@@ -216,15 +231,22 @@ struct VideoConvertView: View {
             }
             await MainActor.run { job.status = .converting(progress: 0) }
             do {
-                let result = try await converter.compressKeepingContainer(
-                    sourceURL: job.sourceURL,
-                    destinationFolder: destinationFolder,
-                    targetSizeBytes: targetSizeBytes,
-                    targetWidth: targetWidth
-                ) { progress in
-                    Task { @MainActor in job.status = .converting(progress: progress) }
+                var firstOutput: URL?
+                for width in widths {
+                    let name = width.map { "\(baseName)_\($0)" } ?? baseName
+                    let result = try await converter.compressKeepingContainer(
+                        sourceURL: job.sourceURL,
+                        destinationFolder: destinationFolder,
+                        targetSizeBytes: targetSizeBytes,
+                        targetWidth: width,
+                        customBaseName: name
+                    ) { progress in
+                        Task { @MainActor in job.status = .converting(progress: progress) }
+                    }
+                    if firstOutput == nil { firstOutput = result.outputURL }
                 }
-                await MainActor.run { job.status = .done(outputURL: result.outputURL, note: result.note) }
+                let note = widths.count > 1 ? "Exported \(widths.count) resolutions: \(exportWidths.map(String.init).joined(separator: ", "))" : nil
+                await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
             } catch {
                 await MainActor.run { job.status = .failed(error.localizedDescription) }
             }
@@ -237,16 +259,27 @@ struct VideoConvertView: View {
         }
         await MainActor.run { job.status = .converting(progress: 0) }
         do {
-            let result = try await converter.convert(
-                sourceURL: job.sourceURL,
-                to: selectedFormat,
-                destinationFolder: destinationFolder,
-                targetSizeBytes: targetSizeBytes,
-                targetWidth: targetWidth
-            ) { progress in
-                Task { @MainActor in job.status = .converting(progress: progress) }
+            var firstOutput: URL?
+            var lastNote: String?
+            for width in widths {
+                let name: String? = width.map { "\(baseName)_\($0)" } ?? customBaseName
+                let result = try await converter.convert(
+                    sourceURL: job.sourceURL,
+                    to: selectedFormat,
+                    destinationFolder: destinationFolder,
+                    targetSizeBytes: targetSizeBytes,
+                    targetWidth: width,
+                    customBaseName: name
+                ) { progress in
+                    Task { @MainActor in job.status = .converting(progress: progress) }
+                }
+                if firstOutput == nil { firstOutput = result.outputURL }
+                lastNote = result.note
             }
-            await MainActor.run { job.status = .done(outputURL: result.outputURL, note: result.note) }
+            let note = widths.count > 1
+                ? "Exported \(widths.count) resolutions: \(exportWidths.map(String.init).joined(separator: ", "))"
+                : lastNote
+            await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
         } catch {
             await MainActor.run { job.status = .failed(error.localizedDescription) }
         }
