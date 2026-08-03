@@ -19,6 +19,7 @@ mkdir -p "${APP_BUNDLE}/Contents/Resources"
 
 cp "${BUILD_DIR}/${APP_NAME}" "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
 cp "Info.plist" "${APP_BUNDLE}/Contents/Info.plist"
+cp "AppIcon.icns" "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
 
 echo "Bundling ffmpeg/ffprobe…"
 mkdir -p "${APP_BUNDLE}/Contents/Resources/ffmpeg"
