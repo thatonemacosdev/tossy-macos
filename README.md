@@ -5,6 +5,19 @@ and audio, with GPU-accelerated image processing (Metal via Core Image) and hard
 encoding (VideoToolbox via AVFoundation) where the platform supports it, falling back to a
 bundled `ffmpeg` for everything else.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/image.png" alt="Images tab" /><br /><sub>Images — drag and drop, target-size compression</sub></td>
+    <td width="50%"><img src="docs/screenshots/video.png" alt="Video tab" /><br /><sub>Video — hardware and ffmpeg-backed formats side by side</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/audio.png" alt="Audio tab" /><br /><sub>Audio — bitrate and format picker</sub></td>
+    <td width="50%"><img src="docs/screenshots/benchmark.png" alt="Benchmark tab" /><br /><sub>Benchmark — scored results table</sub></td>
+  </tr>
+</table>
+
 ## Features
 
 - **Images** — PNG, JPEG, HEIC, TIFF, BMP, GIF, JPEG 2000, AVIF, ICO, TGA, WebP, PSD, ICNS,

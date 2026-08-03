@@ -21,6 +21,7 @@
     --slate: #8b93a5;
     --signal: #5b9bff;
     --signal-dim: #2c4a7c;
+    --hero-photo-opacity: 0.16;
     --radius: 6px;
     --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
     --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
@@ -34,6 +35,7 @@
     --slate: #5b6472;
     --signal: #2f6fe0;
     --signal-dim: #b9cdf2;
+    --hero-photo-opacity: 0.09;
   }
 
   @media (prefers-color-scheme: light) {
@@ -45,6 +47,7 @@
       --slate: #5b6472;
       --signal: #2f6fe0;
       --signal-dim: #b9cdf2;
+      --hero-photo-opacity: 0.09;
     }
   }
 
@@ -179,6 +182,25 @@
     overflow: hidden;
   }
 
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("screenshots/desktop_hero.jpg");
+    background-size: cover;
+    background-position: center 12%;
+    opacity: var(--hero-photo-opacity);
+    z-index: 0;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, var(--ink) 0%, color-mix(in srgb, var(--ink) 55%, transparent) 45%, var(--ink) 100%);
+    z-index: 0;
+  }
+
   .hero canvas {
     position: absolute;
     inset: auto 0 0 0;
@@ -187,10 +209,12 @@
     opacity: 0.5;
     pointer-events: none;
     mask-image: linear-gradient(to top, black, transparent);
+    z-index: 1;
   }
 
   .hero-inner {
     position: relative;
+    z-index: 2;
     max-width: 640px;
   }
 
@@ -552,8 +576,8 @@
               <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             </div>
             <div class="shot-area">
-              <img src="screenshots/images.png" alt="Images tab" onerror="this.classList.add('img-missing')" />
-              <div class="shot-placeholder">screenshots/images.png<br />1280 × 800</div>
+              <img src="screenshots/image.png" alt="Images tab" onerror="this.classList.add('img-missing')" />
+              <div class="shot-placeholder">screenshots/image.png<br />1280 × 800</div>
             </div>
           </div>
           <figcaption><strong>Images</strong> — drag and drop, target-size compression</figcaption>
