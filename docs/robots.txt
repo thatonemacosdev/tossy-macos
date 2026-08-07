@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://thatonemacosdev.github.io/easyconvert-macOS/sitemap.xml

@@ -1,7 +1,18 @@
 # EasyConvert
 
-A native macOS file conversion utility. Drag files in, pick a format, convert. Images, video,
-and audio, with GPU-accelerated image processing (Metal via Core Image) and hardware video
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/stable)
+[![License](https://img.shields.io/github/license/thatonemacosdev/easyconvert-macOS)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/easyconvert-macOS)](https://github.com/thatonemacosdev/easyconvert-macOS/releases)
+
+A free, native macOS app that converts images, video, and audio without Terminal, without
+uploading anything to a server, and without installing Homebrew or ffmpeg yourself. Drag files
+in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as well as RAW
+camera files, MKV, WebM, FLAC, and dozens more.
+
+Website: [thatonemacosdev.github.io/easyconvert-macOS](https://thatonemacosdev.github.io/easyconvert-macOS/)
+Download: [latest release](https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/stable)
+
+Under the hood: GPU-accelerated image processing (Metal via Core Image) and hardware video
 encoding (VideoToolbox via AVFoundation) where the platform supports it, falling back to a
 bundled `ffmpeg` for everything else.
 
@@ -9,12 +20,12 @@ bundled `ffmpeg` for everything else.
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/image.png" alt="Images tab" /><br /><sub>Images: drag and drop, target-size compression</sub></td>
-    <td width="50%"><img src="docs/screenshots/video.png" alt="Video tab" /><br /><sub>Video: hardware and ffmpeg-backed formats side by side</sub></td>
+    <td width="50%"><img src="docs/screenshots/image.png" alt="EasyConvert Images tab on macOS: drag and drop HEIC, RAW, and JPEG conversion with target-size compression" /><br /><sub>Images: drag and drop, target-size compression</sub></td>
+    <td width="50%"><img src="docs/screenshots/video.png" alt="EasyConvert Video tab on macOS: converting between MP4, MKV, and WebM with hardware and ffmpeg-backed encoding" /><br /><sub>Video: hardware and ffmpeg-backed formats side by side</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/screenshots/audio.png" alt="Audio tab" /><br /><sub>Audio: bitrate and format picker</sub></td>
-    <td width="50%"><img src="docs/screenshots/benchmark.png" alt="Benchmark tab" /><br /><sub>Benchmark: scored results table</sub></td>
+    <td width="50%"><img src="docs/screenshots/audio.png" alt="EasyConvert Audio tab on macOS: converting MP3, FLAC, and WAV with a bitrate picker" /><br /><sub>Audio: bitrate and format picker</sub></td>
+    <td width="50%"><img src="docs/screenshots/benchmark.png" alt="EasyConvert Benchmark tab on macOS: scoring conversion performance from 0 to 100 against a calibrated baseline" /><br /><sub>Benchmark: scored results table</sub></td>
   </tr>
 </table>
 
