@@ -33,6 +33,25 @@ private final class DataBox: @unchecked Sendable {
     }
 }
 
+/// Buffers a subprocess's piped text across multiple `readabilityHandler` calls and yields
+/// only complete lines. A single read can land mid-line (e.g. "out_time_us=12" with the
+/// remaining digits arriving in the next chunk); parsing that as-is would briefly report a
+/// truncated, too-small progress value.
+private final class LineBuffer: @unchecked Sendable {
+    private let lock = NSLock()
+    private var pending = ""
+
+    func addChunk(_ text: String) -> [Substring] {
+        lock.lock()
+        defer { lock.unlock() }
+        pending += text
+        var lines = pending.split(separator: "\n", omittingEmptySubsequences: false)
+        guard let last = lines.popLast() else { return [] }
+        pending = String(last)
+        return lines
+    }
+}
+
 /// Thin async wrapper around the bundled `ffmpeg` binary that parses its `-progress pipe:1`
 /// output into a 0...1 fraction as it runs.
 final class FFmpegService {
@@ -59,10 +78,11 @@ final class FFmpegService {
             stderrBox.append(handle.availableData)
         }
 
+        let progressBuffer = LineBuffer()
         progressPipe.fileHandleForReading.readabilityHandler = { handle in
             let data = handle.availableData
             guard !data.isEmpty, let text = String(data: data, encoding: .utf8) else { return }
-            for line in text.split(separator: "\n") {
+            for line in progressBuffer.addChunk(text) {
                 guard line.hasPrefix("out_time_us=") else { continue }
                 let value = line.dropFirst("out_time_us=".count)
                 if let microseconds = Double(value), let totalDuration, totalDuration > 0 {

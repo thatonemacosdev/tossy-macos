@@ -21,4 +21,19 @@ final class ConversionJob: Identifiable {
     }
 
     var displayName: String { sourceURL.lastPathComponent }
+
+    /// Progress ticks arrive from a subprocess's `readabilityHandler`, which runs on a
+    /// background queue with no ordering guarantee relative to the process's terminationHandler
+    /// (Foundation can deliver a last buffered read after termination fires). Routing every
+    /// update through here means a stray late tick can never resurrect a job that has already
+    /// finished into a permanently-stuck "Converting…" state.
+    @MainActor
+    func updateProgress(_ progress: Double?) {
+        switch status {
+        case .done, .failed:
+            return
+        case .pending, .converting:
+            status = .converting(progress: progress)
+        }
+    }
 }

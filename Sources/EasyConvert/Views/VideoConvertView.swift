@@ -230,10 +230,13 @@ struct VideoConvertView: View {
                 return
             }
             await MainActor.run { job.status = .converting(progress: 0) }
-            do {
-                var firstOutput: URL?
-                for width in widths {
-                    let name = width.map { "\(baseName)_\($0)" } ?? baseName
+
+            var firstOutput: URL?
+            var succeededWidths: [Int?] = []
+            var lastFailure: String?
+            for width in widths {
+                let name = width.map { "\(baseName)_\($0)" } ?? baseName
+                do {
                     let result = try await converter.compressKeepingContainer(
                         sourceURL: job.sourceURL,
                         destinationFolder: destinationFolder,
@@ -241,15 +244,23 @@ struct VideoConvertView: View {
                         targetWidth: width,
                         customBaseName: name
                     ) { progress in
-                        Task { @MainActor in job.status = .converting(progress: progress) }
+                        Task { @MainActor in job.updateProgress(progress) }
                     }
                     if firstOutput == nil { firstOutput = result.outputURL }
+                    succeededWidths.append(width)
+                } catch {
+                    lastFailure = error.localizedDescription
                 }
-                let note = widths.count > 1 ? "Exported \(widths.count) resolutions: \(exportWidths.map(String.init).joined(separator: ", "))" : nil
-                await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
-            } catch {
-                await MainActor.run { job.status = .failed(error.localizedDescription) }
             }
+            if succeededWidths.isEmpty {
+                await MainActor.run { job.status = .failed(lastFailure ?? "All resolutions failed.") }
+                return
+            }
+            var note = widths.count > 1 ? "Exported \(succeededWidths.count) of \(widths.count) resolutions" : nil
+            if succeededWidths.count < widths.count {
+                note = (note ?? "") + ". Failed: \(lastFailure ?? "unknown error")"
+            }
+            await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
             return
         }
 
@@ -258,11 +269,14 @@ struct VideoConvertView: View {
             return
         }
         await MainActor.run { job.status = .converting(progress: 0) }
-        do {
-            var firstOutput: URL?
-            var lastNote: String?
-            for width in widths {
-                let name: String? = width.map { "\(baseName)_\($0)" } ?? customBaseName
+
+        var firstOutput: URL?
+        var lastNote: String?
+        var succeededWidths: [Int?] = []
+        var lastFailure: String?
+        for width in widths {
+            let name: String? = width.map { "\(baseName)_\($0)" } ?? customBaseName
+            do {
                 let result = try await converter.convert(
                     sourceURL: job.sourceURL,
                     to: selectedFormat,
@@ -271,17 +285,25 @@ struct VideoConvertView: View {
                     targetWidth: width,
                     customBaseName: name
                 ) { progress in
-                    Task { @MainActor in job.status = .converting(progress: progress) }
+                    Task { @MainActor in job.updateProgress(progress) }
                 }
                 if firstOutput == nil { firstOutput = result.outputURL }
                 lastNote = result.note
+                succeededWidths.append(width)
+            } catch {
+                lastFailure = error.localizedDescription
             }
-            let note = widths.count > 1
-                ? "Exported \(widths.count) resolutions: \(exportWidths.map(String.init).joined(separator: ", "))"
-                : lastNote
-            await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
-        } catch {
-            await MainActor.run { job.status = .failed(error.localizedDescription) }
         }
+        if succeededWidths.isEmpty {
+            await MainActor.run { job.status = .failed(lastFailure ?? "All resolutions failed.") }
+            return
+        }
+        var note = widths.count > 1
+            ? "Exported \(succeededWidths.count) of \(widths.count) resolutions"
+            : lastNote
+        if succeededWidths.count < widths.count {
+            note = (note ?? "") + ". Failed: \(lastFailure ?? "unknown error")"
+        }
+        await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
     }
 }

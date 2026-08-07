@@ -239,20 +239,38 @@ struct ContentView: View {
         do {
             if exportWidths.count > 1 {
                 // Multi-resolution export: one output per width, each suffixed with its size.
+                // A failure partway through shouldn't hide the widths that already succeeded
+                // and are sitting on disk — report both, rather than a blanket "failed" that
+                // makes real output look like it doesn't exist.
                 var firstOutput: URL?
+                var succeededWidths: [Int] = []
+                var lastFailure: String?
                 for width in exportWidths {
-                    let result = try await converter.convert(
-                        sourceURL: job.sourceURL,
-                        to: effectiveFormat,
-                        quality: quality,
-                        destinationFolder: destinationFolder,
-                        targetSizeBytes: targetSizeBytes,
-                        targetWidth: width,
-                        customBaseName: "\(baseName)_\(width)"
-                    )
-                    if firstOutput == nil { firstOutput = result.outputURLs.first }
+                    do {
+                        let result = try await converter.convert(
+                            sourceURL: job.sourceURL,
+                            to: effectiveFormat,
+                            quality: quality,
+                            destinationFolder: destinationFolder,
+                            targetSizeBytes: targetSizeBytes,
+                            targetWidth: width,
+                            customBaseName: "\(baseName)_\(width)"
+                        )
+                        if firstOutput == nil { firstOutput = result.outputURLs.first }
+                        succeededWidths.append(width)
+                    } catch {
+                        lastFailure = error.localizedDescription
+                    }
                 }
-                let note = ([formatNote] + ["Exported \(exportWidths.count) resolutions: \(exportWidths.map(String.init).joined(separator: ", "))"]).compactMap { $0 }.joined(separator: " ")
+                if succeededWidths.isEmpty {
+                    await MainActor.run { job.status = .failed(lastFailure ?? "All resolutions failed.") }
+                    return
+                }
+                var note = "Exported \(succeededWidths.count) resolution\(succeededWidths.count == 1 ? "" : "s"): \(succeededWidths.map(String.init).joined(separator: ", "))"
+                if succeededWidths.count < exportWidths.count {
+                    note += ". Failed: \(lastFailure ?? "unknown error")"
+                }
+                if let formatNote { note = "\(formatNote) \(note)" }
                 await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
             } else {
                 let result = try await converter.convert(

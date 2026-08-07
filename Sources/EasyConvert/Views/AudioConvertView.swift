@@ -221,7 +221,7 @@ struct AudioConvertView: View {
                 targetSizeBytes: targetSizeBytes,
                 customBaseName: customBaseName
             ) { progress in
-                Task { @MainActor in job.status = .converting(progress: progress) }
+                Task { @MainActor in job.updateProgress(progress) }
             }
             let note = [formatNote, result.note].compactMap { $0 }.joined(separator: " ")
             await MainActor.run { job.status = .done(outputURL: result.outputURL, note: note.isEmpty ? nil : note) }

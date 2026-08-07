@@ -191,7 +191,15 @@ final class ImageConverter {
         for _ in 0..<attempts {
             let mid = (lo + hi) / 2
             let candidateURL = temporaryFileURL(matching: outputURL)
-            try await write(mid, candidateURL)
+            do {
+                try await write(mid, candidateURL)
+            } catch {
+                // Don't leave a half-finished attempt, or an already-found best-so-far, behind
+                // in the temp directory just because a later candidate failed to write.
+                try? FileManager.default.removeItem(at: candidateURL)
+                if let best { try? FileManager.default.removeItem(at: best.url) }
+                throw error
+            }
             let size = fileSize(candidateURL)
 
             if size <= targetSizeBytes {
@@ -302,7 +310,7 @@ final class ImageConverter {
         process.arguments = [tempPNG.path, outputURL.path, "-q", qualityArg, "--quiet"]
         let errorPipe = Pipe()
         process.standardError = errorPipe
-        process.standardOutput = Pipe()
+        process.standardOutput = FileHandle.nullDevice
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             process.terminationHandler = { proc in
@@ -335,7 +343,7 @@ final class ImageConverter {
         process.arguments = ["-quiet", "-q", qualityArg, tempPNG.path, "-o", outputURL.path]
         let errorPipe = Pipe()
         process.standardError = errorPipe
-        process.standardOutput = Pipe()
+        process.standardOutput = FileHandle.nullDevice
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             process.terminationHandler = { proc in
