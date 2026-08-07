@@ -1,0 +1,17 @@
+# EasyConvert
+
+> A free, native macOS app that converts images, video, and audio without Terminal, without uploading files anywhere, and without installing Homebrew or ffmpeg yourself.
+
+EasyConvert handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera files, MKV, WebM, FLAC, AVIF, JPEG XL, and dozens more (20 image formats, 28 video formats, 14 audio formats in total). It uses GPU-accelerated Core Image (Metal) and hardware VideoToolbox encoding where Apple's own frameworks support it, and falls back to a bundled, self-contained copy of ffmpeg for everything else. Every conversion runs locally; no file is ever uploaded to a server. Free and open source under GPL-3.0.
+
+## Docs
+
+- [Website](https://thatonemacosdev.github.io/easyconvert-macOS/): product overview, screenshots, FAQ, download link
+- [README](https://github.com/thatonemacosdev/easyconvert-macOS/blob/main/README.md): full format list, build instructions, licensing details
+- [Releases](https://github.com/thatonemacosdev/easyconvert-macOS/releases): downloads and changelogs
+- [Pricing](https://thatonemacosdev.github.io/easyconvert-macOS/pricing.md): free, no tiers
+
+## Optional
+
+- [License](https://github.com/thatonemacosdev/easyconvert-macOS/blob/main/LICENSE): GPL-3.0 for the app's own code
+- [ffmpeg licensing notice](https://github.com/thatonemacosdev/easyconvert-macOS/blob/main/Vendor/ffmpeg/LICENSE_NOTICE.md): licensing details for the bundled ffmpeg binary

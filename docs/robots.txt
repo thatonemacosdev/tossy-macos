@@ -1,3 +1,6 @@
+# Wildcard allow covers every crawler, including AI search/citation bots
+# (GPTBot, ChatGPT-User, PerplexityBot, ClaudeBot, Google-Extended, Bingbot).
+# Deliberately not blocked: blocking them means those engines can't cite this page.
 User-agent: *
 Allow: /
 

@@ -48,6 +48,62 @@
   "license": "https://github.com/thatonemacosdev/easyconvert-macOS/blob/main/LICENSE"
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is EasyConvert free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. It's free and open source under GPL-3.0. No account, no subscription, no ads."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does EasyConvert upload my files anywhere?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Every conversion runs locally on your Mac, using Apple's own frameworks or the bundled ffmpeg. Nothing is ever sent to a server."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need to install ffmpeg or Homebrew separately?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. ffmpeg and the other tools EasyConvert needs are bundled inside the app and run standalone."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What macOS version does EasyConvert need?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "macOS 14 or later, on Apple Silicon or Intel."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can EasyConvert compress a file to an exact size?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Set a target size like 25MB in the Advanced section and EasyConvert searches for a quality or bitrate that fits."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What file formats does EasyConvert support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "20 image formats, 28 video formats, and 14 audio formats, including HEIC, RAW camera files, MKV, WebM, and FLAC."
+      }
+    }
+  ]
+}
+</script>
 <style>
   :root {
     --ink: #0a0a0a;
@@ -237,7 +293,7 @@
   }
 
   /* Mirrors the app's own job-row UI (filename, arrow, status) rather than an abstract
-     animation — the clearest way to show what the product actually does at a glance. */
+     animation: the clearest way to show what the product actually does at a glance. */
   .convert-ticker {
     position: relative;
     z-index: 2;
@@ -522,6 +578,34 @@
   .license-strip a { color: var(--signal); text-decoration: underline; text-underline-offset: 2px; }
   .license-strip a:hover { color: var(--slate); }
 
+  /* ---------- faq ---------- */
+
+  section.faq {
+    padding: 88px 0;
+    border-top: 1px solid var(--ink-border);
+  }
+
+  section.faq h2 { font-size: 24px; margin-bottom: 30px; }
+
+  .faq-item {
+    padding: 22px 0;
+    border-top: 1px solid var(--ink-border);
+  }
+  .faq-item:first-of-type { border-top: none; padding-top: 0; }
+
+  .faq-item h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.005em;
+  }
+
+  .faq-item p {
+    color: var(--slate);
+    font-size: 15px;
+    max-width: 62ch;
+  }
+
   /* ---------- footer ---------- */
 
   footer {
@@ -770,6 +854,42 @@
           App code: GPL-3.0. Bundled ffmpeg: GPL (libx264/libx265). WebP &amp; JPEG XL tools: BSD.
           Details in <a href="https://github.com/thatonemacosdev/easyconvert-macOS/blob/main/Vendor/ffmpeg/LICENSE_NOTICE.md">LICENSE_NOTICE.md</a>.
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq">
+    <div class="wrap">
+      <h2 class="reveal-item">Questions</h2>
+
+      <div class="faq-item reveal-item">
+        <h3>Is EasyConvert free?</h3>
+        <p>Yes. It's free and open source under GPL-3.0. No account, no subscription, no ads.</p>
+      </div>
+
+      <div class="faq-item reveal-item">
+        <h3>Does EasyConvert upload my files anywhere?</h3>
+        <p>No. Every conversion runs locally on your Mac, using Apple's own frameworks or the bundled ffmpeg. Nothing is ever sent to a server.</p>
+      </div>
+
+      <div class="faq-item reveal-item">
+        <h3>Do I need to install ffmpeg or Homebrew separately?</h3>
+        <p>No. ffmpeg and the other tools EasyConvert needs are bundled inside the app and run standalone.</p>
+      </div>
+
+      <div class="faq-item reveal-item">
+        <h3>What macOS version does it need?</h3>
+        <p>macOS 14 or later, on Apple Silicon or Intel.</p>
+      </div>
+
+      <div class="faq-item reveal-item">
+        <h3>Can I compress a file to an exact size?</h3>
+        <p>Yes. Set a target size like 25MB in the Advanced section and EasyConvert searches for a quality or bitrate that fits.</p>
+      </div>
+
+      <div class="faq-item reveal-item">
+        <h3>What formats does it support?</h3>
+        <p>20 image formats, 28 video formats, and 14 audio formats, including HEIC, RAW camera files, MKV, WebM, and FLAC. Full list in the README.</p>
       </div>
     </div>
   </section>
