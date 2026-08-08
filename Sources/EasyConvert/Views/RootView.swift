@@ -29,23 +29,11 @@ struct RootView: View {
                 Spacer()
                 HStack(spacing: 4) {
                     ForEach(AppTab.allCases) { tab in
-                        Button {
-                            selectedTab = tab
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: tab.icon)
-                                Text(tab.rawValue)
-                            }
-                            .font(.system(size: 13, weight: .medium))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(selectedTab == tab ? Color(white: 0.22) : Color.clear)
-                            )
-                            .foregroundStyle(selectedTab == tab ? Color.white : Color(white: 0.6))
-                        }
-                        .buttonStyle(.plain)
+                        TabButton(
+                            tab: tab,
+                            isSelected: selectedTab == tab,
+                            action: { selectedTab = tab }
+                        )
                     }
                 }
                 .padding(4)
@@ -89,6 +77,38 @@ struct RootView: View {
                     window.titlebarAppearsTransparent = true
                     window.isOpaque = true
                 }
+            }
+        }
+    }
+}
+
+struct TabButton: View {
+    let tab: AppTab
+    let isSelected: Bool
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: tab.icon)
+                Text(tab.rawValue)
+            }
+            .font(.system(size: 13, weight: .medium))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(isSelected ? Color(white: 0.25) : (isHovered ? Color(white: 0.16) : Color.clear))
+            )
+            .foregroundStyle(isSelected ? Color.white : (isHovered ? Color.white : Color(white: 0.6)))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.12)) {
+                isHovered = hovering
             }
         }
     }
