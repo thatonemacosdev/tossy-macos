@@ -6,3 +6,5 @@ dist/
 *.xcuserstate
 .DS_Store
 screenshots-source/
+.agents/
+skills-lock.json
