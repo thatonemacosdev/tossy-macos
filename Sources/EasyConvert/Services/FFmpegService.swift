@@ -83,11 +83,14 @@ final class FFmpegService {
             let data = handle.availableData
             guard !data.isEmpty, let text = String(data: data, encoding: .utf8) else { return }
             for line in progressBuffer.addChunk(text) {
-                guard line.hasPrefix("out_time_us=") else { continue }
-                let value = line.dropFirst("out_time_us=".count)
-                if let microseconds = Double(value), let totalDuration, totalDuration > 0 {
-                    let fraction = min(max((microseconds / 1_000_000) / totalDuration, 0), 1)
-                    onProgress(fraction)
+                if line.hasPrefix("progress=end") {
+                    onProgress(1.0)
+                } else if line.hasPrefix("out_time_us=") {
+                    let value = line.dropFirst("out_time_us=".count)
+                    if let microseconds = Double(value), let totalDuration, totalDuration > 0 {
+                        let fraction = min(max((microseconds / 1_000_000) / totalDuration, 0), 1)
+                        onProgress(fraction)
+                    }
                 }
             }
         }

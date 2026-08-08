@@ -260,6 +260,7 @@ struct ContentView: View {
     }
 
     private func convert(job: ConversionJob) async {
+        await MainActor.run { job.resetProgress() }
         if let sizeWarning = FeasibilityChecker.checkFileSize(job.sourceURL) {
             await MainActor.run { job.status = .failed(sizeWarning) }
             return

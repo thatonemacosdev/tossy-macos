@@ -47,7 +47,7 @@ struct JobRowView: View {
             Label("Waiting", systemImage: "clock")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-        case .converting(let progress):
+        case .converting(let progress, let etaText):
             HStack(spacing: 4) {
                 if let progress {
                     ProgressView(value: progress)
@@ -55,6 +55,11 @@ struct JobRowView: View {
                     Text("\(Int(progress * 100))%")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    if let etaText {
+                        Text("· \(etaText)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 } else {
                     ProgressView()
                         .controlSize(.small)
