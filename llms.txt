@@ -6,12 +6,12 @@ Tossy handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera fil
 
 ## Docs
 
-- [Website](https://thatonemacosdev.github.io/easyconvert-macOS/): product overview, screenshots, FAQ, download link
-- [README](https://github.com/thatonemacosdev/easyconvert-macOS/blob/main/README.md): full format list, build instructions, licensing details
-- [Releases](https://github.com/thatonemacosdev/easyconvert-macOS/releases): downloads and changelogs
-- [Pricing](https://thatonemacosdev.github.io/easyconvert-macOS/pricing.md): free, no tiers
+- [Website](https://thatonemacosdev.github.io/tossy-macos/): product overview, screenshots, FAQ, download link
+- [README](https://github.com/thatonemacosdev/tossy-macos/blob/main/README.md): full format list, build instructions, licensing details
+- [Releases](https://github.com/thatonemacosdev/tossy-macos/releases): downloads and changelogs
+- [Pricing](https://thatonemacosdev.github.io/tossy-macos/pricing.md): free, no tiers
 
 ## Optional
 
-- [License](https://github.com/thatonemacosdev/easyconvert-macOS/blob/main/LICENSE): GPL-3.0 for the app's own code
-- [ffmpeg licensing notice](https://github.com/thatonemacosdev/easyconvert-macOS/blob/main/Vendor/ffmpeg/LICENSE_NOTICE.md): licensing details for the bundled ffmpeg binary
+- [License](https://github.com/thatonemacosdev/tossy-macos/blob/main/LICENSE): GPL-3.0 for the app's own code
+- [ffmpeg licensing notice](https://github.com/thatonemacosdev/tossy-macos/blob/main/Vendor/ffmpeg/LICENSE_NOTICE.md): licensing details for the bundled ffmpeg binary

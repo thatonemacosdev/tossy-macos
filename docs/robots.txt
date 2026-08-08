@@ -4,4 +4,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://thatonemacosdev.github.io/easyconvert-macOS/sitemap.xml
+Sitemap: https://thatonemacosdev.github.io/tossy-macos/sitemap.xml
