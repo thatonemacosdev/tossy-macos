@@ -1,6 +1,6 @@
 # EasyConvert
 
-[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/stable)
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/v1.2.1)
 [![License](https://img.shields.io/github/license/thatonemacosdev/easyconvert-macOS)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/easyconvert-macOS)](https://github.com/thatonemacosdev/easyconvert-macOS/releases)
 
@@ -10,7 +10,7 @@ in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as 
 camera files, MKV, WebM, FLAC, and dozens more.
 
 Website: [thatonemacosdev.github.io/easyconvert-macOS](https://thatonemacosdev.github.io/easyconvert-macOS/)
-Download: [latest release](https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/stable)
+Download: [v1.2.1 release](https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/v1.2.1)
 
 Under the hood: GPU-accelerated image processing (Metal via Core Image) and hardware video
 encoding (VideoToolbox via AVFoundation) where the platform supports it, falling back to a
