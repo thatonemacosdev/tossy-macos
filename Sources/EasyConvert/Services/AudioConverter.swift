@@ -21,6 +21,7 @@ final class AudioConverter {
         destinationFolder: URL?,
         targetSizeBytes: Int64? = nil,
         customBaseName: String? = nil,
+        preserveMetadata: Bool = true,
         onProgress: @escaping (Double) -> Void
     ) async throws -> AudioConversionResult {
         guard format.isAvailable else {
@@ -40,7 +41,13 @@ final class AudioConverter {
         let duration = MediaProbe.probe(url: sourceURL)?.durationSeconds
         let spec = format.ffmpegSpec
 
-        var arguments = ["-y", "-i", sourceURL.path, "-vn", "-c:a", spec.codec]
+        var arguments = ["-y", "-i", sourceURL.path]
+
+        if !preserveMetadata {
+            arguments += ["-map_metadata", "-1"]
+        }
+
+        arguments += ["-vn", "-c:a", spec.codec]
         arguments += spec.extraArgs
 
         var note: String?

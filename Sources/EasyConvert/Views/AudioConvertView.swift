@@ -13,6 +13,8 @@ struct AudioConvertView: View {
     @State private var targetSizeText = ""
     @State private var customFilenameText = ""
     @State private var showAdvanced = false
+    @State private var preserveMetadata = true
+    @State private var batchSummaryText: String?
 
     private var targetSizeBytes: Int64? { ByteSize.parse(targetSizeText) }
     private var customBaseName: String? {
@@ -37,7 +39,9 @@ struct AudioConvertView: View {
                 ) { isShowingImporter = true }
             } else {
                 List(jobs) { job in
-                    JobRowView(job: job)
+                    JobRowView(job: job, onRetry: {
+                        Task { await convert(job: job) }
+                    })
                 }
                 .listStyle(.inset)
             }
@@ -93,6 +97,9 @@ struct AudioConvertView: View {
                     Toggle("Keep original format (just recompress)", isOn: $keepOriginalFormat)
                         .toggleStyle(.checkbox)
 
+                    Toggle("Preserve original metadata", isOn: $preserveMetadata)
+                        .toggleStyle(.checkbox)
+
                     TargetSizeField(text: $targetSizeText)
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -106,6 +113,29 @@ struct AudioConvertView: View {
 
                     MaxFileSizeMenu()
 
+                    PresetMenu(category: .audio(
+                        onApply: { preset in
+                            if let fmt = AudioFormat(rawValue: preset.formatRawValue) { selectedFormat = fmt }
+                            quality = preset.quality
+                            keepOriginalFormat = preset.keepOriginalFormat
+                            targetSizeText = preset.targetSizeText
+                            customFilenameText = preset.customFilenameText
+                            preserveMetadata = preset.preserveMetadata
+                        },
+                        onSave: { name in
+                            let preset = AudioPreset(
+                                name: name,
+                                formatRawValue: selectedFormat.rawValue,
+                                quality: quality,
+                                keepOriginalFormat: keepOriginalFormat,
+                                targetSizeText: targetSizeText,
+                                customFilenameText: customFilenameText,
+                                preserveMetadata: preserveMetadata
+                            )
+                            PresetStore.shared.audioPresets.append(preset)
+                        }
+                    ))
+
                     Spacer()
                 }
                 .padding(.top, 6)
@@ -116,12 +146,21 @@ struct AudioConvertView: View {
 
     private var bottomBar: some View {
         HStack {
+            if let batchSummaryText, !batchSummaryText.isEmpty {
+                Text(batchSummaryText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Spacer()
 
             if !jobs.isEmpty {
                 Button("Add Files…") { isShowingImporter = true }
-                Button("Clear") { jobs.removeAll() }
-                    .disabled(isConverting)
+                Button("Clear") {
+                    jobs.removeAll()
+                    batchSummaryText = nil
+                }
+                .disabled(isConverting)
             }
 
             Button {
@@ -179,6 +218,7 @@ struct AudioConvertView: View {
 
     private func convertAll() async {
         isConverting = true
+        batchSummaryText = nil
         defer { isConverting = false }
 
         let pendingJobs = jobs.filter {
@@ -189,6 +229,10 @@ struct AudioConvertView: View {
         for job in pendingJobs {
             await convert(job: job)
         }
+
+        let summary = BatchSummary.summarize(jobs: jobs)
+        batchSummaryText = summary
+        BatchNotifier.notify(summary: summary, jobCount: pendingJobs.count)
     }
 
     private func convert(job: ConversionJob) async {
@@ -219,7 +263,8 @@ struct AudioConvertView: View {
                 quality: quality,
                 destinationFolder: destinationFolder,
                 targetSizeBytes: targetSizeBytes,
-                customBaseName: customBaseName
+                customBaseName: customBaseName,
+                preserveMetadata: preserveMetadata
             ) { progress in
                 Task { @MainActor in job.updateProgress(progress) }
             }

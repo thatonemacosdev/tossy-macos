@@ -61,10 +61,30 @@ final class ImageConverter {
         destinationFolder: URL?,
         targetSizeBytes: Int64? = nil,
         targetWidth: Int? = nil,
-        customBaseName: String? = nil
+        customBaseName: String? = nil,
+        preserveMetadata: Bool = true
     ) async throws -> ImageConversionResult {
         guard format.isAvailable else {
             throw ConversionError.formatUnavailable(format.unavailabilityReason ?? "This format isn't available.")
+        }
+
+        var metadataDict: [CFString: Any]? = nil
+        if preserveMetadata,
+           let imageSource = CGImageSourceCreateWithURL(sourceURL as CFURL, nil),
+           let sourceProps = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any] {
+            var extracted: [CFString: Any] = [:]
+            if let exif = sourceProps[kCGImagePropertyExifDictionary] {
+                extracted[kCGImagePropertyExifDictionary] = exif
+            }
+            if let gps = sourceProps[kCGImagePropertyGPSDictionary] {
+                extracted[kCGImagePropertyGPSDictionary] = gps
+            }
+            if let tiff = sourceProps[kCGImagePropertyTIFFDictionary] {
+                extracted[kCGImagePropertyTIFFDictionary] = tiff
+            }
+            if !extracted.isEmpty {
+                metadataDict = extracted
+            }
         }
 
         let sourceImages = try decodeSourceImages(sourceURL: sourceURL)
@@ -122,7 +142,8 @@ final class ImageConverter {
                     format: format,
                     initialQuality: quality,
                     outputURL: outputURL,
-                    targetSizeBytes: targetSizeBytes
+                    targetSizeBytes: targetSizeBytes,
+                    metadataDict: metadataDict
                 )
                 let sizeText = ByteSize.displayString(size)
                 let targetText = ByteSize.displayString(targetSizeBytes)
@@ -131,7 +152,7 @@ final class ImageConverter {
                 guard let renderedImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else {
                     throw ConversionError.renderFailed
                 }
-                try await write(cgImage: renderedImage, to: outputURL, format: format, quality: quality)
+                try await write(cgImage: renderedImage, to: outputURL, format: format, quality: quality, metadataDict: metadataDict)
             }
 
             outputs.append(outputURL)
@@ -147,7 +168,8 @@ final class ImageConverter {
         format: ImageFormat,
         initialQuality: Double,
         outputURL: URL,
-        targetSizeBytes: Int64
+        targetSizeBytes: Int64,
+        metadataDict: [CFString: Any]? = nil
     ) async throws -> (size: Int64, met: Bool) {
         if format.supportsQuality {
             return try await binarySearch(
@@ -157,7 +179,7 @@ final class ImageConverter {
                 guard let cgImage = self.ciContext.createCGImage(ciImage, from: ciImage.extent) else {
                     throw ConversionError.renderFailed
                 }
-                try await self.write(cgImage: cgImage, to: candidateURL, format: format, quality: candidateQuality)
+                try await self.write(cgImage: cgImage, to: candidateURL, format: format, quality: candidateQuality, metadataDict: metadataDict)
             }
         } else {
             return try await binarySearch(
@@ -168,7 +190,7 @@ final class ImageConverter {
                 guard let cgImage = self.ciContext.createCGImage(scaled, from: scaled.extent) else {
                     throw ConversionError.renderFailed
                 }
-                try await self.write(cgImage: cgImage, to: candidateURL, format: format, quality: 1.0)
+                try await self.write(cgImage: cgImage, to: candidateURL, format: format, quality: 1.0, metadataDict: metadataDict)
             }
         }
     }
@@ -257,10 +279,10 @@ final class ImageConverter {
         return [cgImage]
     }
 
-    private func write(cgImage: CGImage, to outputURL: URL, format: ImageFormat, quality: Double) async throws {
+    private func write(cgImage: CGImage, to outputURL: URL, format: ImageFormat, quality: Double, metadataDict: [CFString: Any]? = nil) async throws {
         switch format.backend {
         case .imageIO:
-            try writeViaImageIO(cgImage: cgImage, to: outputURL, format: format, quality: quality)
+            try writeViaImageIO(cgImage: cgImage, to: outputURL, format: format, quality: quality, metadataDict: metadataDict)
         case .webpTool:
             try await writeViaWebPTool(cgImage: cgImage, to: outputURL, quality: quality)
         case .jxlTool:
@@ -270,7 +292,7 @@ final class ImageConverter {
         }
     }
 
-    private func writeViaImageIO(cgImage: CGImage, to outputURL: URL, format: ImageFormat, quality: Double) throws {
+    private func writeViaImageIO(cgImage: CGImage, to outputURL: URL, format: ImageFormat, quality: Double, metadataDict: [CFString: Any]? = nil) throws {
         guard let destination = CGImageDestinationCreateWithURL(
             outputURL as CFURL,
             format.utType.identifier as CFString,
@@ -283,6 +305,11 @@ final class ImageConverter {
         var properties: [CFString: Any] = [:]
         if format.supportsQuality {
             properties[kCGImageDestinationLossyCompressionQuality] = quality
+        }
+        if let metadataDict {
+            for (key, value) in metadataDict {
+                properties[key] = value
+            }
         }
 
         CGImageDestinationAddImage(destination, cgImage, properties as CFDictionary)

@@ -3,6 +3,7 @@ import AppKit
 
 struct JobRowView: View {
     let job: ConversionJob
+    var onRetry: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -21,13 +22,19 @@ struct JobRowView: View {
             Spacer()
 
             if case .done(let outputURL, _) = job.status {
-                Button {
-                    NSWorkspace.shared.activateFileViewerSelecting([outputURL])
-                } label: {
-                    Image(systemName: "folder")
+                HStack(spacing: 8) {
+                    Image(systemName: "line.3.horizontal")
+                        .foregroundStyle(.secondary)
+                        .help("Drag output file")
+                    Button {
+                        NSWorkspace.shared.activateFileViewerSelecting([outputURL])
+                    } label: {
+                        Image(systemName: "folder")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Reveal in Finder")
                 }
-                .buttonStyle(.borderless)
-                .help("Reveal in Finder")
+                .draggable(outputURL)
             }
         }
         .padding(.vertical, 4)
@@ -68,10 +75,19 @@ struct JobRowView: View {
             }
             .font(.caption)
         case .failed(let message):
-            Label(message, systemImage: "xmark.octagon.fill")
-                .font(.caption)
-                .foregroundStyle(.red)
-                .lineLimit(1)
+            HStack(spacing: 8) {
+                Label(message, systemImage: "xmark.octagon.fill")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .lineLimit(1)
+                if let onRetry {
+                    Button(action: onRetry) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Retry conversion")
+                }
+            }
         }
     }
 }

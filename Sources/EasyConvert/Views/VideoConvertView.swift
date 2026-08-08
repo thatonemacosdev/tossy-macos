@@ -13,6 +13,8 @@ struct VideoConvertView: View {
     @State private var resizeWidthText = ""
     @State private var customFilenameText = ""
     @State private var showAdvanced = false
+    @State private var preserveMetadata = true
+    @State private var batchSummaryText: String?
 
     private var targetSizeBytes: Int64? { ByteSize.parse(targetSizeText) }
     private var exportWidths: [Int] { ResolutionList.parse(resizeWidthText) }
@@ -38,7 +40,9 @@ struct VideoConvertView: View {
                 ) { isShowingImporter = true }
             } else {
                 List(jobs) { job in
-                    JobRowView(job: job)
+                    JobRowView(job: job, onRetry: {
+                        Task { await convert(job: job) }
+                    })
                 }
                 .listStyle(.inset)
             }
@@ -89,8 +93,15 @@ struct VideoConvertView: View {
                         Toggle("Keep original container (just recompress)", isOn: $keepOriginalContainer)
                             .toggleStyle(.checkbox)
 
+                        Toggle("Preserve original metadata", isOn: $preserveMetadata)
+                            .toggleStyle(.checkbox)
+
                         TargetSizeField(text: $targetSizeText)
 
+                        Spacer()
+                    }
+
+                    HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Filename")
                                 .font(.caption)
@@ -100,28 +111,47 @@ struct VideoConvertView: View {
                                 .frame(width: 120)
                         }
 
-                        MaxFileSizeMenu()
-
-                        Spacer()
-                    }
-
-                    HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Export resolutions")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             TextField("e.g. 1920, 1280, 854", text: $resizeWidthText)
                                 .textFieldStyle(.roundedBorder)
-                                .frame(width: 200)
+                                .frame(width: 160)
                         }
 
-                        if exportWidths.count > 1 {
-                            Text("One file per width, suffixed \(exportWidths.map { "_\($0)" }.joined(separator: ", "))")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                        MaxFileSizeMenu()
+
+                        PresetMenu(category: .video(
+                            onApply: { preset in
+                                if let fmt = VideoFormat(rawValue: preset.formatRawValue) { selectedFormat = fmt }
+                                keepOriginalContainer = preset.keepOriginalContainer
+                                targetSizeText = preset.targetSizeText
+                                customFilenameText = preset.customFilenameText
+                                resizeWidthText = preset.resizeWidthText
+                                preserveMetadata = preset.preserveMetadata
+                            },
+                            onSave: { name in
+                                let preset = VideoPreset(
+                                    name: name,
+                                    formatRawValue: selectedFormat.rawValue,
+                                    keepOriginalContainer: keepOriginalContainer,
+                                    targetSizeText: targetSizeText,
+                                    customFilenameText: customFilenameText,
+                                    resizeWidthText: resizeWidthText,
+                                    preserveMetadata: preserveMetadata
+                                )
+                                PresetStore.shared.videoPresets.append(preset)
+                            }
+                        ))
 
                         Spacer()
+                    }
+
+                    if exportWidths.count > 1 {
+                        Text("One file per width, suffixed \(exportWidths.map { "_\($0)" }.joined(separator: ", "))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
 
                     if targetSizeBytes != nil || !exportWidths.isEmpty {
@@ -138,12 +168,21 @@ struct VideoConvertView: View {
 
     private var bottomBar: some View {
         HStack {
+            if let batchSummaryText, !batchSummaryText.isEmpty {
+                Text(batchSummaryText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Spacer()
 
             if !jobs.isEmpty {
                 Button("Add Files…") { isShowingImporter = true }
-                Button("Clear") { jobs.removeAll() }
-                    .disabled(isConverting)
+                Button("Clear") {
+                    jobs.removeAll()
+                    batchSummaryText = nil
+                }
+                .disabled(isConverting)
             }
 
             Button {
@@ -201,6 +240,7 @@ struct VideoConvertView: View {
 
     private func convertAll() async {
         isConverting = true
+        batchSummaryText = nil
         defer { isConverting = false }
 
         let pendingJobs = jobs.filter {
@@ -213,6 +253,10 @@ struct VideoConvertView: View {
         for job in pendingJobs {
             await convert(job: job)
         }
+
+        let summary = BatchSummary.summarize(jobs: jobs)
+        batchSummaryText = summary
+        BatchNotifier.notify(summary: summary, jobCount: pendingJobs.count)
     }
 
     private func convert(job: ConversionJob) async {
@@ -242,7 +286,8 @@ struct VideoConvertView: View {
                         destinationFolder: destinationFolder,
                         targetSizeBytes: targetSizeBytes,
                         targetWidth: width,
-                        customBaseName: name
+                        customBaseName: name,
+                        preserveMetadata: preserveMetadata
                     ) { progress in
                         Task { @MainActor in job.updateProgress(progress) }
                     }
@@ -283,7 +328,8 @@ struct VideoConvertView: View {
                     destinationFolder: destinationFolder,
                     targetSizeBytes: targetSizeBytes,
                     targetWidth: width,
-                    customBaseName: name
+                    customBaseName: name,
+                    preserveMetadata: preserveMetadata
                 ) { progress in
                     Task { @MainActor in job.updateProgress(progress) }
                 }

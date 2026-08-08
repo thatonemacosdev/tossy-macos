@@ -45,6 +45,7 @@ final class VideoConverter {
         targetSizeBytes: Int64? = nil,
         targetWidth: Int? = nil,
         customBaseName: String? = nil,
+        preserveMetadata: Bool = true,
         onProgress: @escaping (Double) -> Void
     ) async throws -> VideoConversionResult {
         guard format.isAvailable else {
@@ -66,7 +67,17 @@ final class VideoConverter {
             return try await convertViaFFmpeg(
                 sourceURL: sourceURL, outputExtension: format.fileExtension, muxer: muxer, videoCodec: videoCodec,
                 audioCodec: audioCodec, extraArgs: extraArgs, destinationFolder: destinationFolder,
-                targetSizeBytes: targetSizeBytes, targetWidth: targetWidth, customBaseName: customBaseName, onProgress: onProgress
+                targetSizeBytes: targetSizeBytes, targetWidth: targetWidth, customBaseName: customBaseName,
+                preserveMetadata: preserveMetadata, onProgress: onProgress
+            )
+
+        case .animatedWebp:
+            return try await AnimatedWebPConverter().convert(
+                sourceURL: sourceURL,
+                destinationFolder: destinationFolder,
+                targetWidth: targetWidth,
+                customBaseName: customBaseName,
+                onProgress: onProgress
             )
         }
     }
@@ -80,13 +91,15 @@ final class VideoConverter {
         targetSizeBytes: Int64,
         targetWidth: Int? = nil,
         customBaseName: String? = nil,
+        preserveMetadata: Bool = true,
         onProgress: @escaping (Double) -> Void
     ) async throws -> VideoConversionResult {
         let ext = sourceURL.pathExtension.isEmpty ? "mp4" : sourceURL.pathExtension.lowercased()
         return try await convertViaFFmpeg(
             sourceURL: sourceURL, outputExtension: ext, muxer: nil, videoCodec: "libx264",
             audioCodec: "aac", extraArgs: [], destinationFolder: destinationFolder,
-            targetSizeBytes: targetSizeBytes, targetWidth: targetWidth, customBaseName: customBaseName, onProgress: onProgress
+            targetSizeBytes: targetSizeBytes, targetWidth: targetWidth, customBaseName: customBaseName,
+            preserveMetadata: preserveMetadata, onProgress: onProgress
         )
     }
 
@@ -150,6 +163,7 @@ final class VideoConverter {
         targetSizeBytes: Int64?,
         targetWidth: Int? = nil,
         customBaseName: String? = nil,
+        preserveMetadata: Bool = true,
         onProgress: @escaping (Double) -> Void
     ) async throws -> VideoConversionResult {
         guard FFmpegLocator.isAvailable else {
@@ -165,7 +179,13 @@ final class VideoConverter {
 
         let duration = MediaProbe.probe(url: sourceURL)?.durationSeconds
 
-        var arguments = ["-y", "-i", sourceURL.path, "-c:v", videoCodec]
+        var arguments = ["-y", "-i", sourceURL.path]
+
+        if !preserveMetadata {
+            arguments += ["-map_metadata", "-1"]
+        }
+
+        arguments += ["-c:v", videoCodec]
 
         var note: String?
         if let targetSizeBytes {
@@ -191,7 +211,14 @@ final class VideoConverter {
 
         if let targetWidth, targetWidth > 0 {
             // -2 keeps height even (required by most codecs) while preserving aspect ratio.
-            arguments += ["-vf", "scale=\(targetWidth):-2"]
+            // If extraArgs already injected a -vf (e.g. animated GIF's palettegen pipeline),
+            // prepend the scale into that filter chain rather than adding a second -vf flag
+            // (ffmpeg silently uses only the last -vf, which would drop the palette filters).
+            if let vfIndex = arguments.firstIndex(of: "-vf"), vfIndex + 1 < arguments.count {
+                arguments[vfIndex + 1] = "scale=\(targetWidth):-2," + arguments[vfIndex + 1]
+            } else {
+                arguments += ["-vf", "scale=\(targetWidth):-2"]
+            }
         }
 
         if let muxer {

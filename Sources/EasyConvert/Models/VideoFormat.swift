@@ -7,11 +7,14 @@ enum VideoBackend {
     /// Routed through the bundled ffmpeg. `muxer` forces the container when the file
     /// extension alone wouldn't tell ffmpeg what to use (e.g. .mts/.m2ts).
     case ffmpeg(muxer: String?, videoCodec: String, audioCodec: String?, extraArgs: [String])
+    /// Uses ffmpeg frame extraction + img2webp assembler.
+    case animatedWebp
 }
 
 enum VideoCategory: String, CaseIterable {
     case common = "Common"
     case professional = "Professional"
+    case animation = "Animation"
 }
 
 enum VideoFormat: String, CaseIterable, Identifiable {
@@ -19,12 +22,14 @@ enum VideoFormat: String, CaseIterable, Identifiable {
     case mkv, webm, avi, flv, mpeg, ts, mts, m2ts, ogv, threeGp, asf, mxf, f4v, vob, dv, nut
     case webmVp8, webmVp9, mp4Av1, mpeg2, mpeg4Part2
     case dnxhd, dnxhr
+    case animatedGif, animatedWebp
 
     var id: String { rawValue }
 
     var category: VideoCategory {
         switch self {
         case .dnxhd, .dnxhr, .movProRes422: return .professional
+        case .animatedGif, .animatedWebp: return .animation
         default: return .common
         }
     }
@@ -59,6 +64,8 @@ enum VideoFormat: String, CaseIterable, Identifiable {
         case .mpeg4Part2: return "AVI (MPEG-4 Part 2)"
         case .dnxhd: return "MOV (DNxHD)"
         case .dnxhr: return "MOV (DNxHR HQ)"
+        case .animatedGif: return "Animated GIF"
+        case .animatedWebp: return "Animated WebP"
         }
     }
 
@@ -82,6 +89,8 @@ enum VideoFormat: String, CaseIterable, Identifiable {
         case .vob: return "vob"
         case .dv: return "dv"
         case .nut: return "nut"
+        case .animatedGif: return "gif"
+        case .animatedWebp: return "webp"
         }
     }
 
@@ -116,6 +125,18 @@ enum VideoFormat: String, CaseIterable, Identifiable {
         // force a valid one (1080p25 @ 36Mbps) rather than fail on arbitrary source dimensions.
         case .dnxhd: return .ffmpeg(muxer: nil, videoCodec: "dnxhd", audioCodec: "pcm_s16le", extraArgs: ["-vf", "scale=1920:1080", "-r", "25", "-pix_fmt", "yuv422p", "-b:v", "36M", "-ar", "48000"])
         case .dnxhr: return .ffmpeg(muxer: nil, videoCodec: "dnxhd", audioCodec: "pcm_s16le", extraArgs: ["-profile:v", "dnxhr_hq", "-pix_fmt", "yuv422p"])
+        case .animatedGif:
+            return .ffmpeg(
+                muxer: nil,
+                videoCodec: "gif",
+                audioCodec: nil,
+                extraArgs: [
+                    "-vf", "fps=15,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
+                    "-loop", "0"
+                ]
+            )
+        case .animatedWebp:
+            return .animatedWebp
         }
     }
 
@@ -127,6 +148,8 @@ enum VideoFormat: String, CaseIterable, Identifiable {
             guard FFmpegLocator.isAvailable, FFmpegCapabilities.shared.canEncode(videoCodec) else { return false }
             if let audioCodec { return FFmpegCapabilities.shared.canEncode(audioCodec) }
             return true
+        case .animatedWebp:
+            return FFmpegLocator.isAvailable && WebPLocator.img2webpPath != nil
         }
     }
 

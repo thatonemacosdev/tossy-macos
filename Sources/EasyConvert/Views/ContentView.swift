@@ -14,6 +14,8 @@ struct ContentView: View {
     @State private var resizeWidthText = ""
     @State private var customFilenameText = ""
     @State private var showAdvanced = false
+    @State private var preserveMetadata = true
+    @State private var batchSummaryText: String?
 
     private var targetSizeBytes: Int64? { ByteSize.parse(targetSizeText) }
     private var exportWidths: [Int] { ResolutionList.parse(resizeWidthText) }
@@ -34,7 +36,9 @@ struct ContentView: View {
                 DropZoneView(isTargeted: isTargeted) { isShowingImporter = true }
             } else {
                 List(jobs) { job in
-                    JobRowView(job: job)
+                    JobRowView(job: job, onRetry: {
+                        Task { await convert(job: job) }
+                    })
                 }
                 .listStyle(.inset)
             }
@@ -91,8 +95,15 @@ struct ContentView: View {
                         Toggle("Keep original format (just recompress)", isOn: $keepOriginalFormat)
                             .toggleStyle(.checkbox)
 
+                        Toggle("Preserve original metadata", isOn: $preserveMetadata)
+                            .toggleStyle(.checkbox)
+
                         TargetSizeField(text: $targetSizeText)
 
+                        Spacer()
+                    }
+
+                    HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Filename")
                                 .font(.caption)
@@ -102,28 +113,49 @@ struct ContentView: View {
                                 .frame(width: 120)
                         }
 
-                        MaxFileSizeMenu()
-
-                        Spacer()
-                    }
-
-                    HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Export resolutions")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             TextField("e.g. 1024, 512, 256", text: $resizeWidthText)
                                 .textFieldStyle(.roundedBorder)
-                                .frame(width: 200)
+                                .frame(width: 160)
                         }
 
-                        if exportWidths.count > 1 {
-                            Text("Exports one file per width, suffixed \(exportWidths.map { "_\($0)" }.joined(separator: ", "))")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                        MaxFileSizeMenu()
+
+                        PresetMenu(category: .image(
+                            onApply: { preset in
+                                if let fmt = ImageFormat(rawValue: preset.formatRawValue) { selectedFormat = fmt }
+                                quality = preset.quality
+                                keepOriginalFormat = preset.keepOriginalFormat
+                                targetSizeText = preset.targetSizeText
+                                customFilenameText = preset.customFilenameText
+                                resizeWidthText = preset.resizeWidthText
+                                preserveMetadata = preset.preserveMetadata
+                            },
+                            onSave: { name in
+                                let preset = ImagePreset(
+                                    name: name,
+                                    formatRawValue: selectedFormat.rawValue,
+                                    quality: quality,
+                                    keepOriginalFormat: keepOriginalFormat,
+                                    targetSizeText: targetSizeText,
+                                    customFilenameText: customFilenameText,
+                                    resizeWidthText: resizeWidthText,
+                                    preserveMetadata: preserveMetadata
+                                )
+                                PresetStore.shared.imagePresets.append(preset)
+                            }
+                        ))
 
                         Spacer()
+                    }
+
+                    if exportWidths.count > 1 {
+                        Text("Exports one file per width, suffixed \(exportWidths.map { "_\($0)" }.joined(separator: ", "))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .padding(.top, 6)
@@ -134,12 +166,21 @@ struct ContentView: View {
 
     private var bottomBar: some View {
         HStack {
+            if let batchSummaryText, !batchSummaryText.isEmpty {
+                Text(batchSummaryText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Spacer()
 
             if !jobs.isEmpty {
                 Button("Add Files…") { isShowingImporter = true }
-                Button("Clear") { jobs.removeAll() }
-                    .disabled(isConverting)
+                Button("Clear") {
+                    jobs.removeAll()
+                    batchSummaryText = nil
+                }
+                .disabled(isConverting)
             }
 
             Button {
@@ -197,6 +238,7 @@ struct ContentView: View {
 
     private func convertAll() async {
         isConverting = true
+        batchSummaryText = nil
         defer { isConverting = false }
 
         let pendingJobs = jobs.filter {
@@ -211,6 +253,10 @@ struct ContentView: View {
                 }
             }
         }
+
+        let summary = BatchSummary.summarize(jobs: jobs)
+        batchSummaryText = summary
+        BatchNotifier.notify(summary: summary, jobCount: pendingJobs.count)
     }
 
     private func convert(job: ConversionJob) async {
@@ -239,9 +285,6 @@ struct ContentView: View {
         do {
             if exportWidths.count > 1 {
                 // Multi-resolution export: one output per width, each suffixed with its size.
-                // A failure partway through shouldn't hide the widths that already succeeded
-                // and are sitting on disk — report both, rather than a blanket "failed" that
-                // makes real output look like it doesn't exist.
                 var firstOutput: URL?
                 var succeededWidths: [Int] = []
                 var lastFailure: String?
@@ -254,7 +297,8 @@ struct ContentView: View {
                             destinationFolder: destinationFolder,
                             targetSizeBytes: targetSizeBytes,
                             targetWidth: width,
-                            customBaseName: "\(baseName)_\(width)"
+                            customBaseName: "\(baseName)_\(width)",
+                            preserveMetadata: preserveMetadata
                         )
                         if firstOutput == nil { firstOutput = result.outputURLs.first }
                         succeededWidths.append(width)
@@ -280,7 +324,8 @@ struct ContentView: View {
                     destinationFolder: destinationFolder,
                     targetSizeBytes: targetSizeBytes,
                     targetWidth: exportWidths.first,
-                    customBaseName: customBaseName
+                    customBaseName: customBaseName,
+                    preserveMetadata: preserveMetadata
                 )
                 let note = [formatNote, result.note].compactMap { $0 }.joined(separator: " ")
                 await MainActor.run { job.status = .done(outputURL: result.outputURLs[0], note: note.isEmpty ? nil : note) }
