@@ -71,7 +71,7 @@ struct JobRowView: View {
         case .done(_, let note):
             HStack(spacing: 4) {
                 Label("Done", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(.white)
                 if let note {
                     Text("· \(note)")
                         .foregroundStyle(.secondary)

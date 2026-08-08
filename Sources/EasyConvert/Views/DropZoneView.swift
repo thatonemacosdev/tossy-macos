@@ -23,17 +23,19 @@ struct DropZoneView: View {
 
             Button("Browse…", action: browseAction)
                 .buttonStyle(.borderedProminent)
+                .tint(.white)
+                .foregroundStyle(.black)
                 .padding(.top, 4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8, 6]))
-                .foregroundStyle(isTargeted ? Color.accentColor : Color.secondary.opacity(0.4))
+                .foregroundStyle(isTargeted ? Color.white : Color(white: 0.3))
         )
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(isTargeted ? Color.accentColor.opacity(0.08) : Color.clear)
+                .fill(isTargeted ? Color(white: 0.15) : Color(white: 0.06))
         )
         .padding(24)
         .animation(.easeInOut(duration: 0.15), value: isTargeted)

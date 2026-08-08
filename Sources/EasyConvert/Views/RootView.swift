@@ -15,6 +15,9 @@ struct RootView: View {
             BenchmarkView()
                 .tabItem { Label("Benchmark", systemImage: "speedometer") }
         }
+        .preferredColorScheme(.dark)
+        .tint(.white)
+        .background(Color.black)
         .overlay(alignment: .bottomTrailing) {
             Text("v\(AppVersion.string)")
                 .font(.caption2)

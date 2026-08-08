@@ -173,6 +173,8 @@ struct AudioConvertView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
+            .tint(.white)
+            .foregroundStyle(.black)
             .disabled(jobs.isEmpty || isConverting)
         }
         .padding(12)
