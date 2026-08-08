@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tossy — File Converter &amp; Transformer for Mac</title>
+<title>Tossy: File Converter &amp; Transformer for Mac</title>
 <meta name="description" content="Toss your files in, toss them out in whatever format you need. Convert HEIC, RAW, MKV, WebM, FLAC, Animated GIFs, and 60+ formats locally on Mac. Native, GPU-accelerated, free and open source." />
 <link rel="canonical" href="https://thatonemacosdev.github.io/easyconvert-macOS/" />
 <link rel="icon" type="image/png" sizes="16x16" href="icons/icon_16.png" />
@@ -14,12 +14,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://thatonemacosdev.github.io/easyconvert-macOS/" />
 <meta property="og:site_name" content="Tossy" />
-<meta property="og:title" content="Tossy — File Converter &amp; Transformer for Mac" />
+<meta property="og:title" content="Tossy: File Converter &amp; Transformer for Mac" />
 <meta property="og:description" content="Toss your files in, toss them out in whatever format you need. Convert HEIC, RAW, MKV, WebM, FLAC, Animated GIFs, and 60+ formats locally on Mac." />
 <meta property="og:image" content="https://thatonemacosdev.github.io/easyconvert-macOS/icons/icon_512.png" />
 
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Tossy — File Converter &amp; Transformer for Mac" />
+<meta name="twitter:title" content="Tossy: File Converter &amp; Transformer for Mac" />
 <meta name="twitter:description" content="Toss your files in, toss them out in whatever format you need. Convert HEIC, RAW, MKV, WebM, FLAC, and 60+ formats locally on Mac." />
 <meta name="twitter:image" content="https://thatonemacosdev.github.io/easyconvert-macOS/icons/icon_512.png" />
 
@@ -104,71 +104,54 @@
   ]
 }
 </script>
+
 <style>
   :root {
-    --ink: #0a0a0a;
-    --ink-raised: #161616;
-    --ink-border: #2b2b2b;
-    --foam: #f1f1ef;
-    --slate: #8f8f8f;
-    --signal: #f1f1ef;
-    --signal-dim: #3a3a3a;
-    --hero-photo-opacity: 0.16;
-    --radius: 6px;
-    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
-  }
-
-  :root[data-theme="light"] {
-    --ink: #f7f7f5;
-    --ink-raised: #ffffff;
-    --ink-border: #dcdcda;
-    --foam: #111110;
-    --slate: #6b6b6b;
-    --signal: #111110;
-    --signal-dim: #dcdcda;
-    --hero-photo-opacity: 0.09;
-  }
-
-  @media (prefers-color-scheme: light) {
-    :root:not([data-theme="dark"]) {
-      --ink: #f7f7f5;
-      --ink-raised: #ffffff;
-      --ink-border: #dcdcda;
-      --foam: #111110;
-      --slate: #6b6b6b;
-      --signal: #111110;
-      --signal-dim: #dcdcda;
-      --hero-photo-opacity: 0.09;
-    }
+    --bg-base: #050507;
+    --bg-surface: #101014;
+    --bg-surface-raised: #18181f;
+    --border: #262630;
+    --border-bright: #3d3d4e;
+    --text-primary: #f5f5f7;
+    --text-secondary: #9090a0;
+    --text-muted: #626272;
+    --accent: #ffffff;
+    --accent-bg: #ffffff;
+    --accent-fg: #000000;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   }
 
   * { box-sizing: border-box; }
 
   html {
     scroll-behavior: smooth;
+    background: var(--bg-base);
   }
 
   body {
     margin: 0;
-    background: var(--ink);
-    color: var(--foam);
+    background: var(--bg-base);
+    color: var(--text-primary);
     font-family: var(--sans);
     font-size: 16px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
 
-  a { color: inherit; }
+  a { color: inherit; text-decoration: none; }
   a:focus-visible, button:focus-visible {
-    outline: 2px solid var(--signal);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 
   h1, h2, h3 {
-    font-family: var(--mono);
-    font-weight: 600;
-    text-wrap: balance;
+    font-family: var(--sans);
+    font-weight: 700;
+    letter-spacing: -0.02em;
     margin: 0;
   }
 
@@ -177,505 +160,433 @@
   .wrap {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 0 28px;
+    padding: 0 24px;
   }
 
   .eyebrow {
+    display: inline-block;
     font-family: var(--mono);
     font-size: 12px;
-    letter-spacing: 0.12em;
+    font-weight: 600;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--slate);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    margin-bottom: 20px;
   }
 
-  /* ---------- nav ---------- */
-
+  /* Nav Header */
   header.site-nav {
     position: sticky;
     top: 0;
-    z-index: 20;
-    background: var(--ink);
-    border-bottom: 1px solid var(--ink-border);
+    z-index: 50;
+    background: rgba(5, 5, 7, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
   }
 
   .site-nav .wrap {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 56px;
+    height: 60px;
   }
 
   .brand {
     display: flex;
     align-items: center;
-    gap: 9px;
-    font-family: var(--mono);
-    font-weight: 600;
-    font-size: 15px;
-    letter-spacing: -0.01em;
+    gap: 10px;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.02em;
   }
 
   .brand-mark {
-    width: 22px;
-    height: 22px;
-    border-radius: 5px;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
     flex: none;
-    display: block;
   }
 
   .nav-links {
     display: flex;
     align-items: center;
-    gap: 22px;
-    font-family: var(--mono);
-    font-size: 13.5px;
+    gap: 20px;
+    font-size: 14px;
+    font-weight: 500;
   }
 
   .nav-links a.text-link {
-    color: var(--slate);
-    text-decoration: none;
+    color: var(--text-secondary);
+    transition: color 0.15s ease;
   }
-  .nav-links a.text-link:hover { color: var(--foam); }
+  .nav-links a.text-link:hover { color: var(--text-primary); }
 
-  /* ---------- buttons ---------- */
-
+  /* Buttons */
   .btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    font-family: var(--mono);
-    font-size: 13.5px;
+    font-family: var(--sans);
+    font-size: 14px;
     font-weight: 600;
-    text-decoration: none;
-    padding: 9px 16px;
-    border-radius: var(--radius);
+    padding: 10px 18px;
+    border-radius: var(--radius-md);
     border: 1px solid transparent;
-    white-space: nowrap;
+    transition: all 0.15s ease;
+    cursor: pointer;
   }
 
   .btn-primary {
-    background: var(--signal);
-    color: var(--ink);
+    background: var(--accent-bg);
+    color: var(--accent-fg);
   }
-  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-primary:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
 
   .btn-ghost {
-    border-color: var(--ink-border);
-    color: var(--foam);
+    background: rgba(255,255,255,0.04);
+    border-color: var(--border-bright);
+    color: var(--text-primary);
   }
-  .btn-ghost:hover { border-color: var(--signal); }
+  .btn-ghost:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--text-primary);
+  }
 
-  /* ---------- hero ---------- */
-
+  /* Hero Section */
   .hero {
     position: relative;
-    padding: 96px 0 84px;
+    padding: 100px 0 80px;
     overflow: hidden;
   }
 
   .hero::before {
     content: "";
     position: absolute;
-    inset: 0;
-    background-image: url("screenshots/desktop_hero.jpg");
-    background-size: cover;
-    background-position: center 12%;
-    opacity: var(--hero-photo-opacity);
+    top: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 70%);
+    pointer-events: none;
     z-index: 0;
   }
 
-  .hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, var(--ink) 0%, color-mix(in srgb, var(--ink) 55%, transparent) 45%, var(--ink) 100%);
-    z-index: 0;
-  }
-
-  /* Mirrors the app's own job-row UI (filename, arrow, status) rather than an abstract
-     animation: the clearest way to show what the product actually does at a glance. */
-  .convert-ticker {
+  .hero-inner {
     position: relative;
     z-index: 2;
+    max-width: 680px;
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    margin: 0 0 24px;
+  }
+
+  .hero-sub {
+    font-size: 19px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 54ch;
+    margin-bottom: 32px;
+  }
+
+  /* Interactive Ticker */
+  .convert-ticker {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     font-family: var(--mono);
-    font-size: 13px;
-    padding: 10px 14px;
-    border: 1px solid var(--ink-border);
-    border-radius: var(--radius);
-    background: var(--ink-raised);
-    margin-bottom: 28px;
+    font-size: 13.5px;
+    padding: 12px 18px;
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    margin-bottom: 32px;
   }
 
   .ct-from, .ct-to {
-    color: var(--foam);
+    color: var(--text-primary);
+    font-weight: 500;
     transition: opacity 0.25s ease;
   }
-  .ct-arrow { color: var(--slate); }
+  .ct-arrow { color: var(--text-muted); }
 
   .ct-status {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    color: var(--slate);
-    margin-left: 4px;
-    padding-left: 10px;
-    border-left: 1px solid var(--ink-border);
+    gap: 6px;
+    color: var(--text-secondary);
+    padding-left: 12px;
+    border-left: 1px solid var(--border);
   }
 
   .ct-status::before {
     content: "";
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background: var(--slate);
+    background: var(--text-muted);
     flex: none;
   }
 
-  .ct-status.is-done::before { background: var(--signal); }
-  .ct-status.is-done { color: var(--foam); }
+  .ct-status.is-done::before { background: #ffffff; }
+  .ct-status.is-done { color: var(--text-primary); }
 
   .convert-ticker.is-fading .ct-from,
   .convert-ticker.is-fading .ct-to {
     opacity: 0;
   }
 
-  .hero-inner {
-    position: relative;
-    z-index: 2;
-    max-width: 640px;
-  }
-
-  .hero h1 {
-    font-size: clamp(34px, 5vw, 52px);
-    line-height: 1.12;
-    letter-spacing: -0.015em;
-    margin: 18px 0 22px;
-  }
-
-  .hero-sub {
-    font-size: 17px;
-    color: var(--slate);
-    max-width: 52ch;
-    margin-bottom: 34px;
-  }
-
   .cta-row {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 16px;
     flex-wrap: wrap;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
   }
 
   .meta-line {
     font-family: var(--mono);
-    font-size: 12.5px;
-    color: var(--slate);
+    font-size: 13px;
+    color: var(--text-muted);
   }
 
-  .meta-line span { color: var(--foam); }
-  .meta-line .sep { color: var(--ink-border); margin: 0 8px; }
+  .meta-line span { color: var(--text-secondary); }
+  .meta-line .sep { color: var(--border); margin: 0 8px; }
 
-  /* ---------- reveal ---------- */
-
-  .js-reveal .reveal-item {
-    opacity: 0;
-    transform: translateY(18px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  .js-reveal .reveal-item.is-visible {
-    opacity: 1;
-    transform: translateY(0);
+  /* Feature Grid Section */
+  section.features {
+    padding: 80px 0;
+    border-top: 1px solid var(--border);
   }
 
-  /* ---------- rows section ---------- */
-
-  section.rows {
-    padding: 88px 0;
-    border-top: 1px solid var(--ink-border);
+  .features-head {
+    max-width: 580px;
+    margin-bottom: 56px;
   }
 
-  .row {
+  .features-head h2 {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .features-head p {
+    font-size: 17px;
+    color: var(--text-secondary);
+  }
+
+  .feature-cards {
     display: grid;
-    grid-template-columns: 140px 1fr;
-    gap: 32px;
-    padding: 34px 0;
-    border-top: 1px solid var(--ink-border);
-  }
-  .rows-head + .row { border-top: none; padding-top: 0; }
-
-  .rows-head {
-    margin-bottom: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
   }
 
-  .rows-head h2 {
-    font-size: 24px;
-    margin-bottom: 8px;
+  .feature-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
   }
 
-  .row .label {
+  .feature-card:hover {
+    border-color: var(--border-bright);
+    transform: translateY(-2px);
+  }
+
+  .feature-card .tag {
     font-family: var(--mono);
-    font-size: 13px;
-    color: var(--signal);
-    padding-top: 4px;
-  }
-
-  .row h3 {
-    font-size: 20px;
-    margin-bottom: 10px;
-    letter-spacing: -0.01em;
-  }
-
-  .row p {
-    color: var(--slate);
-    max-width: 62ch;
-    font-size: 15.5px;
-  }
-
-  @media (max-width: 640px) {
-    .row { grid-template-columns: 1fr; gap: 8px; }
-  }
-
-  /* ---------- screenshots ---------- */
-
-  section.gallery {
-    padding: 88px 0;
-    border-top: 1px solid var(--ink-border);
-  }
-
-  .gallery-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 30px;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-
-  .gallery-head h2 { font-size: 24px; }
-
-  .gallery-hint {
-    font-family: var(--mono);
-    font-size: 12.5px;
-    color: var(--slate);
-    max-width: 34ch;
-  }
-
-  .filmstrip {
-    display: flex;
-    gap: 20px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding-bottom: 14px;
-    margin: 0 -28px;
-    padding-left: 28px;
-    padding-right: 28px;
-  }
-
-  .frame {
-    flex: 0 0 auto;
-    width: min(78vw, 460px);
-    scroll-snap-align: start;
-  }
-
-  .window-chrome {
-    background: var(--ink-raised);
-    border: 1px solid var(--ink-border);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  .chrome-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 11px;
-    border-bottom: 1px solid var(--ink-border);
-  }
-
-  .dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--ink-border);
-  }
-
-  .shot-area {
-    aspect-ratio: 16 / 10;
-    position: relative;
-    background:
-      repeating-linear-gradient(135deg, transparent 0 10px, color-mix(in srgb, var(--slate) 8%, transparent) 10px 11px);
-  }
-
-  .shot-area img {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top;
-  }
-
-  .shot-area img.img-missing { display: none; }
-
-  .shot-placeholder {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 20px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--slate);
-    line-height: 1.5;
-  }
-
-  .frame figcaption {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--slate);
-    margin-top: 12px;
-    padding: 0 2px;
-  }
-  .frame figcaption strong { color: var(--foam); }
-
-  /* ---------- honesty section ---------- */
-
-  section.note {
-    padding: 88px 0;
-    border-top: 1px solid var(--ink-border);
-  }
-
-  .note-inner { max-width: 62ch; }
-
-  section.note h2 { font-size: 24px; margin-bottom: 20px; }
-
-  section.note p {
-    color: var(--slate);
-    font-size: 15.5px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
     margin-bottom: 16px;
   }
 
-  section.note p:last-of-type { margin-bottom: 0; }
+  .feature-card h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
 
-  .license-strip {
-    margin-top: 28px;
-    padding: 14px 18px;
-    border: 1px solid var(--ink-border);
-    border-radius: var(--radius);
+  .feature-card p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* Gallery Section */
+  section.gallery {
+    padding: 80px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+    gap: 32px;
+  }
+
+  .window-frame {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 12px 16px;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border-bright);
+  }
+
+  .window-media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .window-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .img-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .window-caption {
+    padding: 16px 20px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+  }
+
+  /* Privacy Section */
+  section.privacy {
+    padding: 80px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .privacy-box {
+    background: var(--bg-surface-raised);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-lg);
+    padding: 48px;
+    max-width: 800px;
+  }
+
+  .privacy-box h2 {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  .privacy-box p {
+    font-size: 17px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .license-note {
     font-family: var(--mono);
     font-size: 12.5px;
-    color: var(--slate);
+    color: var(--text-muted);
   }
 
-  .license-strip a { color: var(--signal); text-decoration: underline; text-underline-offset: 2px; }
-  .license-strip a:hover { color: var(--slate); }
-
-  /* ---------- faq ---------- */
-
+  /* FAQ Section */
   section.faq {
-    padding: 88px 0;
-    border-top: 1px solid var(--ink-border);
+    padding: 80px 0;
+    border-top: 1px solid var(--border);
   }
 
-  section.faq h2 { font-size: 24px; margin-bottom: 30px; }
-
-  .faq-item {
-    padding: 22px 0;
-    border-top: 1px solid var(--ink-border);
+  .faq h2 {
+    font-size: 32px;
+    margin-bottom: 40px;
   }
-  .faq-item:first-of-type { border-top: none; padding-top: 0; }
+
+  .faq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+  }
 
   .faq-item h3 {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 18px;
     margin-bottom: 8px;
-    letter-spacing: -0.005em;
   }
 
   .faq-item p {
-    color: var(--slate);
     font-size: 15px;
-    max-width: 62ch;
+    color: var(--text-secondary);
   }
 
-  /* ---------- footer ---------- */
-
+  /* Footer */
   footer {
-    border-top: 1px solid var(--ink-border);
-    padding: 32px 0 48px;
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-muted);
   }
 
   footer .wrap {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
-    font-family: var(--mono);
-    font-size: 12.5px;
-    color: var(--slate);
+    gap: 16px;
   }
 
-  footer a { text-decoration: none; color: var(--slate); }
-  footer a:hover { color: var(--foam); }
-
-  .gh-bubble {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    z-index: 50;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 14px 9px 11px;
-    background: var(--ink-raised);
-    border: 1px solid var(--ink-border);
-    border-radius: 999px;
-    font-family: var(--mono);
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--foam);
-    text-decoration: none;
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 55%, transparent);
-    transition: transform 0.18s ease, border-color 0.18s ease;
-  }
-
-  .gh-bubble:hover {
-    transform: translateY(-2px);
-    border-color: var(--signal);
-  }
-
-  .gh-bubble svg {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
-    flex: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .js-reveal .reveal-item {
-      opacity: 1;
-      transform: none;
-      transition: none;
-    }
+  @media (max-width: 640px) {
+    .gallery-grid { grid-template-columns: 1fr; }
+    .hero { padding: 60px 0 50px; }
   }
 </style>
 </head>
+
 <body>
 
 <header class="site-nav">
   <div class="wrap">
     <div class="brand">
-      <img class="brand-mark" src="icons/icon_64.png" alt="" width="22" height="22" />
+      <img class="brand-mark" src="icons/icon_64.png" alt="Tossy" width="26" height="26" />
       tossy
     </div>
     <nav class="nav-links">
@@ -690,22 +601,24 @@
   <section class="hero">
     <div class="wrap">
       <div class="hero-inner">
-        <p class="eyebrow">macOS · file transformation utility</p>
+        <span class="eyebrow">macOS · file transformation utility</span>
         <h1>Toss your files. Done.</h1>
         <p class="hero-sub">
-          Tossy is a fast, native macOS utility for converting and transforming your files.
-          Just toss something in and let Tossy handle the rest.
+          Tossy is a fast, native macOS utility for converting and transforming your files. Just toss something in and let Tossy handle the rest.
         </p>
+        
         <div class="convert-ticker" id="ticker" aria-hidden="true">
           <span class="ct-from" id="ct-from">clip.mov</span>
           <span class="ct-arrow">→</span>
           <span class="ct-to" id="ct-to">clip.mkv</span>
           <span class="ct-status" id="ct-status">converting</span>
         </div>
+
         <div class="cta-row">
           <a class="btn btn-primary" href="https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/v1.3.0">Download Tossy v1.3.0</a>
-          <a class="btn btn-ghost" href="https://github.com/thatonemacosdev/easyconvert-macOS">View source →</a>
+          <a class="btn btn-ghost" href="https://github.com/thatonemacosdev/easyconvert-macOS">View on GitHub →</a>
         </div>
+
         <p class="meta-line">
           <span>macOS 14+</span><span class="sep">/</span><span>Apple Silicon &amp; Intel</span><span class="sep">/</span><span>20 MB</span><span class="sep">/</span><span>GPL-3.0</span>
         </p>
@@ -713,209 +626,80 @@
     </div>
   </section>
 
-  <section class="rows">
+  <section class="features">
     <div class="wrap">
-
-      <div class="rows-head reveal-item">
-        <h2>What it converts</h2>
-        <p class="gallery-hint">Images, video, and audio, all in one native app, all processed locally on your Mac.</p>
+      <div class="features-head">
+        <h2>Built for Mac. Designed for speed.</h2>
+        <p>Simple, private, and powerful. Tossy handles images, video, and audio locally without complex terminal flags.</p>
       </div>
 
-      <div class="row reveal-item">
-        <div class="label">Images</div>
-        <div>
-          <h3>20 output formats, including RAW and vector sources</h3>
-          <p>
-            PNG, JPEG, HEIC, WebP, AVIF, JPEG XL, TIFF, PSD, ICNS, EXR, and more, plus RAW
-            straight from a camera (CR2, CR3, ARW, DNG, and most others) and rasterizing SVG
-            or PDF pages. Compress to a target file size, resize, or export several
-            resolutions from one source in a single pass.
-          </p>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <div class="tag">Just Toss It In</div>
+          <h3>Drag and drop simplicity</h3>
+          <p>Toss single files or multi-file batches into Tossy. Pick an output format or quality preset, then let Tossy run.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="tag">GPU Accelerated</div>
+          <h3>Native Metal &amp; VideoToolbox</h3>
+          <p>Uses Metal-backed Core Image processing for images and hardware VideoToolbox encoding for H.264, HEVC, and ProRes clips.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="tag">Target Size Fitting</div>
+          <h3>Fit to exact megabyte targets</h3>
+          <p>Specify a size target like 25MB and Tossy dynamically searches quality and bitrate settings to compress your file to fit.</p>
         </div>
       </div>
-
-      <div class="row reveal-item">
-        <div class="label">Video</div>
-        <div>
-          <h3>28 containers and codecs</h3>
-          <p>
-            Hardware-encoded H.264, HEVC, and ProRes via VideoToolbox, or MKV, WebM, AV1,
-            DNxHD, DV, and the rest of the container zoo through a bundled ffmpeg. Nothing
-            to install separately.
-          </p>
-        </div>
-      </div>
-
-      <div class="row reveal-item">
-        <div class="label">Audio</div>
-        <div>
-          <h3>14 formats, lossy and lossless</h3>
-          <p>
-            MP3 through FLAC through Opus. Target-size compression adjusts bitrate for
-            lossy formats and sample rate for PCM ones, depending on what the format
-            actually supports.
-          </p>
-        </div>
-      </div>
-
-      <div class="row reveal-item">
-        <div class="label">Benchmark</div>
-        <div>
-          <h3>A real 0–100 score</h3>
-          <p>
-            Times actual conversions on your machine and scores them against a calibrated
-            baseline, so the number means the same thing on your Mac as it does on someone
-            else's, not just whatever ran fastest this time.
-          </p>
-        </div>
-      </div>
-
     </div>
   </section>
 
   <section class="gallery">
     <div class="wrap">
-      <div class="gallery-head reveal-item">
-        <h2>See it running</h2>
-        <p class="gallery-hint">Screenshots go in /screenshots: drop in the four files named below.</p>
-      </div>
-      <div class="filmstrip">
-
-        <figure class="frame reveal-item">
-          <div class="window-chrome">
-            <div class="chrome-bar">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            </div>
-            <div class="shot-area">
-              <img src="screenshots/image.png" alt="Tossy Images tab on macOS, showing drag and drop HEIC, RAW, and JPEG conversion with target-size compression" onerror="this.classList.add('img-missing')" />
-              <div class="shot-placeholder">screenshots/image.png<br />1280 × 800</div>
+      <div class="gallery-grid">
+        
+        <div class="window-frame">
+          <div class="window-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <div class="window-media">
+            <img src="screenshots/image.png" alt="Tossy Images tab on macOS" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="img-placeholder" style="display:none;">
+              <span>screenshots/image.png</span>
+              <span>1280 × 800</span>
             </div>
           </div>
-          <figcaption><strong>Images</strong>: toss in, target-size compression</figcaption>
-        </figure>
-
-        <figure class="frame reveal-item">
-          <div class="window-chrome">
-            <div class="chrome-bar">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            </div>
-            <div class="shot-area">
-              <img src="screenshots/video.png" alt="Tossy Video tab on macOS, converting between MP4, MKV, WebM, and other formats with hardware and ffmpeg-backed encoding" onerror="this.classList.add('img-missing')" />
-              <div class="shot-placeholder">screenshots/video.png<br />1280 × 800</div>
-            </div>
-          </div>
-          <figcaption><strong>Video</strong>: hardware and ffmpeg-backed formats side by side</figcaption>
-        </figure>
-
-        <figure class="frame reveal-item">
-          <div class="window-chrome">
-            <div class="chrome-bar">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            </div>
-            <div class="shot-area">
-              <img src="screenshots/audio.png" alt="Tossy Audio tab on macOS, converting MP3, FLAC, WAV, and other audio formats with a bitrate picker" onerror="this.classList.add('img-missing')" />
-              <div class="shot-placeholder">screenshots/audio.png<br />1280 × 800</div>
-            </div>
-          </div>
-          <figcaption><strong>Audio</strong>: bitrate and format picker</figcaption>
-        </figure>
-
-        <figure class="frame reveal-item">
-          <div class="window-chrome">
-            <div class="chrome-bar">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            </div>
-            <div class="shot-area">
-              <img src="screenshots/benchmark.png" alt="Tossy Benchmark tab on macOS, scoring real conversion performance from 0 to 100 against a calibrated baseline" onerror="this.classList.add('img-missing')" />
-              <div class="shot-placeholder">screenshots/benchmark.png<br />1280 × 800</div>
-            </div>
-          </div>
-          <figcaption><strong>Benchmark</strong>: scored results table</figcaption>
-        </figure>
-
-      </div>
-      <div class="row-card reveal-item">
-          <div class="row-info">
-            <span class="row-tag">Images</span>
-            <h2>GPU-accelerated image pipeline.</h2>
-            <p>
-              Metal-backed Core Image processing for color management and GPU resampling.
-              Target-size fitting dynamically searches quality and resolution to meet your exact target size.
-            </p>
-          </div>
-          <div class="row-media">
-            <div class="media-frame">
-              <img src="screenshots/image.png" alt="Tossy Images tab on macOS, showing drag and drop HEIC, RAW, and JPEG conversion with target-size compression" onerror="this.classList.add('img-missing')" />
-            </div>
-          </div>
+          <div class="window-caption"><strong>Images</strong>: Toss in HEIC, RAW, JPEG, WebP, AVIF, SVG, or PDF</div>
         </div>
 
-        <div class="row-card reveal-item">
-          <div class="row-info">
-            <span class="row-tag">Video</span>
-            <h2>Hardware VideoToolbox plus bundled ffmpeg.</h2>
-            <p>
-              Hardware HEIC/H.264/HEVC/ProRes encoding routed through VideoToolbox, alongside
-              MKV, WebM, AVI, FLV, Animated GIFs, and Animated WebP via bundled ffmpeg.
-            </p>
+        <div class="window-frame">
+          <div class="window-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
           </div>
-          <div class="row-media">
-            <div class="media-frame">
-              <img src="screenshots/video.png" alt="Tossy Video tab on macOS, converting between MP4, MKV, WebM, and other formats with hardware and ffmpeg-backed encoding" onerror="this.classList.add('img-missing')" />
+          <div class="window-media">
+            <img src="screenshots/video.png" alt="Tossy Video tab on macOS" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="img-placeholder" style="display:none;">
+              <span>screenshots/video.png</span>
+              <span>1280 × 800</span>
             </div>
           </div>
-        </div>
-
-        <div class="row-card reveal-item">
-          <div class="row-info">
-            <span class="row-tag">Audio</span>
-            <h2>Comprehensive audio transcoding.</h2>
-            <p>
-              Convert between MP3, AAC, WAV, FLAC, ALAC, OGG, Opus, WMA, AC3, and more.
-            </p>
-          </div>
-          <div class="row-media">
-            <div class="media-frame">
-              <img src="screenshots/audio.png" alt="Tossy Audio tab on macOS, converting MP3, FLAC, WAV, and other audio formats with a bitrate picker" onerror="this.classList.add('img-missing')" />
-            </div>
-          </div>
-        </div>
-
-        <div class="row-card reveal-item">
-          <div class="row-info">
-            <span class="row-tag">Benchmark</span>
-            <h2>Scored benchmark suite.</h2>
-            <p>
-              Measure real conversion throughput on your machine, scored from 0 to 100 against a calibrated baseline.
-            </p>
-          </div>
-          <div class="row-media">
-            <div class="media-frame">
-              <img src="screenshots/benchmark.png" alt="Tossy Benchmark tab on macOS, scoring real conversion performance from 0 to 100 against a calibrated baseline" onerror="this.classList.add('img-missing')" />
-            </div>
-          </div>
+          <div class="window-caption"><strong>Video</strong>: MP4, MOV, MKV, WebM, Animated GIF, Animated WebP</div>
         </div>
 
       </div>
     </div>
   </section>
 
-  <section class="under-hood">
+  <section class="privacy">
     <div class="wrap">
-      <div class="uh-content reveal-item">
-        <span class="uh-eyebrow">Local &amp; Private</span>
+      <div class="privacy-box">
         <h2>Your files stay on your Mac.</h2>
         <p>
-          Apple's own frameworks are genuinely good at what they cover (RAW decoding, HEIC,
-          hardware H.264/HEVC/ProRes), but they stop well short of MKV, most legacy codecs,
-          and most audio formats. Rather than pretend otherwise, Tossy uses Core Image
-          and VideoToolbox where they reach, and falls back to a bundled, self-contained
-          ffmpeg (plus the WebP and JPEG XL reference tools) for everything else. No
-          Homebrew, no separate install, no terminal.
+          Local by default. Private by design. Every conversion runs locally on your machine using Apple's native frameworks and a bundled, self-contained ffmpeg. Nothing is ever uploaded to a server or external service.
         </p>
-        <div class="license-strip">
-          App code: GPL-3.0. Bundled ffmpeg: GPL (libx264/libx265). WebP &amp; JPEG XL tools: BSD.
-          Details in <a href="https://github.com/thatonemacosdev/easyconvert-macOS/blob/main/Vendor/ffmpeg/LICENSE_NOTICE.md">LICENSE_NOTICE.md</a>.
+        <div class="license-note">
+          App source: GPL-3.0. Bundled ffmpeg: GPL (libx264/libx265). WebP &amp; JPEG XL tools: BSD.
         </div>
       </div>
     </div>
@@ -923,36 +707,27 @@
 
   <section class="faq">
     <div class="wrap">
-      <h2 class="reveal-item">Questions</h2>
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h3>Is Tossy free?</h3>
+          <p>Yes. It is free and open source under GPL-3.0. No accounts, no subscriptions, and no ads.</p>
+        </div>
 
-      <div class="faq-item reveal-item">
-        <h3>Is Tossy free?</h3>
-        <p>Yes. It's free and open source under GPL-3.0. No account, no subscription, no ads.</p>
-      </div>
+        <div class="faq-item">
+          <h3>Does Tossy upload my files anywhere?</h3>
+          <p>No. Every operation executes entirely offline on your Mac. No data ever leaves your device.</p>
+        </div>
 
-      <div class="faq-item reveal-item">
-        <h3>Does Tossy upload my files anywhere?</h3>
-        <p>No. Every conversion runs locally on your Mac, using Apple's own frameworks or the bundled ffmpeg. Nothing is ever sent to a server.</p>
-      </div>
+        <div class="faq-item">
+          <h3>Do I need to install Homebrew or ffmpeg?</h3>
+          <p>No. ffmpeg, WebP, and JPEG XL reference binaries are bundled directly inside Tossy and run standalone.</p>
+        </div>
 
-      <div class="faq-item reveal-item">
-        <h3>Do I need to install ffmpeg or Homebrew separately?</h3>
-        <p>No. ffmpeg and the other tools Tossy needs are bundled inside the app and run standalone.</p>
-      </div>
-
-      <div class="faq-item reveal-item">
-        <h3>What macOS version does it need?</h3>
-        <p>macOS 14 or later, on Apple Silicon or Intel.</p>
-      </div>
-
-      <div class="faq-item reveal-item">
-        <h3>Can I compress a file to an exact size?</h3>
-        <p>Yes. Set a target size like 25MB in the Advanced section and Tossy searches for a quality or bitrate that fits.</p>
-      </div>
-
-      <div class="faq-item reveal-item">
-        <h3>What formats does it support?</h3>
-        <p>20 image formats, 28 video formats, and 14 audio formats, including HEIC, RAW camera files, MKV, WebM, and FLAC. Full list in the README.</p>
+        <div class="faq-item">
+          <h3>What formats are supported?</h3>
+          <p>Over 60 formats across images, video, and audio: HEIC, RAW camera files, MP4, MKV, WebM, FLAC, Animated GIFs, and Animated WebP.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -966,35 +741,7 @@
   </div>
 </footer>
 
-<a class="gh-bubble" href="https://github.com/thatonemacosdev" target="_blank" rel="noopener noreferrer" aria-label="thatonemacosdev on GitHub">
-  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg>
-  thatonemacosdev
-</a>
-
 <script>
-  document.documentElement.classList.add('js-reveal');
-
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if ('IntersectionObserver' in window) {
-    var items = document.querySelectorAll('.reveal-item');
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12 });
-    items.forEach(function (el) { io.observe(el); });
-  } else {
-    document.querySelectorAll('.reveal-item').forEach(function (el) {
-      el.classList.add('is-visible');
-    });
-  }
-
-  // Hero ticker: cycles through real example conversions, mirroring the app's own job-row
-  // pattern (filename, arrow, status) instead of an abstract ambient animation.
   (function () {
     var ticker = document.getElementById('ticker');
     var fromEl = document.getElementById('ct-from');
@@ -1010,12 +757,6 @@
       ['raw.cr2', 'raw.dng'],
       ['icon.svg', 'icon.icns']
     ];
-
-    if (reduceMotion) {
-      statusEl.textContent = 'done';
-      statusEl.classList.add('is-done');
-      return;
-    }
 
     var index = 0;
 
