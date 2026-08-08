@@ -7,7 +7,7 @@ enum FFmpegError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notAvailable:
-            return "ffmpeg isn't available. Reinstall EasyConvert or install ffmpeg via Homebrew."
+            return "ffmpeg isn't available. Reinstall Tossy or install ffmpeg via Homebrew."
         case .processFailed(let message):
             return message
         }

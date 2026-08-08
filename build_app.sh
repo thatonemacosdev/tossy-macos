@@ -1,11 +1,11 @@
 #!/bin/bash
-# Builds EasyConvert in release mode and packages it as a double-clickable .app bundle.
+# Builds Tossy in release mode and packages it as a double-clickable .app bundle.
 set -euo pipefail
 
 cd "$(dirname "$0")"
 
 CONFIG="release"
-APP_NAME="EasyConvert"
+APP_NAME="Tossy"
 BUILD_DIR=".build/${CONFIG}"
 APP_BUNDLE="./${APP_NAME}.app"
 

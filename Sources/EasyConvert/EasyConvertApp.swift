@@ -1,9 +1,9 @@
 import SwiftUI
 
 @main
-struct EasyConvertApp: App {
+struct TossyApp: App {
     var body: some Scene {
-        WindowGroup("EasyConvert") {
+        WindowGroup("Tossy") {
             RootView()
         }
         .windowResizability(.contentSize)

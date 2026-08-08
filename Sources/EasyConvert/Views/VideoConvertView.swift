@@ -35,8 +35,8 @@ struct VideoConvertView: View {
                 DropZoneView(
                     isTargeted: isTargeted,
                     icon: "video.badge.arrow.down",
-                    title: "Drag videos here to convert",
-                    subtitle: "MP4, MOV, M4V, and more — encoded in hardware via VideoToolbox"
+                    title: "Toss videos here to convert",
+                    subtitle: "MP4, MOV, MKV, WebM, AVI, FLV, Animated GIF, and more"
                 ) { isShowingImporter = true }
             } else {
                 List(jobs) { job in

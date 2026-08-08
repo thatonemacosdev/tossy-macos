@@ -34,7 +34,7 @@ struct AudioConvertView: View {
                 DropZoneView(
                     isTargeted: isTargeted,
                     icon: "waveform.badge.arrow.down",
-                    title: "Drag audio here to convert",
+                    title: "Toss audio here to convert",
                     subtitle: "MP3, AAC, WAV, FLAC, ALAC, OGG, Opus, WMA, AC3, and more"
                 ) { isShowingImporter = true }
             } else {

@@ -3,8 +3,8 @@ import SwiftUI
 struct DropZoneView: View {
     let isTargeted: Bool
     var icon: String = "photo.badge.arrow.down"
-    var title: String = "Drag images here to convert"
-    var subtitle: String = "PNG, JPEG, HEIC, TIFF, BMP, GIF, JPEG 2000, AVIF, ICO, TGA, and more"
+    var title: String = "Toss images here to convert"
+    var subtitle: String = "PNG, JPEG, HEIC, TIFF, BMP, GIF, WebP, RAW camera files, and more"
     let browseAction: () -> Void
 
     var body: some View {

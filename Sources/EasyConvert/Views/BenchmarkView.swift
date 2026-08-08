@@ -6,7 +6,7 @@ struct BenchmarkView: View {
     @State private var statusText = "Runs synthetic, GPU-generated test images, a 1080p test clip, and a test tone — no sample files needed."
 
     private let service = BenchmarkService()
-    private let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("EasyConvertBenchmark", isDirectory: true)
+    private let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("TossyBenchmark", isDirectory: true)
 
     var body: some View {
         VStack(spacing: 0) {

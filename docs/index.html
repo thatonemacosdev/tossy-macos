@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>EasyConvert: Free macOS Converter for Images, Video, and Audio</title>
-<meta name="description" content="Convert HEIC, RAW, MKV, WebM, FLAC, and 60+ other formats on Mac without Terminal or uploads. Native SwiftUI app, GPU-accelerated, free and open source." />
+<title>Tossy — File Converter &amp; Transformer for Mac</title>
+<meta name="description" content="Toss your files in, toss them out in whatever format you need. Convert HEIC, RAW, MKV, WebM, FLAC, Animated GIFs, and 60+ formats locally on Mac. Native, GPU-accelerated, free and open source." />
 <link rel="canonical" href="https://thatonemacosdev.github.io/easyconvert-macOS/" />
 <link rel="icon" type="image/png" sizes="16x16" href="icons/icon_16.png" />
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon_32.png" />
@@ -13,32 +13,32 @@
 
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://thatonemacosdev.github.io/easyconvert-macOS/" />
-<meta property="og:site_name" content="EasyConvert" />
-<meta property="og:title" content="EasyConvert: Free macOS Converter for Images, Video, and Audio" />
-<meta property="og:description" content="Convert HEIC, RAW, MKV, WebM, FLAC, and 60+ other formats on Mac without Terminal or uploads. Native, GPU-accelerated, free and open source." />
+<meta property="og:site_name" content="Tossy" />
+<meta property="og:title" content="Tossy — File Converter &amp; Transformer for Mac" />
+<meta property="og:description" content="Toss your files in, toss them out in whatever format you need. Convert HEIC, RAW, MKV, WebM, FLAC, Animated GIFs, and 60+ formats locally on Mac." />
 <meta property="og:image" content="https://thatonemacosdev.github.io/easyconvert-macOS/icons/icon_512.png" />
 
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="EasyConvert: Free macOS Converter for Images, Video, and Audio" />
-<meta name="twitter:description" content="Convert HEIC, RAW, MKV, WebM, FLAC, and 60+ other formats on Mac without Terminal or uploads." />
+<meta name="twitter:title" content="Tossy — File Converter &amp; Transformer for Mac" />
+<meta name="twitter:description" content="Toss your files in, toss them out in whatever format you need. Convert HEIC, RAW, MKV, WebM, FLAC, and 60+ formats locally on Mac." />
 <meta name="twitter:image" content="https://thatonemacosdev.github.io/easyconvert-macOS/icons/icon_512.png" />
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "EasyConvert",
-  "description": "A native macOS app that converts images, video, and audio without Terminal or uploads. GPU-accelerated via Metal and hardware VideoToolbox encoding where Apple's frameworks reach, a bundled ffmpeg for everything else.",
+  "name": "Tossy",
+  "description": "A native macOS file transformation utility. Toss your files in, get them out in whatever format you need. GPU-accelerated via Metal and hardware VideoToolbox encoding where Apple's frameworks reach, a bundled ffmpeg for everything else.",
   "url": "https://thatonemacosdev.github.io/easyconvert-macOS/",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "macOS 14+",
-  "softwareVersion": "1.2.1",
+  "softwareVersion": "1.3.0",
   "offers": {
     "@type": "Offer",
     "price": "0",
     "priceCurrency": "USD"
   },
-  "downloadUrl": "https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/v1.2.1",
+  "downloadUrl": "https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/v1.3.0",
   "image": "https://thatonemacosdev.github.io/easyconvert-macOS/icons/icon_512.png",
   "author": {
     "@type": "Person",
@@ -55,7 +55,7 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Is EasyConvert free?",
+      "name": "Is Tossy free?",
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "Yes. It's free and open source under GPL-3.0. No account, no subscription, no ads."
@@ -63,7 +63,7 @@
     },
     {
       "@type": "Question",
-      "name": "Does EasyConvert upload my files anywhere?",
+      "name": "Does Tossy upload my files anywhere?",
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "No. Every conversion runs locally on your Mac, using Apple's own frameworks or the bundled ffmpeg. Nothing is ever sent to a server."
@@ -74,12 +74,12 @@
       "name": "Do I need to install ffmpeg or Homebrew separately?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. ffmpeg and the other tools EasyConvert needs are bundled inside the app and run standalone."
+        "text": "No. ffmpeg and the other tools Tossy needs are bundled inside the app and run standalone."
       }
     },
     {
       "@type": "Question",
-      "name": "What macOS version does EasyConvert need?",
+      "name": "What macOS version does Tossy need?",
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "macOS 14 or later, on Apple Silicon or Intel."
@@ -87,15 +87,15 @@
     },
     {
       "@type": "Question",
-      "name": "Can EasyConvert compress a file to an exact size?",
+      "name": "Can Tossy compress a file to an exact size?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Set a target size like 25MB in the Advanced section and EasyConvert searches for a quality or bitrate that fits."
+        "text": "Yes. Set a target size like 25MB in the Advanced section and Tossy searches for a quality or bitrate that fits."
       }
     },
     {
       "@type": "Question",
-      "name": "What file formats does EasyConvert support?",
+      "name": "What file formats does Tossy support?",
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "20 image formats, 28 video formats, and 14 audio formats, including HEIC, RAW camera files, MKV, WebM, and FLAC."
@@ -676,11 +676,11 @@
   <div class="wrap">
     <div class="brand">
       <img class="brand-mark" src="icons/icon_64.png" alt="" width="22" height="22" />
-      easyconvert
+      tossy
     </div>
     <nav class="nav-links">
       <a class="text-link" href="https://github.com/thatonemacosdev/easyconvert-macOS">GitHub</a>
-      <a class="btn btn-primary" href="https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/v1.2.1">Download</a>
+      <a class="btn btn-primary" href="https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/v1.3.0">Download</a>
     </nav>
   </div>
 </header>
@@ -690,12 +690,11 @@
   <section class="hero">
     <div class="wrap">
       <div class="hero-inner">
-        <p class="eyebrow">macOS · universal file converter</p>
-        <h1>Convert almost anything.<br />Without opening Terminal.</h1>
+        <p class="eyebrow">macOS · file transformation utility</p>
+        <h1>Toss your files. Done.</h1>
         <p class="hero-sub">
-          A native macOS app for images, video, and audio. GPU-accelerated Core Image and
-          hardware VideoToolbox encoding where Apple's own frameworks reach, and a bundled,
-          self-contained ffmpeg for everything else.
+          Tossy is a fast, native macOS utility for converting and transforming your files.
+          Just toss something in and let Tossy handle the rest.
         </p>
         <div class="convert-ticker" id="ticker" aria-hidden="true">
           <span class="ct-from" id="ct-from">clip.mov</span>
@@ -704,7 +703,7 @@
           <span class="ct-status" id="ct-status">converting</span>
         </div>
         <div class="cta-row">
-          <a class="btn btn-primary" href="https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/v1.2.1">Download v1.2.1</a>
+          <a class="btn btn-primary" href="https://github.com/thatonemacosdev/easyconvert-macOS/releases/tag/v1.3.0">Download Tossy v1.3.0</a>
           <a class="btn btn-ghost" href="https://github.com/thatonemacosdev/easyconvert-macOS">View source →</a>
         </div>
         <p class="meta-line">
@@ -788,11 +787,11 @@
               <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             </div>
             <div class="shot-area">
-              <img src="screenshots/image.png" alt="EasyConvert Images tab on macOS, showing drag and drop HEIC, RAW, and JPEG conversion with target-size compression" onerror="this.classList.add('img-missing')" />
+              <img src="screenshots/image.png" alt="Tossy Images tab on macOS, showing drag and drop HEIC, RAW, and JPEG conversion with target-size compression" onerror="this.classList.add('img-missing')" />
               <div class="shot-placeholder">screenshots/image.png<br />1280 × 800</div>
             </div>
           </div>
-          <figcaption><strong>Images</strong>: drag and drop, target-size compression</figcaption>
+          <figcaption><strong>Images</strong>: toss in, target-size compression</figcaption>
         </figure>
 
         <figure class="frame reveal-item">
@@ -801,7 +800,7 @@
               <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             </div>
             <div class="shot-area">
-              <img src="screenshots/video.png" alt="EasyConvert Video tab on macOS, converting between MP4, MKV, WebM, and other formats with hardware and ffmpeg-backed encoding" onerror="this.classList.add('img-missing')" />
+              <img src="screenshots/video.png" alt="Tossy Video tab on macOS, converting between MP4, MKV, WebM, and other formats with hardware and ffmpeg-backed encoding" onerror="this.classList.add('img-missing')" />
               <div class="shot-placeholder">screenshots/video.png<br />1280 × 800</div>
             </div>
           </div>
@@ -814,7 +813,7 @@
               <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             </div>
             <div class="shot-area">
-              <img src="screenshots/audio.png" alt="EasyConvert Audio tab on macOS, converting MP3, FLAC, WAV, and other audio formats with a bitrate picker" onerror="this.classList.add('img-missing')" />
+              <img src="screenshots/audio.png" alt="Tossy Audio tab on macOS, converting MP3, FLAC, WAV, and other audio formats with a bitrate picker" onerror="this.classList.add('img-missing')" />
               <div class="shot-placeholder">screenshots/audio.png<br />1280 × 800</div>
             </div>
           </div>
@@ -827,7 +826,7 @@
               <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             </div>
             <div class="shot-area">
-              <img src="screenshots/benchmark.png" alt="EasyConvert Benchmark tab on macOS, scoring real conversion performance from 0 to 100 against a calibrated baseline" onerror="this.classList.add('img-missing')" />
+              <img src="screenshots/benchmark.png" alt="Tossy Benchmark tab on macOS, scoring real conversion performance from 0 to 100 against a calibrated baseline" onerror="this.classList.add('img-missing')" />
               <div class="shot-placeholder">screenshots/benchmark.png<br />1280 × 800</div>
             </div>
           </div>
@@ -835,17 +834,81 @@
         </figure>
 
       </div>
+      <div class="row-card reveal-item">
+          <div class="row-info">
+            <span class="row-tag">Images</span>
+            <h2>GPU-accelerated image pipeline.</h2>
+            <p>
+              Metal-backed Core Image processing for color management and GPU resampling.
+              Target-size fitting dynamically searches quality and resolution to meet your exact target size.
+            </p>
+          </div>
+          <div class="row-media">
+            <div class="media-frame">
+              <img src="screenshots/image.png" alt="Tossy Images tab on macOS, showing drag and drop HEIC, RAW, and JPEG conversion with target-size compression" onerror="this.classList.add('img-missing')" />
+            </div>
+          </div>
+        </div>
+
+        <div class="row-card reveal-item">
+          <div class="row-info">
+            <span class="row-tag">Video</span>
+            <h2>Hardware VideoToolbox plus bundled ffmpeg.</h2>
+            <p>
+              Hardware HEIC/H.264/HEVC/ProRes encoding routed through VideoToolbox, alongside
+              MKV, WebM, AVI, FLV, Animated GIFs, and Animated WebP via bundled ffmpeg.
+            </p>
+          </div>
+          <div class="row-media">
+            <div class="media-frame">
+              <img src="screenshots/video.png" alt="Tossy Video tab on macOS, converting between MP4, MKV, WebM, and other formats with hardware and ffmpeg-backed encoding" onerror="this.classList.add('img-missing')" />
+            </div>
+          </div>
+        </div>
+
+        <div class="row-card reveal-item">
+          <div class="row-info">
+            <span class="row-tag">Audio</span>
+            <h2>Comprehensive audio transcoding.</h2>
+            <p>
+              Convert between MP3, AAC, WAV, FLAC, ALAC, OGG, Opus, WMA, AC3, and more.
+            </p>
+          </div>
+          <div class="row-media">
+            <div class="media-frame">
+              <img src="screenshots/audio.png" alt="Tossy Audio tab on macOS, converting MP3, FLAC, WAV, and other audio formats with a bitrate picker" onerror="this.classList.add('img-missing')" />
+            </div>
+          </div>
+        </div>
+
+        <div class="row-card reveal-item">
+          <div class="row-info">
+            <span class="row-tag">Benchmark</span>
+            <h2>Scored benchmark suite.</h2>
+            <p>
+              Measure real conversion throughput on your machine, scored from 0 to 100 against a calibrated baseline.
+            </p>
+          </div>
+          <div class="row-media">
+            <div class="media-frame">
+              <img src="screenshots/benchmark.png" alt="Tossy Benchmark tab on macOS, scoring real conversion performance from 0 to 100 against a calibrated baseline" onerror="this.classList.add('img-missing')" />
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </section>
 
-  <section class="note">
+  <section class="under-hood">
     <div class="wrap">
-      <div class="note-inner reveal-item">
-        <h2>Why native and ffmpeg</h2>
+      <div class="uh-content reveal-item">
+        <span class="uh-eyebrow">Local &amp; Private</span>
+        <h2>Your files stay on your Mac.</h2>
         <p>
           Apple's own frameworks are genuinely good at what they cover (RAW decoding, HEIC,
           hardware H.264/HEVC/ProRes), but they stop well short of MKV, most legacy codecs,
-          and most audio formats. Rather than pretend otherwise, EasyConvert uses Core Image
+          and most audio formats. Rather than pretend otherwise, Tossy uses Core Image
           and VideoToolbox where they reach, and falls back to a bundled, self-contained
           ffmpeg (plus the WebP and JPEG XL reference tools) for everything else. No
           Homebrew, no separate install, no terminal.
@@ -863,18 +926,18 @@
       <h2 class="reveal-item">Questions</h2>
 
       <div class="faq-item reveal-item">
-        <h3>Is EasyConvert free?</h3>
+        <h3>Is Tossy free?</h3>
         <p>Yes. It's free and open source under GPL-3.0. No account, no subscription, no ads.</p>
       </div>
 
       <div class="faq-item reveal-item">
-        <h3>Does EasyConvert upload my files anywhere?</h3>
+        <h3>Does Tossy upload my files anywhere?</h3>
         <p>No. Every conversion runs locally on your Mac, using Apple's own frameworks or the bundled ffmpeg. Nothing is ever sent to a server.</p>
       </div>
 
       <div class="faq-item reveal-item">
         <h3>Do I need to install ffmpeg or Homebrew separately?</h3>
-        <p>No. ffmpeg and the other tools EasyConvert needs are bundled inside the app and run standalone.</p>
+        <p>No. ffmpeg and the other tools Tossy needs are bundled inside the app and run standalone.</p>
       </div>
 
       <div class="faq-item reveal-item">
@@ -884,7 +947,7 @@
 
       <div class="faq-item reveal-item">
         <h3>Can I compress a file to an exact size?</h3>
-        <p>Yes. Set a target size like 25MB in the Advanced section and EasyConvert searches for a quality or bitrate that fits.</p>
+        <p>Yes. Set a target size like 25MB in the Advanced section and Tossy searches for a quality or bitrate that fits.</p>
       </div>
 
       <div class="faq-item reveal-item">

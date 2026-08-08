@@ -7,8 +7,8 @@ something with a long-term support matrix.
 
 | Version | Supported |
 | ------- | --------- |
-| 1.0.1   | Yes       |
-| < 1.0.1 | No        |
+| 1.3.0   | Yes       |
+| < 1.3.0 | No        |
 
 ## Reporting a vulnerability
 
@@ -25,7 +25,7 @@ report (unless you'd rather stay anonymous) in the release notes.
 
 ## Scope
 
-EasyConvert is a local macOS app: it doesn't run a server and doesn't upload anything anywhere.
+Tossy is a local macOS app: it doesn't run a server and doesn't upload anything anywhere.
 The realistic attack surface is mostly around parsing untrusted files (a malicious image, video,
 or audio file someone converts) triggering a bug in the app itself or in one of the bundled
 tools.

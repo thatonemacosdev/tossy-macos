@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "EasyConvert",
+    name: "Tossy",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "EasyConvert",
+            name: "Tossy",
             path: "Sources/EasyConvert"
         )
     ]
