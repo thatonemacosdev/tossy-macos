@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct RootView: View {
     var body: some View {
@@ -23,6 +24,14 @@ struct RootView: View {
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
                 .padding(6)
+        }
+        .onAppear {
+            DispatchQueue.main.async {
+                for window in NSApp.windows {
+                    window.backgroundColor = .black
+                    window.isOpaque = true
+                }
+            }
         }
     }
 }
