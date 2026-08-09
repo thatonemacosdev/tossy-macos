@@ -38,7 +38,13 @@ final class AudioConverter {
             baseNameOverride: customBaseName
         )
 
-        let duration = MediaProbe.probe(url: sourceURL)?.durationSeconds
+        let mediaInfo = MediaProbe.probe(url: sourceURL)
+        // Only reject when the probe positively found no audio stream (e.g. a silent video).
+        // If probing itself was inconclusive, let ffmpeg attempt it and surface its own error.
+        if let mediaInfo, mediaInfo.audioCodec == nil {
+            throw VideoConversionError.noAudioTrack
+        }
+        let duration = mediaInfo?.durationSeconds
         let spec = format.ffmpegSpec
 
         var arguments = ["-y", "-i", sourceURL.path]

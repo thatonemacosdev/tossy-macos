@@ -80,8 +80,10 @@ enum AudioFormat: String, CaseIterable, Identifiable {
         return "This build of ffmpeg wasn't compiled with \(displayName) support."
     }
 
-    /// Umbrella type covering everything ffmpeg can demux as audio (mp3, wav, aac, wma, etc).
-    static let readableContentTypes: [UTType] = [.audio]
+    /// Everything ffmpeg can demux as audio (mp3, wav, aac, wma, etc), plus video containers —
+    /// dropping a video file here rips its audio track rather than requiring a detour through
+    /// the Video tab first.
+    static let readableContentTypes: [UTType] = [.audio, .movie, .audiovisualContent]
 
     /// Maps a source file's extension back to one of our writable formats — used by
     /// "keep original format" (recompress in place without converting).

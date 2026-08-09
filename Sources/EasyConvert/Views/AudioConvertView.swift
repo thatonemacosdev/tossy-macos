@@ -35,7 +35,7 @@ struct AudioConvertView: View {
                     isTargeted: isTargeted,
                     icon: "waveform.badge.arrow.down",
                     title: "Toss audio here to convert",
-                    subtitle: "MP3, AAC, WAV, FLAC, ALAC, OGG, Opus, WMA, AC3, and more"
+                    subtitle: "MP3, AAC, WAV, FLAC, ALAC, OGG, Opus, WMA, AC3, and more — or drop a video to extract its audio"
                 ) { isShowingImporter = true }
             } else {
                 List(jobs) { job in

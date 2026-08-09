@@ -7,6 +7,7 @@ enum VideoConversionError: LocalizedError {
     case exportFailed(String)
     case formatUnavailable(String)
     case durationUnknown
+    case noAudioTrack
 
     var errorDescription: String? {
         switch self {
@@ -15,6 +16,7 @@ enum VideoConversionError: LocalizedError {
         case .exportFailed(let message): return message
         case .formatUnavailable(let message): return message
         case .durationUnknown: return "Couldn't determine this clip's duration, so a target size can't be calculated."
+        case .noAudioTrack: return "This file doesn't have an audio track to extract."
         }
     }
 }
