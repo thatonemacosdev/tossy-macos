@@ -93,50 +93,56 @@ struct AudioConvertView: View {
             }
 
             DisclosureGroup("Advanced", isExpanded: $showAdvanced) {
-                HStack(spacing: 16) {
-                    Toggle("Keep original format (just recompress)", isOn: $keepOriginalFormat)
-                        .toggleStyle(.checkbox)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 16) {
+                        Toggle("Keep original format (just recompress)", isOn: $keepOriginalFormat)
+                            .toggleStyle(.checkbox)
 
-                    Toggle("Preserve original metadata", isOn: $preserveMetadata)
-                        .toggleStyle(.checkbox)
+                        Toggle("Preserve original metadata", isOn: $preserveMetadata)
+                            .toggleStyle(.checkbox)
 
-                    TargetSizeField(text: $targetSizeText)
+                        TargetSizeField(text: $targetSizeText)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Filename")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        TextField("original name", text: $customFilenameText)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 120)
+                        Spacer()
                     }
 
-                    MaxFileSizeMenu()
-
-                    PresetMenu(category: .audio(
-                        onApply: { preset in
-                            if let fmt = AudioFormat(rawValue: preset.formatRawValue) { selectedFormat = fmt }
-                            quality = preset.quality
-                            keepOriginalFormat = preset.keepOriginalFormat
-                            targetSizeText = preset.targetSizeText
-                            customFilenameText = preset.customFilenameText
-                            preserveMetadata = preset.preserveMetadata
-                        },
-                        onSave: { name in
-                            let preset = AudioPreset(
-                                name: name,
-                                formatRawValue: selectedFormat.rawValue,
-                                quality: quality,
-                                keepOriginalFormat: keepOriginalFormat,
-                                targetSizeText: targetSizeText,
-                                customFilenameText: customFilenameText,
-                                preserveMetadata: preserveMetadata
-                            )
-                            PresetStore.shared.audioPresets.append(preset)
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Filename")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("original name", text: $customFilenameText)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 120)
                         }
-                    ))
 
-                    Spacer()
+                        MaxFileSizeMenu()
+
+                        PresetMenu(category: .audio(
+                            onApply: { preset in
+                                if let fmt = AudioFormat(rawValue: preset.formatRawValue) { selectedFormat = fmt }
+                                quality = preset.quality
+                                keepOriginalFormat = preset.keepOriginalFormat
+                                targetSizeText = preset.targetSizeText
+                                customFilenameText = preset.customFilenameText
+                                preserveMetadata = preset.preserveMetadata
+                            },
+                            onSave: { name in
+                                let preset = AudioPreset(
+                                    name: name,
+                                    formatRawValue: selectedFormat.rawValue,
+                                    quality: quality,
+                                    keepOriginalFormat: keepOriginalFormat,
+                                    targetSizeText: targetSizeText,
+                                    customFilenameText: customFilenameText,
+                                    preserveMetadata: preserveMetadata
+                                )
+                                PresetStore.shared.audioPresets.append(preset)
+                            }
+                        ))
+
+                        Spacer()
+                    }
                 }
                 .padding(.top, 6)
             }
