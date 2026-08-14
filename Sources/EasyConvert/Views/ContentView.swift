@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import AppKit
 
 struct ContentView: View {
     @State private var jobs: [ConversionJob] = []
@@ -9,6 +10,7 @@ struct ContentView: View {
     @State private var isTargeted = false
     @State private var isConverting = false
     @State private var isShowingImporter = false
+    @State private var isShowingInspector = false
     @State private var keepOriginalFormat = false
     @State private var targetSizeText = ""
     @State private var resizeWidthText = ""
@@ -30,24 +32,44 @@ struct ContentView: View {
         VStack(spacing: 0) {
             controlBar
 
-            Divider()
+            Divider().overlay(TossyColor.borderSubtle)
 
             if jobs.isEmpty {
-                DropZoneView(isTargeted: isTargeted) { isShowingImporter = true }
+                DropZoneView(
+                    isTargeted: isTargeted,
+                    icon: "photo.badge.arrow.down",
+                    title: "Toss images here to convert",
+                    subtitle: "PNG, JPEG, WebP, HEIC, AVIF, TIFF, BMP, GIF, JPEG XL, and RAW camera files",
+                    formatTags: ["PNG", "JPEG", "WebP", "HEIC", "AVIF", "JXL", "RAW"]
+                ) { isShowingImporter = true }
             } else {
-                List(jobs) { job in
-                    JobRowView(job: job, onRetry: {
-                        Task { await convert(job: job) }
-                    })
+                ScrollView {
+                    LazyVStack(spacing: 6) {
+                        ForEach(jobs) { job in
+                            JobRowView(
+                                job: job,
+                                categoryType: .image,
+                                onRetry: {
+                                    Task { await convert(job: job) }
+                                },
+                                onRemove: {
+                                    withAnimation(TossyMotion.springSmooth) {
+                                        jobs.removeAll(where: { $0.id == job.id })
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    .padding(12)
                 }
-                .listStyle(.inset)
             }
 
-            Divider()
+            Divider().overlay(TossyColor.borderSubtle)
 
             bottomBar
         }
-        .frame(minWidth: 520, minHeight: 420)
+        .frame(minWidth: 540, minHeight: 440)
+        .background(TossyColor.pitchBlack)
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
             handleDrop(providers)
         }
@@ -64,38 +86,62 @@ struct ContentView: View {
 
     private var controlBar: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 Picker("Convert to", selection: $selectedFormat) {
                     ForEach(ImageFormat.allCases) { format in
                         Text(format.isAvailable ? format.displayName : "\(format.displayName) (unavailable)")
                             .tag(format)
                     }
                 }
-                .frame(width: 260)
+                .frame(width: 230)
                 .disabled(keepOriginalFormat)
+
+                // Format Inspector Knob Button
+                Button {
+                    isShowingInspector = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "slider.horizontal.3")
+                        Text("CLI Knobs")
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(TossyColor.surfaceElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .help("Configure deep CLI encoding parameters for \(selectedFormat.displayName)")
+                .popover(isPresented: $isShowingInspector) {
+                    FormatInspectorView(category: .image(format: selectedFormat))
+                }
 
                 if selectedFormat.supportsQuality && !keepOriginalFormat {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Quality \(Int(quality * 100))%")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(TossyColor.textSecondary)
                         Slider(value: $quality, in: 0.1...1.0)
-                            .frame(width: 140)
+                            .frame(width: 120)
                     }
                 }
 
                 Spacer()
 
-                DestinationButton(destinationFolder: destinationFolder, action: chooseDestinationFolder)
+                DestinationButton(destinationFolder: effectiveDestinationFolder, action: chooseDestinationFolder)
             }
 
-            DisclosureGroup("Advanced", isExpanded: $showAdvanced) {
+            DisclosureGroup("Advanced Options", isExpanded: $showAdvanced) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 16) {
-                        Toggle("Keep original format (just recompress)", isOn: $keepOriginalFormat)
+                        Toggle("Keep original format (recompress in place)", isOn: $keepOriginalFormat)
                             .toggleStyle(.checkbox)
 
-                        Toggle("Preserve original metadata", isOn: $preserveMetadata)
+                        Toggle("Preserve EXIF/GPS/TIFF metadata", isOn: $preserveMetadata)
                             .toggleStyle(.checkbox)
 
                         TargetSizeField(text: $targetSizeText)
@@ -107,7 +153,7 @@ struct ContentView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Filename")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(TossyColor.textSecondary)
                             TextField("original name", text: $customFilenameText)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 120)
@@ -116,7 +162,7 @@ struct ContentView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Export resolutions")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(TossyColor.textSecondary)
                             TextField("e.g. 1024, 512, 256", text: $resizeWidthText)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 160)
@@ -155,13 +201,14 @@ struct ContentView: View {
                     if exportWidths.count > 1 {
                         Text("Exports one file per width, suffixed \(exportWidths.map { "_\($0)" }.joined(separator: ", "))")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(TossyColor.textTertiary)
                     }
                 }
                 .padding(.top, 6)
             }
         }
-        .padding(12)
+        .padding(14)
+        .background(TossyColor.pitchBlack)
     }
 
     private var bottomBar: some View {
@@ -169,17 +216,24 @@ struct ContentView: View {
             if let batchSummaryText, !batchSummaryText.isEmpty {
                 Text(batchSummaryText)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(TossyColor.textSecondary)
             }
 
             Spacer()
 
             if !jobs.isEmpty {
                 Button("Add Files…") { isShowingImporter = true }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
+
                 Button("Clear") {
-                    jobs.removeAll()
-                    batchSummaryText = nil
+                    withAnimation(TossyMotion.springSmooth) {
+                        jobs.removeAll()
+                        batchSummaryText = nil
+                    }
                 }
+                .buttonStyle(.bordered)
+                .controlSize(.regular)
                 .disabled(isConverting)
             }
 
@@ -189,15 +243,28 @@ struct ContentView: View {
                 if isConverting {
                     ProgressView().controlSize(.small)
                 } else {
-                    Text("Convert All")
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                        Text(jobs.count > 1 ? "Convert All (\(jobs.count))" : "Convert")
+                    }
                 }
             }
             .buttonStyle(.borderedProminent)
             .tint(.white)
             .foregroundStyle(.black)
+            .controlSize(.regular)
             .disabled(jobs.isEmpty || isConverting)
         }
         .padding(12)
+        .background(TossyColor.surfaceDeep)
+    }
+
+    private var effectiveDestinationFolder: URL? {
+        if let destinationFolder { return destinationFolder }
+        if AppSettings.shared.destinationPolicy == .customFolder && !AppSettings.shared.customDestinationPath.isEmpty {
+            return URL(fileURLWithPath: AppSettings.shared.customDestinationPath)
+        }
+        return nil
     }
 
     private func chooseDestinationFolder() {
@@ -213,8 +280,10 @@ struct ContentView: View {
 
     private func addJobs(for urls: [URL]) {
         let existing = Set(jobs.map(\.sourceURL))
-        for url in urls where !existing.contains(url) {
-            jobs.append(ConversionJob(sourceURL: url))
+        withAnimation(TossyMotion.springSmooth) {
+            for url in urls where !existing.contains(url) {
+                jobs.append(ConversionJob(sourceURL: url))
+            }
         }
     }
 
@@ -248,8 +317,16 @@ struct ContentView: View {
             return true
         }
 
+        let maxConcurrency = max(1, AppSettings.shared.maxConcurrentJobs)
+
         await withTaskGroup(of: Void.self) { group in
+            var activeCount = 0
             for job in pendingJobs {
+                if activeCount >= maxConcurrency {
+                    await group.next()
+                    activeCount -= 1
+                }
+                activeCount += 1
                 group.addTask {
                     await self.convert(job: job)
                 }
@@ -268,13 +345,13 @@ struct ContentView: View {
             return
         }
 
-        var effectiveFormat = selectedFormat
+        var effectiveFormat = job.overrideImageFormat ?? selectedFormat
         var formatNote: String?
         if keepOriginalFormat {
             if let matched = ImageFormat.matching(sourceURL: job.sourceURL), matched.isAvailable {
                 effectiveFormat = matched
             } else {
-                formatNote = "Couldn't match the original format — used \(selectedFormat.displayName) instead."
+                formatNote = "Couldn't match the original format — used \(effectiveFormat.displayName) instead."
             }
         }
 
@@ -287,7 +364,6 @@ struct ContentView: View {
         let baseName = customBaseName ?? job.sourceURL.deletingPathExtension().lastPathComponent
         do {
             if exportWidths.count > 1 {
-                // Multi-resolution export: one output per width, each suffixed with its size.
                 var firstOutput: URL?
                 var succeededWidths: [Int] = []
                 var lastFailure: String?
@@ -296,8 +372,8 @@ struct ContentView: View {
                         let result = try await converter.convert(
                             sourceURL: job.sourceURL,
                             to: effectiveFormat,
-                            quality: quality,
-                            destinationFolder: destinationFolder,
+                            quality: job.overrideQuality ?? quality,
+                            destinationFolder: effectiveDestinationFolder,
                             targetSizeBytes: targetSizeBytes,
                             targetWidth: width,
                             customBaseName: "\(baseName)_\(width)",
@@ -318,23 +394,36 @@ struct ContentView: View {
                     note += ". Failed: \(lastFailure ?? "unknown error")"
                 }
                 if let formatNote { note = "\(formatNote) \(note)" }
-                await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
+                let finalURL = firstOutput ?? job.sourceURL
+                await MainActor.run { job.status = .done(outputURL: finalURL, note: note) }
+                handlePostConversion(sourceURL: job.sourceURL, outputURL: finalURL)
             } else {
                 let result = try await converter.convert(
                     sourceURL: job.sourceURL,
                     to: effectiveFormat,
-                    quality: quality,
-                    destinationFolder: destinationFolder,
+                    quality: job.overrideQuality ?? quality,
+                    destinationFolder: effectiveDestinationFolder,
                     targetSizeBytes: targetSizeBytes,
                     targetWidth: exportWidths.first,
                     customBaseName: customBaseName,
                     preserveMetadata: preserveMetadata
                 )
                 let note = [formatNote, result.note].compactMap { $0 }.joined(separator: " ")
-                await MainActor.run { job.status = .done(outputURL: result.outputURLs[0], note: note.isEmpty ? nil : note) }
+                let finalURL = result.outputURLs[0]
+                await MainActor.run { job.status = .done(outputURL: finalURL, note: note.isEmpty ? nil : note) }
+                handlePostConversion(sourceURL: job.sourceURL, outputURL: finalURL)
             }
         } catch {
             await MainActor.run { job.status = .failed(error.localizedDescription) }
+        }
+    }
+
+    private func handlePostConversion(sourceURL: URL, outputURL: URL) {
+        if AppSettings.shared.autoRevealInFinder {
+            NSWorkspace.shared.activateFileViewerSelecting([outputURL])
+        }
+        if AppSettings.shared.deleteSourceAfterConversion && sourceURL != outputURL {
+            try? FileManager.default.removeItem(at: sourceURL)
         }
     }
 }

@@ -189,6 +189,21 @@ final class VideoConverter {
 
         arguments += ["-c:v", videoCodec]
 
+        let videoCfg = AppSettings.shared.videoConfig
+
+        // Presets & Tuning for supported encoders
+        if videoCodec.contains("libx264") || videoCodec.contains("libx265") {
+            arguments += ["-preset", videoCfg.x264Preset]
+            if videoCfg.x264Tune != "none" {
+                arguments += ["-tune", videoCfg.x264Tune]
+            }
+        }
+        
+        // Pixel format (if not forced by format extraArgs)
+        if !extraArgs.contains("-pix_fmt") {
+            arguments += ["-pix_fmt", videoCfg.pixelFormat]
+        }
+
         var note: String?
         if let targetSizeBytes {
             guard let duration, duration > 0 else { throw VideoConversionError.durationUnknown }
@@ -203,23 +218,44 @@ final class VideoConverter {
             }
             note = "Targeted \(ByteSize.displayString(targetSizeBytes)) via estimated bitrate (single-pass, not exact)"
         } else {
+            if videoCfg.encodingMode == "crf" && (videoCodec.contains("libx264") || videoCodec.contains("libx265") || videoCodec.contains("libsvtav1") || videoCodec.contains("libvpx")) {
+                arguments += ["-crf", "\(videoCfg.crfValue)"]
+            }
             arguments += extraArgs
-            if let audioCodec {
-                arguments += ["-c:a", audioCodec]
+            
+            // Audio track selection
+            if videoCfg.audioCodec == "none" {
+                arguments += ["-an"]
+            } else if videoCfg.audioCodec == "copy" {
+                arguments += ["-c:a", "copy"]
+            } else if let audioCodec {
+                let chosenAudio = videoCfg.audioCodec.isEmpty ? audioCodec : videoCfg.audioCodec
+                arguments += ["-c:a", chosenAudio, "-b:a", "\(videoCfg.audioBitrateKbps)k"]
             } else {
                 arguments += ["-an"]
             }
         }
 
+        // Framerate
+        if videoCfg.frameRate != "keep" && !extraArgs.contains("-r") {
+            arguments += ["-r", videoCfg.frameRate]
+        }
+
+        // Filters: Scaling & Deinterlacing
+        var videoFilters: [String] = []
+        if videoCfg.deinterlace {
+            videoFilters.append("yadif")
+        }
         if let targetWidth, targetWidth > 0 {
-            // -2 keeps height even (required by most codecs) while preserving aspect ratio.
-            // If extraArgs already injected a -vf (e.g. animated GIF's palettegen pipeline),
-            // prepend the scale into that filter chain rather than adding a second -vf flag
-            // (ffmpeg silently uses only the last -vf, which would drop the palette filters).
+            videoFilters.append("scale=\(targetWidth):-2:flags=\(videoCfg.scalingAlgorithm)")
+        }
+
+        if !videoFilters.isEmpty {
+            let filterString = videoFilters.joined(separator: ",")
             if let vfIndex = arguments.firstIndex(of: "-vf"), vfIndex + 1 < arguments.count {
-                arguments[vfIndex + 1] = "scale=\(targetWidth):-2," + arguments[vfIndex + 1]
+                arguments[vfIndex + 1] = filterString + "," + arguments[vfIndex + 1]
             } else {
-                arguments += ["-vf", "scale=\(targetWidth):-2"]
+                arguments += ["-vf", filterString]
             }
         }
 

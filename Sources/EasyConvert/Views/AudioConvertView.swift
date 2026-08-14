@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import AppKit
 
 struct AudioConvertView: View {
     @State private var jobs: [ConversionJob] = []
@@ -9,6 +10,7 @@ struct AudioConvertView: View {
     @State private var isTargeted = false
     @State private var isConverting = false
     @State private var isShowingImporter = false
+    @State private var isShowingInspector = false
     @State private var keepOriginalFormat = false
     @State private var targetSizeText = ""
     @State private var customFilenameText = ""
@@ -28,29 +30,44 @@ struct AudioConvertView: View {
         VStack(spacing: 0) {
             controlBar
 
-            Divider()
+            Divider().overlay(TossyColor.borderSubtle)
 
             if jobs.isEmpty {
                 DropZoneView(
                     isTargeted: isTargeted,
                     icon: "waveform.badge.arrow.down",
                     title: "Toss audio here to convert",
-                    subtitle: "MP3, AAC, WAV, FLAC, ALAC, OGG, Opus, WMA, AC3, and more — or drop a video to extract its audio"
+                    subtitle: "MP3, AAC, FLAC, WAV, ALAC, OGG, Opus, WMA, AC3 — or drop a video to extract audio",
+                    formatTags: ["MP3", "AAC", "FLAC", "WAV", "ALAC", "Opus", "OGG"]
                 ) { isShowingImporter = true }
             } else {
-                List(jobs) { job in
-                    JobRowView(job: job, onRetry: {
-                        Task { await convert(job: job) }
-                    })
+                ScrollView {
+                    LazyVStack(spacing: 6) {
+                        ForEach(jobs) { job in
+                            JobRowView(
+                                job: job,
+                                categoryType: .audio,
+                                onRetry: {
+                                    Task { await convert(job: job) }
+                                },
+                                onRemove: {
+                                    withAnimation(TossyMotion.springSmooth) {
+                                        jobs.removeAll(where: { $0.id == job.id })
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    .padding(12)
                 }
-                .listStyle(.inset)
             }
 
-            Divider()
+            Divider().overlay(TossyColor.borderSubtle)
 
             bottomBar
         }
-        .frame(minWidth: 520, minHeight: 420)
+        .frame(minWidth: 540, minHeight: 440)
+        .background(TossyColor.pitchBlack)
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
             handleDrop(providers)
         }
@@ -67,38 +84,62 @@ struct AudioConvertView: View {
 
     private var controlBar: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 Picker("Convert to", selection: $selectedFormat) {
                     ForEach(AudioFormat.allCases) { format in
                         Text(format.isAvailable ? format.displayName : "\(format.displayName) (unavailable)")
                             .tag(format)
                     }
                 }
-                .frame(width: 240)
+                .frame(width: 230)
                 .disabled(keepOriginalFormat)
+
+                // Format Inspector Button
+                Button {
+                    isShowingInspector = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "slider.horizontal.3")
+                        Text("Audio Knobs")
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(TossyColor.surfaceElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .help("Configure CBR/VBR, sample rates, channels, bit depth, and EBU R128 normalization")
+                .popover(isPresented: $isShowingInspector) {
+                    FormatInspectorView(category: .audio(format: selectedFormat))
+                }
 
                 if selectedFormat.supportsQuality && !keepOriginalFormat {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Bitrate \(Int(64 + quality * 192))kbps")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(TossyColor.textSecondary)
                         Slider(value: $quality, in: 0...1)
-                            .frame(width: 140)
+                            .frame(width: 120)
                     }
                 }
 
                 Spacer()
 
-                DestinationButton(destinationFolder: destinationFolder, action: chooseDestinationFolder)
+                DestinationButton(destinationFolder: effectiveDestinationFolder, action: chooseDestinationFolder)
             }
 
-            DisclosureGroup("Advanced", isExpanded: $showAdvanced) {
+            DisclosureGroup("Advanced Options", isExpanded: $showAdvanced) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 16) {
-                        Toggle("Keep original format (just recompress)", isOn: $keepOriginalFormat)
+                        Toggle("Keep original format (recompress in place)", isOn: $keepOriginalFormat)
                             .toggleStyle(.checkbox)
 
-                        Toggle("Preserve original metadata", isOn: $preserveMetadata)
+                        Toggle("Preserve metadata", isOn: $preserveMetadata)
                             .toggleStyle(.checkbox)
 
                         TargetSizeField(text: $targetSizeText)
@@ -110,7 +151,7 @@ struct AudioConvertView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Filename")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(TossyColor.textSecondary)
                             TextField("original name", text: $customFilenameText)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 120)
@@ -147,7 +188,8 @@ struct AudioConvertView: View {
                 .padding(.top, 6)
             }
         }
-        .padding(12)
+        .padding(14)
+        .background(TossyColor.pitchBlack)
     }
 
     private var bottomBar: some View {
@@ -155,17 +197,24 @@ struct AudioConvertView: View {
             if let batchSummaryText, !batchSummaryText.isEmpty {
                 Text(batchSummaryText)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(TossyColor.textSecondary)
             }
 
             Spacer()
 
             if !jobs.isEmpty {
                 Button("Add Files…") { isShowingImporter = true }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
+
                 Button("Clear") {
-                    jobs.removeAll()
-                    batchSummaryText = nil
+                    withAnimation(TossyMotion.springSmooth) {
+                        jobs.removeAll()
+                        batchSummaryText = nil
+                    }
                 }
+                .buttonStyle(.bordered)
+                .controlSize(.regular)
                 .disabled(isConverting)
             }
 
@@ -175,15 +224,28 @@ struct AudioConvertView: View {
                 if isConverting {
                     ProgressView().controlSize(.small)
                 } else {
-                    Text("Convert All")
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                        Text(jobs.count > 1 ? "Convert All (\(jobs.count))" : "Convert")
+                    }
                 }
             }
             .buttonStyle(.borderedProminent)
             .tint(.white)
             .foregroundStyle(.black)
+            .controlSize(.regular)
             .disabled(jobs.isEmpty || isConverting)
         }
         .padding(12)
+        .background(TossyColor.surfaceDeep)
+    }
+
+    private var effectiveDestinationFolder: URL? {
+        if let destinationFolder { return destinationFolder }
+        if AppSettings.shared.destinationPolicy == .customFolder && !AppSettings.shared.customDestinationPath.isEmpty {
+            return URL(fileURLWithPath: AppSettings.shared.customDestinationPath)
+        }
+        return nil
     }
 
     private func chooseDestinationFolder() {
@@ -199,8 +261,10 @@ struct AudioConvertView: View {
 
     private func addJobs(for urls: [URL]) {
         let existing = Set(jobs.map(\.sourceURL))
-        for url in urls where !existing.contains(url) {
-            jobs.append(ConversionJob(sourceURL: url))
+        withAnimation(TossyMotion.springSmooth) {
+            for url in urls where !existing.contains(url) {
+                jobs.append(ConversionJob(sourceURL: url))
+            }
         }
     }
 
@@ -234,8 +298,20 @@ struct AudioConvertView: View {
             return true
         }
 
-        for job in pendingJobs {
-            await convert(job: job)
+        let maxConcurrency = max(1, AppSettings.shared.maxConcurrentJobs)
+
+        await withTaskGroup(of: Void.self) { group in
+            var activeCount = 0
+            for job in pendingJobs {
+                if activeCount >= maxConcurrency {
+                    await group.next()
+                    activeCount -= 1
+                }
+                activeCount += 1
+                group.addTask {
+                    await self.convert(job: job)
+                }
+            }
         }
 
         let summary = BatchSummary.summarize(jobs: jobs)
@@ -250,13 +326,13 @@ struct AudioConvertView: View {
             return
         }
 
-        var effectiveFormat = selectedFormat
+        var effectiveFormat = job.overrideAudioFormat ?? selectedFormat
         var formatNote: String?
         if keepOriginalFormat {
             if let matched = AudioFormat.matching(sourceURL: job.sourceURL), matched.isAvailable {
                 effectiveFormat = matched
             } else {
-                formatNote = "Couldn't match the original format — used \(selectedFormat.displayName) instead."
+                formatNote = "Couldn't match the original format — used \(effectiveFormat.displayName) instead."
             }
         }
 
@@ -269,8 +345,8 @@ struct AudioConvertView: View {
             let result = try await converter.convert(
                 sourceURL: job.sourceURL,
                 to: effectiveFormat,
-                quality: quality,
-                destinationFolder: destinationFolder,
+                quality: job.overrideQuality ?? quality,
+                destinationFolder: effectiveDestinationFolder,
                 targetSizeBytes: targetSizeBytes,
                 customBaseName: customBaseName,
                 preserveMetadata: preserveMetadata
@@ -278,9 +354,20 @@ struct AudioConvertView: View {
                 Task { @MainActor in job.updateProgress(progress) }
             }
             let note = [formatNote, result.note].compactMap { $0 }.joined(separator: " ")
-            await MainActor.run { job.status = .done(outputURL: result.outputURL, note: note.isEmpty ? nil : note) }
+            let finalURL = result.outputURL
+            await MainActor.run { job.status = .done(outputURL: finalURL, note: note.isEmpty ? nil : note) }
+            handlePostConversion(sourceURL: job.sourceURL, outputURL: finalURL)
         } catch {
             await MainActor.run { job.status = .failed(error.localizedDescription) }
+        }
+    }
+
+    private func handlePostConversion(sourceURL: URL, outputURL: URL) {
+        if AppSettings.shared.autoRevealInFinder {
+            NSWorkspace.shared.activateFileViewerSelecting([outputURL])
+        }
+        if AppSettings.shared.deleteSourceAfterConversion && sourceURL != outputURL {
+            try? FileManager.default.removeItem(at: sourceURL)
         }
     }
 }

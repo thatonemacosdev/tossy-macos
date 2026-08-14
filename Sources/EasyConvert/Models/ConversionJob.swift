@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 
 enum JobStatus: Equatable {
     case pending
@@ -16,6 +17,15 @@ final class ConversionJob: Identifiable {
     let id = UUID()
     let sourceURL: URL
     var status: JobStatus = .pending
+    
+    // Per-job overrides (when set, takes precedence over batch settings)
+    var overrideImageFormat: ImageFormat? = nil
+    var overrideVideoFormat: VideoFormat? = nil
+    var overrideAudioFormat: AudioFormat? = nil
+    var overrideQuality: Double? = nil
+    var overrideTargetSizeText: String? = nil
+    var overrideResizeWidthText: String? = nil
+    var overrideCustomFilename: String? = nil
 
     private var startTime: Date?
     private var maxSeenProgress: Double = 0.0
@@ -26,6 +36,13 @@ final class ConversionJob: Identifiable {
     }
 
     var displayName: String { sourceURL.lastPathComponent }
+    
+    var sourceFileSizeFormatted: String {
+        guard let size = try? FileManager.default.attributesOfItem(atPath: sourceURL.path)[.size] as? Int64 else {
+            return ""
+        }
+        return ByteSize.displayString(size)
+    }
 
     @MainActor
     func resetProgress() {
@@ -34,11 +51,6 @@ final class ConversionJob: Identifiable {
         lastETASec = nil
     }
 
-    /// Progress ticks arrive from a subprocess's `readabilityHandler`, which runs on a
-    /// background queue with no ordering guarantee relative to the process's terminationHandler
-    /// (Foundation can deliver a last buffered read after termination fires). Routing every
-    /// update through here means a stray late tick can never resurrect a job that has already
-    /// finished into a permanently-stuck "Converting..." state.
     @MainActor
     func updateProgress(_ rawProgress: Double?) {
         switch status {

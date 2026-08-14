@@ -331,10 +331,22 @@ final class ImageConverter {
         let tempPNG = try writeTemporaryPNG(cgImage: cgImage)
         defer { try? FileManager.default.removeItem(at: tempPNG) }
 
-        let qualityArg = String(Int(quality * 100))
+        let jxlCfg = AppSettings.shared.jxlConfig
+        var arguments = [tempPNG.path, outputURL.path, "--quiet"]
+        if jxlCfg.isLossless {
+            arguments += ["--distance", "0"]
+        } else {
+            let distance = max(0.1, (1.0 - quality) * 15.0)
+            arguments += ["--distance", String(format: "%.2f", distance)]
+        }
+        arguments += ["-e", "\(jxlCfg.effort)"]
+        if jxlCfg.fasterDecoding > 0 {
+            arguments += ["--faster_decoding", "\(jxlCfg.fasterDecoding)"]
+        }
+
         let process = Process()
         process.executableURL = URL(fileURLWithPath: cjxlPath)
-        process.arguments = [tempPNG.path, outputURL.path, "-q", qualityArg, "--quiet"]
+        process.arguments = arguments
         let errorPipe = Pipe()
         process.standardError = errorPipe
         process.standardOutput = FileHandle.nullDevice
@@ -364,10 +376,29 @@ final class ImageConverter {
         let tempPNG = try writeTemporaryPNG(cgImage: cgImage)
         defer { try? FileManager.default.removeItem(at: tempPNG) }
 
-        let qualityArg = String(Int(quality * 100))
+        let webpCfg = AppSettings.shared.webpConfig
+        var arguments = ["-quiet"]
+        if webpCfg.isLossless {
+            arguments += ["-lossless"]
+        } else {
+            let qualityArg = String(Int(quality * 100))
+            arguments += ["-q", qualityArg]
+        }
+        arguments += ["-m", "\(webpCfg.method)"]
+        if webpCfg.preset != "default" {
+            arguments += ["-preset", webpCfg.preset]
+        }
+        if webpCfg.sharpYuv {
+            arguments += ["-sharp_yuv"]
+        }
+        if webpCfg.filterStrength > 0 {
+            arguments += ["-sns", "\(webpCfg.filterStrength)"]
+        }
+        arguments += [tempPNG.path, "-o", outputURL.path]
+
         let process = Process()
         process.executableURL = URL(fileURLWithPath: cwebpPath)
-        process.arguments = ["-quiet", "-q", qualityArg, tempPNG.path, "-o", outputURL.path]
+        process.arguments = arguments
         let errorPipe = Pipe()
         process.standardError = errorPipe
         process.standardOutput = FileHandle.nullDevice

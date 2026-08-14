@@ -1,19 +1,26 @@
 import Foundation
 import UserNotifications
+import AppKit
 
 enum BatchNotifier {
-    /// Requests notification permissions on first use, then sends a local notification for multi-file batches.
+    /// Plays completion sound and sends a notification if enabled.
     static func notify(summary: String, jobCount: Int) {
-        guard jobCount > 1, !summary.isEmpty else { return }
+        if AppSettings.shared.playCompletionSound {
+            TossySound.playCompletion()
+        }
+
+        guard AppSettings.shared.notifyOnComplete, jobCount > 0, !summary.isEmpty else { return }
 
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
             guard granted else { return }
 
             let content = UNMutableNotificationContent()
-            content.title = "Batch Conversion Complete"
+            content.title = jobCount == 1 ? "Conversion Complete" : "Batch Conversion Complete"
             content.body = summary
-            content.sound = .default
+            if AppSettings.shared.playCompletionSound {
+                content.sound = .default
+            }
 
             let request = UNNotificationRequest(
                 identifier: UUID().uuidString,

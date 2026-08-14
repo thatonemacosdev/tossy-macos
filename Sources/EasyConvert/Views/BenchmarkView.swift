@@ -12,18 +12,24 @@ struct BenchmarkView: View {
         VStack(spacing: 0) {
             header
 
-            Divider()
+            Divider().overlay(TossyColor.borderSubtle)
 
             if results.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "speedometer")
-                        .font(.system(size: 44, weight: .light))
-                        .foregroundStyle(.secondary)
+                VStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(TossyColor.surfaceElevated)
+                            .frame(width: 80, height: 80)
+                        Image(systemName: "speedometer")
+                            .font(.system(size: 40, weight: .light))
+                            .foregroundStyle(Color.white)
+                    }
+
                     Text(statusText)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 13))
+                        .foregroundStyle(TossyColor.textSecondary)
                         .multilineTextAlignment(.center)
-                        .frame(maxWidth: 380)
+                        .frame(maxWidth: 400)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -35,24 +41,25 @@ struct BenchmarkView: View {
                     TableColumn("Test", value: \.label)
                     TableColumn("Time") { result in
                         Text(String(format: "%.2fs", result.duration))
+                            .font(.system(size: 12, design: .monospaced))
                     }
                     TableColumn("Throughput", value: \.detail)
                     TableColumn("Score") { result in
                         if let score = result.score {
                             scoreBar(score)
                         } else {
-                            Text("—").foregroundStyle(.secondary)
+                            Text("—").foregroundStyle(TossyColor.textTertiary)
                         }
                     }
                 }
             }
 
-            Divider()
+            Divider().overlay(TossyColor.borderSubtle)
 
             HStack {
                 Text(statusText)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(TossyColor.textSecondary)
                     .lineLimit(1)
 
                 Spacer()
@@ -63,31 +70,46 @@ struct BenchmarkView: View {
                     if isRunning {
                         HStack(spacing: 6) {
                             ProgressView().controlSize(.small)
-                            Text("Running…")
+                            Text("Running Benchmarks…")
                         }
                     } else {
-                        Text("Run Benchmark")
+                        HStack(spacing: 6) {
+                            Image(systemName: "play.fill")
+                            Text("Run Benchmark Suite")
+                        }
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(.white)
+                .foregroundStyle(.black)
+                .controlSize(.regular)
                 .disabled(isRunning)
             }
             .padding(12)
+            .background(TossyColor.surfaceDeep)
         }
         .frame(minWidth: 620, minHeight: 460)
+        .background(TossyColor.pitchBlack)
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Conversion Benchmark")
-                .font(.title3)
-                .fontWeight(.semibold)
-            Text("Compares the Metal-backed GPU image pipeline against a CPU-only baseline, and times hardware video/audio transcoding. Scores are 0–100, calibrated so a baseline Apple M4 MacBook Air scores 70 on every test — faster machines score higher, slower ones lower.")
+            HStack {
+                Text("Performance Benchmark")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.white)
+                
+                Spacer()
+                
+                TossyPill(text: "Apple Silicon & Metal GPU", isSubtle: true)
+            }
+            Text("Compares the Metal-backed GPU image pipeline against a CPU-only baseline, and times hardware video/audio transcoding. Scores are 0–100, calibrated so a baseline Apple M4 MacBook Air scores 70 on every test.")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(TossyColor.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
+        .padding(14)
+        .background(TossyColor.pitchBlack)
     }
 
     // MARK: - Scoring
@@ -103,9 +125,6 @@ struct BenchmarkView: View {
     }
 
     private var scoredResults: [ScoredResult] {
-        // Prefer the absolute, cross-machine reference (calibrated against a baseline M4
-        // MacBook Air = 70). Only fall back to relative-within-this-run scoring for a test
-        // that has no reference point yet (e.g. a newly added format).
         var maxByGroup: [String: Double] = [:]
         for result in results {
             guard let value = result.metricValue else { continue }
@@ -135,25 +154,27 @@ struct BenchmarkView: View {
     private func overallScoreCard(_ score: Int) -> some View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Overall Score")
+                Text("Overall System Score")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text("\(score)")
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundStyle(scoreColor(score))
-                + Text(" / 100")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(TossyColor.textSecondary)
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text("\(score)")
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundStyle(scoreColor(score))
+                    Text("/ 100")
+                        .font(.title3)
+                        .foregroundStyle(TossyColor.textTertiary)
+                }
             }
             Spacer()
-            Text("Averaged across all conversions tested this run, each scored against the fastest comparable result.")
+            Text("Averaged across all conversions tested this run, scored against calibrated baseline performance.")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(TossyColor.textSecondary)
                 .frame(maxWidth: 320, alignment: .trailing)
                 .multilineTextAlignment(.trailing)
         }
-        .padding(12)
-        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+        .padding(14)
+        .tossyCard(cornerRadius: 12, isHighlighted: true)
         .padding([.horizontal, .top], 12)
     }
 
@@ -164,15 +185,16 @@ struct BenchmarkView: View {
                 .tint(scoreColor(score))
             Text("\(score)")
                 .font(.caption.monospacedDigit())
+                .foregroundStyle(Color.white)
                 .frame(width: 24, alignment: .trailing)
         }
     }
 
     private func scoreColor(_ score: Int) -> Color {
         switch score {
-        case 80...: return .green
-        case 50..<80: return .yellow
-        default: return .red
+        case 80...: return TossyColor.successGreen
+        case 50..<80: return TossyColor.warningAmber
+        default: return TossyColor.errorRed
         }
     }
 

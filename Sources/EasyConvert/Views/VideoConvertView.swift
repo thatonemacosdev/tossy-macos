@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import AppKit
 
 struct VideoConvertView: View {
     @State private var jobs: [ConversionJob] = []
@@ -8,6 +9,7 @@ struct VideoConvertView: View {
     @State private var isTargeted = false
     @State private var isConverting = false
     @State private var isShowingImporter = false
+    @State private var isShowingInspector = false
     @State private var keepOriginalContainer = false
     @State private var targetSizeText = ""
     @State private var resizeWidthText = ""
@@ -29,29 +31,44 @@ struct VideoConvertView: View {
         VStack(spacing: 0) {
             controlBar
 
-            Divider()
+            Divider().overlay(TossyColor.borderSubtle)
 
             if jobs.isEmpty {
                 DropZoneView(
                     isTargeted: isTargeted,
                     icon: "video.badge.arrow.down",
                     title: "Toss videos here to convert",
-                    subtitle: "MP4, MOV, MKV, WebM, AVI, FLV, Animated GIF, and more"
+                    subtitle: "MP4, MOV, MKV, WebM, AVI, FLV, AV1, ProRes, Animated GIF, and more",
+                    formatTags: ["MP4", "MOV", "MKV", "WebM", "AV1", "ProRes", "GIF"]
                 ) { isShowingImporter = true }
             } else {
-                List(jobs) { job in
-                    JobRowView(job: job, onRetry: {
-                        Task { await convert(job: job) }
-                    })
+                ScrollView {
+                    LazyVStack(spacing: 6) {
+                        ForEach(jobs) { job in
+                            JobRowView(
+                                job: job,
+                                categoryType: .video,
+                                onRetry: {
+                                    Task { await convert(job: job) }
+                                },
+                                onRemove: {
+                                    withAnimation(TossyMotion.springSmooth) {
+                                        jobs.removeAll(where: { $0.id == job.id })
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    .padding(12)
                 }
-                .listStyle(.inset)
             }
 
-            Divider()
+            Divider().overlay(TossyColor.borderSubtle)
 
             bottomBar
         }
-        .frame(minWidth: 520, minHeight: 420)
+        .frame(minWidth: 540, minHeight: 440)
+        .background(TossyColor.pitchBlack)
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
             handleDrop(providers)
         }
@@ -68,7 +85,7 @@ struct VideoConvertView: View {
 
     private var controlBar: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 Picker("Convert to", selection: $selectedFormat) {
                     ForEach(VideoCategory.allCases, id: \.self) { category in
                         Section(category.rawValue) {
@@ -79,21 +96,45 @@ struct VideoConvertView: View {
                         }
                     }
                 }
-                .frame(width: 260)
+                .frame(width: 250)
                 .disabled(keepOriginalContainer)
+
+                // Format Inspector Button
+                Button {
+                    isShowingInspector = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "slider.horizontal.3")
+                        Text("Encoding Knobs")
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(TossyColor.surfaceElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .help("Configure CRF, encoder speed presets, pixel format, and audio tracks")
+                .popover(isPresented: $isShowingInspector) {
+                    FormatInspectorView(category: .video(format: selectedFormat))
+                }
 
                 Spacer()
 
-                DestinationButton(destinationFolder: destinationFolder, action: chooseDestinationFolder)
+                DestinationButton(destinationFolder: effectiveDestinationFolder, action: chooseDestinationFolder)
             }
 
-            DisclosureGroup("Advanced", isExpanded: $showAdvanced) {
+            DisclosureGroup("Advanced Options", isExpanded: $showAdvanced) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 16) {
-                        Toggle("Keep original container (just recompress)", isOn: $keepOriginalContainer)
+                        Toggle("Keep original container (recompress in place)", isOn: $keepOriginalContainer)
                             .toggleStyle(.checkbox)
 
-                        Toggle("Preserve original metadata", isOn: $preserveMetadata)
+                        Toggle("Preserve metadata", isOn: $preserveMetadata)
                             .toggleStyle(.checkbox)
 
                         TargetSizeField(text: $targetSizeText)
@@ -105,7 +146,7 @@ struct VideoConvertView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Filename")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(TossyColor.textSecondary)
                             TextField("original name", text: $customFilenameText)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 120)
@@ -114,7 +155,7 @@ struct VideoConvertView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Export resolutions")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(TossyColor.textSecondary)
                             TextField("e.g. 1920, 1280, 854", text: $resizeWidthText)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 160)
@@ -151,19 +192,20 @@ struct VideoConvertView: View {
                     if exportWidths.count > 1 {
                         Text("One file per width, suffixed \(exportWidths.map { "_\($0)" }.joined(separator: ", "))")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(TossyColor.textTertiary)
                     }
 
                     if targetSizeBytes != nil || !exportWidths.isEmpty {
-                        Text("Target size/resolution need an ffmpeg-backed format (not the hardware-accelerated MP4/MOV presets) — bitrate is a single-pass estimate, not exact.")
+                        Text("Target size/resolution need an ffmpeg-backed format (not hardware presets) — bitrate is a single-pass estimate.")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(TossyColor.textTertiary)
                     }
                 }
                 .padding(.top, 6)
             }
         }
-        .padding(12)
+        .padding(14)
+        .background(TossyColor.pitchBlack)
     }
 
     private var bottomBar: some View {
@@ -171,17 +213,24 @@ struct VideoConvertView: View {
             if let batchSummaryText, !batchSummaryText.isEmpty {
                 Text(batchSummaryText)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(TossyColor.textSecondary)
             }
 
             Spacer()
 
             if !jobs.isEmpty {
                 Button("Add Files…") { isShowingImporter = true }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
+
                 Button("Clear") {
-                    jobs.removeAll()
-                    batchSummaryText = nil
+                    withAnimation(TossyMotion.springSmooth) {
+                        jobs.removeAll()
+                        batchSummaryText = nil
+                    }
                 }
+                .buttonStyle(.bordered)
+                .controlSize(.regular)
                 .disabled(isConverting)
             }
 
@@ -191,15 +240,28 @@ struct VideoConvertView: View {
                 if isConverting {
                     ProgressView().controlSize(.small)
                 } else {
-                    Text("Convert All")
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                        Text(jobs.count > 1 ? "Convert All (\(jobs.count))" : "Convert")
+                    }
                 }
             }
             .buttonStyle(.borderedProminent)
             .tint(.white)
             .foregroundStyle(.black)
+            .controlSize(.regular)
             .disabled(jobs.isEmpty || isConverting)
         }
         .padding(12)
+        .background(TossyColor.surfaceDeep)
+    }
+
+    private var effectiveDestinationFolder: URL? {
+        if let destinationFolder { return destinationFolder }
+        if AppSettings.shared.destinationPolicy == .customFolder && !AppSettings.shared.customDestinationPath.isEmpty {
+            return URL(fileURLWithPath: AppSettings.shared.customDestinationPath)
+        }
+        return nil
     }
 
     private func chooseDestinationFolder() {
@@ -215,8 +277,10 @@ struct VideoConvertView: View {
 
     private func addJobs(for urls: [URL]) {
         let existing = Set(jobs.map(\.sourceURL))
-        for url in urls where !existing.contains(url) {
-            jobs.append(ConversionJob(sourceURL: url))
+        withAnimation(TossyMotion.springSmooth) {
+            for url in urls where !existing.contains(url) {
+                jobs.append(ConversionJob(sourceURL: url))
+            }
         }
     }
 
@@ -250,8 +314,6 @@ struct VideoConvertView: View {
             return true
         }
 
-        // Video transcodes are already hardware-parallelized internally by VideoToolbox;
-        // running them one at a time avoids the encoders contending with each other.
         for job in pendingJobs {
             await convert(job: job)
         }
@@ -270,6 +332,7 @@ struct VideoConvertView: View {
 
         let baseName = customBaseName ?? job.sourceURL.deletingPathExtension().lastPathComponent
         let widths: [Int?] = exportWidths.count > 1 ? exportWidths.map { $0 } : [exportWidths.first]
+        let dest = effectiveDestinationFolder
 
         if keepOriginalContainer {
             guard let targetSizeBytes else {
@@ -286,7 +349,7 @@ struct VideoConvertView: View {
                 do {
                     let result = try await converter.compressKeepingContainer(
                         sourceURL: job.sourceURL,
-                        destinationFolder: destinationFolder,
+                        destinationFolder: dest,
                         targetSizeBytes: targetSizeBytes,
                         targetWidth: width,
                         customBaseName: name,
@@ -308,12 +371,15 @@ struct VideoConvertView: View {
             if succeededWidths.count < widths.count {
                 note = (note ?? "") + ". Failed: \(lastFailure ?? "unknown error")"
             }
-            await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
+            let finalURL = firstOutput ?? job.sourceURL
+            await MainActor.run { job.status = .done(outputURL: finalURL, note: note) }
+            handlePostConversion(sourceURL: job.sourceURL, outputURL: finalURL)
             return
         }
 
-        guard selectedFormat.isAvailable else {
-            await MainActor.run { job.status = .failed(selectedFormat.unavailabilityReason ?? "Unavailable format.") }
+        let formatToUse = job.overrideVideoFormat ?? selectedFormat
+        guard formatToUse.isAvailable else {
+            await MainActor.run { job.status = .failed(formatToUse.unavailabilityReason ?? "Unavailable format.") }
             return
         }
         await MainActor.run { job.status = .converting(progress: 0) }
@@ -327,8 +393,8 @@ struct VideoConvertView: View {
             do {
                 let result = try await converter.convert(
                     sourceURL: job.sourceURL,
-                    to: selectedFormat,
-                    destinationFolder: destinationFolder,
+                    to: formatToUse,
+                    destinationFolder: dest,
                     targetSizeBytes: targetSizeBytes,
                     targetWidth: width,
                     customBaseName: name,
@@ -353,6 +419,17 @@ struct VideoConvertView: View {
         if succeededWidths.count < widths.count {
             note = (note ?? "") + ". Failed: \(lastFailure ?? "unknown error")"
         }
-        await MainActor.run { job.status = .done(outputURL: firstOutput ?? job.sourceURL, note: note) }
+        let finalURL = firstOutput ?? job.sourceURL
+        await MainActor.run { job.status = .done(outputURL: finalURL, note: note) }
+        handlePostConversion(sourceURL: job.sourceURL, outputURL: finalURL)
+    }
+
+    private func handlePostConversion(sourceURL: URL, outputURL: URL) {
+        if AppSettings.shared.autoRevealInFinder {
+            NSWorkspace.shared.activateFileViewerSelecting([outputURL])
+        }
+        if AppSettings.shared.deleteSourceAfterConversion && sourceURL != outputURL {
+            try? FileManager.default.removeItem(at: sourceURL)
+        }
     }
 }

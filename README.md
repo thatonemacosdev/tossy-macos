@@ -1,6 +1,6 @@
 # Tossy
 
-[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.3.3)
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.4.0)
 [![License](https://img.shields.io/github/license/thatonemacosdev/tossy-macos)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/tossy-macos)](https://github.com/thatonemacosdev/tossy-macos/releases)
 
@@ -9,7 +9,7 @@
 A free, native macOS utility for converting images, video, and audio without Terminal, without uploading files anywhere, and without installing Homebrew or ffmpeg yourself. Toss files in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera files, MKV, WebM, FLAC, animated GIFs, animated WebP, and dozens more.
 
 Website: [thatonemacosdev.github.io/tossy-macos](https://thatonemacosdev.github.io/tossy-macos/)
-Download: [v1.3.3 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.3.3)
+Download: [v1.4.0 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.4.0)
 
 Under the hood: GPU-accelerated image processing (Metal via Core Image) and hardware video encoding (VideoToolbox via AVFoundation) where the platform supports it, falling back to a bundled `ffmpeg` for everything else.
 

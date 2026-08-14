@@ -53,8 +53,53 @@ final class AudioConverter {
             arguments += ["-map_metadata", "-1"]
         }
 
-        arguments += ["-vn", "-c:a", spec.codec]
+        let audioCfg = AppSettings.shared.audioConfig
+        var effectiveCodec = spec.codec
+
+        // Handle Bit Depth for Lossless Formats
+        if format == .wav || format == .caf {
+            if audioCfg.losslessBitDepth == "24" {
+                effectiveCodec = "pcm_s24le"
+            } else if audioCfg.losslessBitDepth == "32" {
+                effectiveCodec = "pcm_f32le"
+            }
+        } else if format == .aiff {
+            if audioCfg.losslessBitDepth == "24" {
+                effectiveCodec = "pcm_s24be"
+            } else if audioCfg.losslessBitDepth == "32" {
+                effectiveCodec = "pcm_f32be"
+            }
+        }
+
+        arguments += ["-vn", "-c:a", effectiveCodec]
         arguments += spec.extraArgs
+
+        // FLAC specific options
+        if format == .flac {
+            arguments += ["-compression_level", "\(audioCfg.flacCompressionLevel)"]
+        }
+
+        // Opus specific options
+        if format == .opus {
+            arguments += ["-application", audioCfg.opusApplication]
+        }
+
+        // Sample rate
+        if audioCfg.sampleRateHz != "keep" && targetSizeBytes == nil {
+            arguments += ["-ar", audioCfg.sampleRateHz]
+        }
+
+        // Channels
+        if audioCfg.channels == "mono" {
+            arguments += ["-ac", "1"]
+        } else if audioCfg.channels == "stereo" || audioCfg.channels == "downmix51" {
+            arguments += ["-ac", "2"]
+        }
+
+        // Audio Filters: Loudnorm
+        if audioCfg.normalizeEBUR128 {
+            arguments += ["-af", "loudnorm=I=-24:LRA=7:tp=-2"]
+        }
 
         var note: String?
         if let targetSizeBytes {
@@ -74,8 +119,12 @@ final class AudioConverter {
                 note = "Targeted \(ByteSize.displayString(targetSizeBytes)) by reducing sample rate to \(sampleRate)Hz"
             }
         } else if format.supportsQuality {
-            let bitrateKbps = Int(64 + quality * 192)
-            arguments += ["-b:a", "\(bitrateKbps)k"]
+            if audioCfg.bitrateMode == "vbr" && format == .mp3 {
+                arguments += ["-q:a", "\(audioCfg.vbrQuality)"]
+            } else {
+                let bitrateKbps = audioCfg.cbrBitrateKbps > 0 ? audioCfg.cbrBitrateKbps : Int(64 + quality * 192)
+                arguments += ["-b:a", "\(bitrateKbps)k"]
+            }
         }
 
         if let muxer = spec.muxer {

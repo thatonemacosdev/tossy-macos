@@ -21,6 +21,16 @@ enum OutputNaming {
         defer { lock.unlock() }
 
         var candidate = folder.appendingPathComponent(baseName).appendingPathExtension(fileExtension)
+        if AppSettings.shared.fileConflictAction == .overwrite {
+            if !claimedPaths.contains(candidate.path) {
+                if FileManager.default.fileExists(atPath: candidate.path) && candidate != sourceURL {
+                    try? FileManager.default.removeItem(at: candidate)
+                }
+                claimedPaths.insert(candidate.path)
+                return candidate
+            }
+        }
+
         var counter = 2
         while FileManager.default.fileExists(atPath: candidate.path) || claimedPaths.contains(candidate.path) {
             candidate = folder.appendingPathComponent("\(baseName)-\(counter)").appendingPathExtension(fileExtension)
