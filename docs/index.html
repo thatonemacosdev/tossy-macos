@@ -33,7 +33,7 @@
   "url": "https://thatonemacosdev.github.io/tossy-macos/",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "macOS 14+",
-  "softwareVersion": "1.3.3",
+  "softwareVersion": "1.4.0",
   "fileFormat": [
     "image/heic",
     "image/jpeg",
@@ -52,6 +52,7 @@
     "Target megabyte size fitting",
     "Hardware VideoToolbox encoding",
     "GPU Core Image Metal processing",
+    "Dedicated macOS Settings window and CLI knobs",
     "Standalone bundled ffmpeg binary"
   ],
   "offers": {
@@ -59,7 +60,7 @@
     "price": "0",
     "priceCurrency": "USD"
   },
-  "downloadUrl": "https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.3.3",
+  "downloadUrl": "https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.4.0",
   "image": "https://thatonemacosdev.github.io/tossy-macos/icons/icon_512.png",
   "author": {
     "@type": "Person",
@@ -533,7 +534,7 @@
     line-height: 1.55;
   }
 
-  /* Privacy & Offline Exec Section */
+  /* Offline & Privacy Section */
   section.offline {
     padding: 80px 0;
     border-top: 1px solid var(--border);
@@ -631,7 +632,7 @@
     </div>
     <nav class="nav-links">
       <a class="link" id="linkNavGithub" href="https://github.com/thatonemacosdev/tossy-macos">GitHub</a>
-      <a class="btn btn-primary" id="btnDownloadNav" href="https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.3.3">Download</a>
+      <a class="btn btn-primary" id="btnDownloadNav" href="https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.4.0">Download v1.4.0</a>
     </nav>
   </div>
 </header>
@@ -654,12 +655,12 @@
         </div>
 
         <div class="cta-group">
-          <a class="btn btn-primary" id="btnDownloadHero" href="https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.3.3">Download Tossy v1.3.3</a>
+          <a class="btn btn-primary" id="btnDownloadHero" href="https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.4.0">Download Tossy v1.4.0</a>
           <a class="btn btn-secondary" id="btnSourceHero" href="https://github.com/thatonemacosdev/tossy-macos">View Source on GitHub</a>
         </div>
 
         <div class="specs-bar">
-          <span>macOS 14+</span><span class="divider">/</span><span>Apple Silicon &amp; Intel</span><span class="divider">/</span><span>20 MB</span><span class="divider">/</span><span>GPL-3.0</span>
+          <span>macOS 14+</span><span class="divider">/</span><span>Apple Silicon &amp; Intel</span><span class="divider">/</span><span>22 MB</span><span class="divider">/</span><span>GPL-3.0</span>
         </div>
       </div>
     </div>
@@ -690,7 +691,7 @@
           <div class="window-viewport">
             <img src="screenshots/image.png" alt="Tossy Images tab interface on macOS showing image converter" loading="lazy" />
           </div>
-          <div class="window-caption"><strong>Images</strong>: Toss in HEIC, RAW, JPEG, WebP, AVIF, SVG, or PDF with target-size compression</div>
+          <div class="window-caption"><strong>Images</strong>: Toss in HEIC, RAW, JPEG, WebP, AVIF, SVG, or PDF with target-size compression and deep CLI knobs</div>
         </div>
 
         <div class="window-card" id="cardVideo">
@@ -703,7 +704,7 @@
           <div class="window-viewport">
             <img src="screenshots/video.png" alt="Tossy Video tab interface on macOS showing video converter" loading="lazy" />
           </div>
-          <div class="window-caption"><strong>Video</strong>: MP4, MOV, MKV, WebM, Animated GIF, Animated WebP with hardware encoding</div>
+          <div class="window-caption"><strong>Video</strong>: MP4, MOV, MKV, WebM, Animated GIF, Animated WebP with hardware encoding and CRF controls</div>
         </div>
 
         <div class="window-card" id="cardAudio">
@@ -716,7 +717,7 @@
           <div class="window-viewport">
             <img src="screenshots/audio.png" alt="Tossy Audio tab interface on macOS showing audio converter" loading="lazy" />
           </div>
-          <div class="window-caption"><strong>Audio</strong>: MP3, AAC, WAV, FLAC, ALAC, OGG, Opus, WMA, AC3 with bitrate control</div>
+          <div class="window-caption"><strong>Audio</strong>: MP3, AAC, WAV, FLAC, ALAC, OGG, Opus, WMA, AC3 with CBR/VBR and EBU R128 normalization</div>
         </div>
 
         <div class="window-card" id="cardBenchmark">
@@ -758,6 +759,11 @@
         <div class="card" id="cardTargetSize">
           <h3>Fit to Target Size</h3>
           <p>Specify a size target like 25MB and Tossy dynamically searches quality and bitrate settings to compress your file to fit.</p>
+        </div>
+
+        <div class="card" id="cardSettingsWindow">
+          <h3>Comprehensive Settings &amp; CLI Knobs</h3>
+          <p>Dedicated macOS Settings window (Cmd+,) and inline format popovers for fine-tuning encoder presets, subsampling, and sample rates.</p>
         </div>
       </div>
     </div>
@@ -810,7 +816,7 @@
 
 <footer id="footer">
   <div class="container">
-    <span>© 2026 thatonemacosdev</span>
+    <span>&copy; 2026 thatonemacosdev</span>
     <a class="footer-link" id="linkFooterGithub" href="https://github.com/thatonemacosdev/tossy-macos">github.com/thatonemacosdev/tossy-macos</a>
   </div>
 </footer>
