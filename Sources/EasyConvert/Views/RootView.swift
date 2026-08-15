@@ -125,15 +125,6 @@ struct RootView: View {
                 .foregroundStyle(TossyColor.textTertiary)
                 .padding(6)
         }
-        .onAppear {
-            DispatchQueue.main.async {
-                for window in NSApp.windows {
-                    window.backgroundColor = .black
-                    window.titlebarAppearsTransparent = true
-                    window.isOpaque = true
-                }
-            }
-        }
     }
 
     private func openSettings() {

@@ -14,9 +14,9 @@ struct BenchmarkView: View {
     private let service = BenchmarkService()
     private let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("TossyBenchmark", isDirectory: true)
 
-    private let chipName = BenchmarkService.getChipDescription()
-    private let coreCount = ProcessInfo.processInfo.activeProcessorCount
-    private let thermalState = BenchmarkService.getThermalStateDescription()
+    private var chipName: String { BenchmarkService.getChipDescription() }
+    private var coreCount: Int { ProcessInfo.processInfo.activeProcessorCount }
+    private var thermalState: String { BenchmarkService.getThermalStateDescription() }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -36,7 +36,7 @@ struct BenchmarkView: View {
 
             bottomActionBar
         }
-        .frame(minWidth: 740, minHeight: 520)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TossyColor.pitchBlack)
         .onAppear {
             loadRunHistory()

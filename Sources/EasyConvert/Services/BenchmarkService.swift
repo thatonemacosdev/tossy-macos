@@ -24,11 +24,13 @@ final class BenchmarkService {
 
     static func getChipDescription() -> String {
         var size = 0
-        sysctlbyname("machdep.cpu.brand_string", nil, &size, nil, 0)
-        var name = [CChar](repeating: 0, count: size)
-        sysctlbyname("machdep.cpu.brand_string", &name, &size, nil, 0)
-        let raw = String(cString: name).trimmingCharacters(in: .whitespacesAndNewlines)
-        if !raw.isEmpty { return raw }
+        if sysctlbyname("machdep.cpu.brand_string", nil, &size, nil, 0) == 0 && size > 1 {
+            var name = [CChar](repeating: 0, count: size)
+            if sysctlbyname("machdep.cpu.brand_string", &name, &size, nil, 0) == 0 {
+                let raw = String(cString: name).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !raw.isEmpty { return raw }
+            }
+        }
 
         // Fallback for Apple Silicon if brand_string is generic
         if let device = MTLCreateSystemDefaultDevice() {
