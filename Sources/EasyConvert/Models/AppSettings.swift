@@ -64,7 +64,7 @@ struct VideoConfig: Codable, Equatable {
     var deinterlace: Bool = false
     var frameRate: String = "keep" // keep, 24, 25, 29.97, 30, 50, 60
     var scalingAlgorithm: String = "lanczos" // lanczos, bicubic, bilinear
-    var audioCodec: String = "aac" // aac, mp3, opus, ac3, copy, none
+    var audioCodec: String = "auto" // auto, aac, mp3, opus, ac3, copy, none
     var audioBitrateKbps: Int = 192
     var preferHardwareAcceleration: Bool = true
 }

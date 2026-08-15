@@ -5,10 +5,16 @@ enum OutputNaming {
     // picking a name at the same instant could both see the same path as free via fileExists
     // and collide, especially with a shared custom filename. This lock plus an in-memory
     // registry of already-handed-out paths closes that window without touching the filesystem
-    // (which would break AVAssetExportSession — it refuses to export if the destination
+    // (which would break AVAssetExportSession: it refuses to export if the destination
     // already exists, even as an empty placeholder).
     private static let lock = NSLock()
     private static var claimedPaths = Set<String>()
+
+    static func resetClaimedPaths() {
+        lock.lock()
+        defer { lock.unlock() }
+        claimedPaths.removeAll()
+    }
 
     /// Picks a non-colliding output URL for `sourceURL` converted to `fileExtension`,
     /// placed in `destinationFolder` (or alongside the source if `nil`). Pass `baseNameOverride`
@@ -20,23 +26,31 @@ enum OutputNaming {
         lock.lock()
         defer { lock.unlock() }
 
-        var candidate = folder.appendingPathComponent(baseName).appendingPathExtension(fileExtension)
+        let candidate = folder.appendingPathComponent(baseName).appendingPathExtension(fileExtension)
         if AppSettings.shared.fileConflictAction == .overwrite {
-            if !claimedPaths.contains(candidate.path) {
-                if FileManager.default.fileExists(atPath: candidate.path) && candidate != sourceURL {
-                    try? FileManager.default.removeItem(at: candidate)
+            if candidate.path == sourceURL.path {
+                var out = folder.appendingPathComponent("\(baseName)-converted").appendingPathExtension(fileExtension)
+                var counter = 2
+                while FileManager.default.fileExists(atPath: out.path) || claimedPaths.contains(out.path) {
+                    out = folder.appendingPathComponent("\(baseName)-converted-\(counter)").appendingPathExtension(fileExtension)
+                    counter += 1
                 }
-                claimedPaths.insert(candidate.path)
-                return candidate
+                claimedPaths.insert(out.path)
+                return out
             }
+            if FileManager.default.fileExists(atPath: candidate.path) {
+                try? FileManager.default.removeItem(at: candidate)
+            }
+            return candidate
         }
 
+        var out = candidate
         var counter = 2
-        while FileManager.default.fileExists(atPath: candidate.path) || claimedPaths.contains(candidate.path) {
-            candidate = folder.appendingPathComponent("\(baseName)-\(counter)").appendingPathExtension(fileExtension)
+        while FileManager.default.fileExists(atPath: out.path) || claimedPaths.contains(out.path) {
+            out = folder.appendingPathComponent("\(baseName)-\(counter)").appendingPathExtension(fileExtension)
             counter += 1
         }
-        claimedPaths.insert(candidate.path)
-        return candidate
+        claimedPaths.insert(out.path)
+        return out
     }
 }

@@ -110,18 +110,18 @@ enum VideoFormat: String, CaseIterable, Identifiable {
         case .ts: return .ffmpeg(muxer: "mpegts", videoCodec: "libx264", audioCodec: "aac", extraArgs: [])
         case .mts, .m2ts: return .ffmpeg(muxer: "mpegts", videoCodec: "libx264", audioCodec: "aac", extraArgs: [])
         case .ogv: return .ffmpeg(muxer: nil, videoCodec: "libtheora", audioCodec: "vorbis", extraArgs: ["-strict", "-2", "-ac", "2"])
-        case .threeGp: return .ffmpeg(muxer: nil, videoCodec: "libx264", audioCodec: "aac", extraArgs: ["-profile:v", "baseline"])
+        case .threeGp: return .ffmpeg(muxer: nil, videoCodec: "libx264", audioCodec: "aac", extraArgs: ["-profile:v", "baseline", "-pix_fmt", "yuv420p"])
         case .asf: return .ffmpeg(muxer: "asf", videoCodec: "wmv2", audioCodec: "wmav2", extraArgs: [])
-        case .mxf: return .ffmpeg(muxer: nil, videoCodec: "mpeg2video", audioCodec: "pcm_s16le", extraArgs: [])
+        case .mxf: return .ffmpeg(muxer: nil, videoCodec: "mpeg2video", audioCodec: "pcm_s16le", extraArgs: ["-ar", "48000"])
         case .f4v: return .ffmpeg(muxer: "mp4", videoCodec: "libx264", audioCodec: "aac", extraArgs: [])
         case .vob: return .ffmpeg(muxer: "dvd", videoCodec: "mpeg2video", audioCodec: "ac3", extraArgs: [])
-        // DV is a fixed-format codec: only 720×480@29.97 (NTSC, yuv411p) or 720×576@25 (PAL) are
-        // valid — anything else fails to open. Force NTSC dimensions/rate/pixel format/sample rate.
-        case .dv: return .ffmpeg(muxer: nil, videoCodec: "dvvideo", audioCodec: "pcm_s16le", extraArgs: ["-vf", "scale=720:480,setdar=4/3", "-r", "29.97", "-pix_fmt", "yuv411p", "-ar", "48000"])
+        // DV is a fixed-format codec: only 720x480@29.97 (NTSC, yuv411p) or 720x576@25 (PAL) are
+        // valid: anything else fails to open. Force NTSC dimensions/rate/pixel format/sample rate.
+        case .dv: return .ffmpeg(muxer: nil, videoCodec: "dvvideo", audioCodec: "pcm_s16le", extraArgs: ["-vf", "scale=720:480,setdar=4/3", "-r", "29.97", "-pix_fmt", "yuv411p", "-ar", "48000", "-ac", "2"])
         case .nut: return .ffmpeg(muxer: nil, videoCodec: "libx264", audioCodec: "aac", extraArgs: [])
         case .mp4Av1: return .ffmpeg(muxer: nil, videoCodec: "libsvtav1", audioCodec: "aac", extraArgs: [])
         case .mpeg4Part2: return .ffmpeg(muxer: nil, videoCodec: "mpeg4", audioCodec: "libmp3lame", extraArgs: [])
-        // DNxHD (unlike DNxHR) only accepts specific resolution/framerate/bitrate combos —
+        // DNxHD (unlike DNxHR) only accepts specific resolution/framerate/bitrate combos -
         // force a valid one (1080p25 @ 36Mbps) rather than fail on arbitrary source dimensions.
         case .dnxhd: return .ffmpeg(muxer: nil, videoCodec: "dnxhd", audioCodec: "pcm_s16le", extraArgs: ["-vf", "scale=1920:1080", "-r", "25", "-pix_fmt", "yuv422p", "-b:v", "36M", "-ar", "48000"])
         case .dnxhr: return .ffmpeg(muxer: nil, videoCodec: "dnxhd", audioCodec: "pcm_s16le", extraArgs: ["-profile:v", "dnxhr_hq", "-pix_fmt", "yuv422p"])

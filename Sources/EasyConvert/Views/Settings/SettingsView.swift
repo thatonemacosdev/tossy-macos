@@ -228,6 +228,7 @@ struct VideoSettingsTab: View {
             
             Section("Audio & Filters") {
                 Picker("Audio Stream Codec", selection: $settings.videoConfig.audioCodec) {
+                    Text("Auto (Format default)").tag("auto")
                     Text("AAC").tag("aac")
                     Text("MP3").tag("mp3")
                     Text("Opus").tag("opus")

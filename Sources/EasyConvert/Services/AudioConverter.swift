@@ -5,7 +5,7 @@ struct AudioConversionResult {
     let note: String?
 }
 
-/// Converts audio via the bundled ffmpeg — covers everything from MP3/AAC/WAV/FLAC to the
+/// Converts audio via the bundled ffmpeg  -  covers everything from MP3/AAC/WAV/FLAC to the
 /// Dolby/DTS-adjacent formats (AC3/E-AC3) and legacy codecs (WMA, AMR).
 final class AudioConverter {
     private let ffmpeg = FFmpegService()
@@ -17,8 +17,8 @@ final class AudioConverter {
     func convert(
         sourceURL: URL,
         to format: AudioFormat,
-        quality: Double,
-        destinationFolder: URL?,
+        quality: Double = 0.7,
+        destinationFolder: URL? = nil,
         targetSizeBytes: Int64? = nil,
         customBaseName: String? = nil,
         preserveMetadata: Bool = true,
@@ -85,12 +85,18 @@ final class AudioConverter {
         }
 
         // Sample rate
-        if audioCfg.sampleRateHz != "keep" && targetSizeBytes == nil {
+        if format == .opus {
+            let validOpusRates = ["8000", "12000", "16000", "24000", "48000"]
+            let rate = validOpusRates.contains(audioCfg.sampleRateHz) ? audioCfg.sampleRateHz : "48000"
+            arguments += ["-ar", rate]
+        } else if audioCfg.sampleRateHz != "keep" && targetSizeBytes == nil {
             arguments += ["-ar", audioCfg.sampleRateHz]
         }
 
         // Channels
-        if audioCfg.channels == "mono" {
+        if format == .ogg {
+            arguments += ["-ac", "2"]
+        } else if audioCfg.channels == "mono" {
             arguments += ["-ac", "1"]
         } else if audioCfg.channels == "stereo" || audioCfg.channels == "downmix51" {
             arguments += ["-ac", "2"]
@@ -141,7 +147,7 @@ final class AudioConverter {
 
         if targetSizeBytes != nil {
             let size = (try? FileManager.default.attributesOfItem(atPath: outputURL.path)[.size] as? Int64) ?? 0
-            note = "\(note ?? "") — actual: \(ByteSize.displayString(size))"
+            note = "\(note ?? "") - actual: \(ByteSize.displayString(size))"
         }
 
         onProgress(1.0)

@@ -14,8 +14,8 @@ enum VectorRenderError: LocalizedError {
     }
 }
 
-/// Rasterizes vector and document sources — SVG, PDF (one image per page), and EPS/AI files
-/// that are PDF-compatible (Illustrator's default save format) — into bitmap images.
+/// Rasterizes vector and document sources  -  SVG, PDF (one image per page), and EPS/AI files
+/// that are PDF-compatible (Illustrator's default save format)  -  into bitmap images.
 enum VectorImageRenderer {
     static func isVectorOrDocumentSource(at url: URL) -> Bool {
         let ext = url.pathExtension.lowercased()

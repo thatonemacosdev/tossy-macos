@@ -42,6 +42,11 @@ codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/webp/dwebp"
 codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/webp/img2webp"
 codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/jxl/cjxl"
 codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/jxl/djxl"
-codesign --force --deep --sign - "${APP_BUNDLE}"
-
 echo "Done. Launch with: open ${APP_BUNDLE}"
+
+mkdir -p dist
+rm -rf dist/Tossy.app dist/Tossy-1.4.0-macOS.zip
+cp -R "${APP_BUNDLE}" dist/Tossy.app
+(cd dist && zip -r -q -y Tossy-1.4.0-macOS.zip Tossy.app)
+echo "Packaged dist/Tossy-1.4.0-macOS.zip"
+

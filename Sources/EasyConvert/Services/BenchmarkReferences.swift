@@ -3,9 +3,9 @@ import Foundation
 /// Absolute scoring reference points, keyed by benchmark test label.
 ///
 /// Each value is this benchmark suite's own measured throughput on a baseline machine
-/// (Apple M4 MacBook Air) divided by 0.70 — i.e. the baseline machine scores exactly 70 on
+/// (Apple M4 MacBook Air) divided by 0.70  -  i.e. the baseline machine scores exactly 70 on
 /// every test by construction. Faster machines score above 70 (up to 100, the assumed
-/// practical ceiling — about 43% faster than the baseline); slower machines score below.
+/// practical ceiling  -  about 43% faster than the baseline); slower machines score below.
 /// This makes scores comparable *across runs and machines*, not just within a single run.
 enum BenchmarkReferences {
     static let values: [String: Double] = [

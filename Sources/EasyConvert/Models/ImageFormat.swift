@@ -109,7 +109,7 @@ enum ImageFormat: String, CaseIterable, Identifiable {
     /// (Some formats, like JXL/Farbfeld, need an ffmpeg build with support compiled in.)
     var isAvailable: Bool {
         // ImageIO's DDS writer silently produces an empty (0-byte) file on this platform
-        // regardless of return status — confirmed by direct testing, not a hypothetical.
+        // regardless of return status  -  confirmed by direct testing, not a hypothetical.
         if self == .dds { return false }
 
         switch backend {
@@ -127,7 +127,7 @@ enum ImageFormat: String, CaseIterable, Identifiable {
     var unavailabilityReason: String? {
         guard !isAvailable else { return nil }
         if self == .dds {
-            return "macOS's image writer produces empty DDS files on this system — there's no working encoder available for this format right now."
+            return "macOS's image writer produces empty DDS files on this system  -  there's no working encoder available for this format right now."
         }
         switch backend {
         case .webpTool:
@@ -149,7 +149,7 @@ enum ImageFormat: String, CaseIterable, Identifiable {
         UTType(filenameExtension: "ai")
     ].compactMap { $0 }
 
-    /// Maps a source file's extension back to one of our writable formats — used by
+    /// Maps a source file's extension back to one of our writable formats  -  used by
     /// "keep original format" (recompress in place without converting).
     static func matching(sourceURL: URL) -> ImageFormat? {
         let ext = sourceURL.pathExtension.lowercased()

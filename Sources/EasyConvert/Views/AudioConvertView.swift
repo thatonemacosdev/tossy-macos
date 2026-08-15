@@ -37,7 +37,7 @@ struct AudioConvertView: View {
                     isTargeted: isTargeted,
                     icon: "waveform.badge.arrow.down",
                     title: "Toss audio here to convert",
-                    subtitle: "MP3, AAC, FLAC, WAV, ALAC, OGG, Opus, WMA, AC3 — or drop a video to extract audio",
+                    subtitle: "MP3, AAC, FLAC, WAV, ALAC, OGG, Opus, WMA, AC3  -  or drop a video to extract audio",
                     formatTags: ["MP3", "AAC", "FLAC", "WAV", "ALAC", "Opus", "OGG"]
                 ) { isShowingImporter = true }
             } else {
@@ -332,7 +332,7 @@ struct AudioConvertView: View {
             if let matched = AudioFormat.matching(sourceURL: job.sourceURL), matched.isAvailable {
                 effectiveFormat = matched
             } else {
-                formatNote = "Couldn't match the original format — used \(effectiveFormat.displayName) instead."
+                formatNote = "Couldn't match the original format  -  used \(effectiveFormat.displayName) instead."
             }
         }
 

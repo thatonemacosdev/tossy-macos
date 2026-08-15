@@ -1,6 +1,6 @@
 import Foundation
 
-/// Locates the bundled `cjxl`/`djxl` (the JPEG XL reference tools) — this ffmpeg build has
+/// Locates the bundled `cjxl`/`djxl` (the JPEG XL reference tools)  -  this ffmpeg build has
 /// no JPEG XL support compiled in, so we use the canonical encoder/decoder instead.
 enum JXLLocator {
     static let cjxlPath: String? = locate(binaryName: "cjxl")

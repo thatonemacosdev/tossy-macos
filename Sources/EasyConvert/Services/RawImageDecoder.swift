@@ -2,7 +2,7 @@ import CoreImage
 import UniformTypeIdentifiers
 
 /// Detects and decodes camera RAW files (CR2, CR3, NEF, ARW, DNG, ORF, RW2, RAF, PEF, and more)
-/// using macOS's built-in RAW pipeline (`CIRAWFilter`) — the same decoders Preview and Photos
+/// using macOS's built-in RAW pipeline (`CIRAWFilter`)  -  the same decoders Preview and Photos
 /// use, covering essentially every mainstream camera without needing LibRaw.
 enum RawImageDecoder {
     static func isRawImage(at url: URL) -> Bool {

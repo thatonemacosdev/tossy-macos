@@ -80,12 +80,12 @@ enum AudioFormat: String, CaseIterable, Identifiable {
         return "This build of ffmpeg wasn't compiled with \(displayName) support."
     }
 
-    /// Everything ffmpeg can demux as audio (mp3, wav, aac, wma, etc), plus video containers —
+    /// Everything ffmpeg can demux as audio (mp3, wav, aac, wma, etc), plus video containers  - 
     /// dropping a video file here rips its audio track rather than requiring a detour through
     /// the Video tab first.
     static let readableContentTypes: [UTType] = [.audio, .movie, .audiovisualContent]
 
-    /// Maps a source file's extension back to one of our writable formats — used by
+    /// Maps a source file's extension back to one of our writable formats  -  used by
     /// "keep original format" (recompress in place without converting).
     static func matching(sourceURL: URL) -> AudioFormat? {
         switch sourceURL.pathExtension.lowercased() {

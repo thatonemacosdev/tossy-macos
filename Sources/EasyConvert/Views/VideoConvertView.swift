@@ -196,7 +196,7 @@ struct VideoConvertView: View {
                     }
 
                     if targetSizeBytes != nil || !exportWidths.isEmpty {
-                        Text("Target size/resolution need an ffmpeg-backed format (not hardware presets) — bitrate is a single-pass estimate.")
+                        Text("Target size/resolution need an ffmpeg-backed format (not hardware presets)  -  bitrate is a single-pass estimate.")
                             .font(.caption)
                             .foregroundStyle(TossyColor.textTertiary)
                     }
@@ -336,7 +336,7 @@ struct VideoConvertView: View {
 
         if keepOriginalContainer {
             guard let targetSizeBytes else {
-                await MainActor.run { job.status = .failed("\"Keep original container\" needs a target size to compress toward — set one above.") }
+                await MainActor.run { job.status = .failed("\"Keep original container\" needs a target size to compress toward  -  set one above.") }
                 return
             }
             await MainActor.run { job.status = .converting(progress: 0) }

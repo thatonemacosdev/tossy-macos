@@ -313,6 +313,7 @@ struct FormatInspectorView: View {
             // Audio in video
             HStack(spacing: 12) {
                 Picker("Audio Codec", selection: $settings.videoConfig.audioCodec) {
+                    Text("Auto (Format default)").tag("auto")
                     Text("AAC (Standard)").tag("aac")
                     Text("MP3").tag("mp3")
                     Text("Opus (High quality)").tag("opus")

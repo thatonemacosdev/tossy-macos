@@ -351,7 +351,7 @@ struct ContentView: View {
             if let matched = ImageFormat.matching(sourceURL: job.sourceURL), matched.isAvailable {
                 effectiveFormat = matched
             } else {
-                formatNote = "Couldn't match the original format — used \(effectiveFormat.displayName) instead."
+                formatNote = "Couldn't match the original format  -  used \(effectiveFormat.displayName) instead."
             }
         }
 

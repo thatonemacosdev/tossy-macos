@@ -23,21 +23,21 @@ enum VideoConversionError: LocalizedError {
 
 struct VideoConversionResult {
     let outputURL: URL
-    /// Set when a target size was requested — an estimated-vs-actual note (bitrate targeting
+    /// Set when a target size was requested  -  an estimated-vs-actual note (bitrate targeting
     /// is a single-pass estimate, not an exact guarantee).
     let note: String?
 }
 
 /// Transcodes video. The five common AVFoundation-native targets (MP4/MOV in H.264, HEVC, or
 /// ProRes 422) go through `AVAssetExportSession`, routed through VideoToolbox's hardware codecs.
-/// Everything else — MKV, WebM, AVI, and the rest of the container/codec zoo — goes through the
+/// Everything else  -  MKV, WebM, AVI, and the rest of the container/codec zoo  -  goes through the
 /// bundled ffmpeg, which AVFoundation simply can't read or write.
 final class VideoConverter {
     private let ffmpeg = FFmpegService()
 
     /// Converts `sourceURL` to `format`, writing into `destinationFolder` (or alongside the
     /// source if `nil`). `onProgress` is called repeatedly with a 0...1 fraction. When
-    /// `targetSizeBytes` is set (ffmpeg-backed formats only — AVFoundation's preset-based API
+    /// `targetSizeBytes` is set (ffmpeg-backed formats only  -  AVFoundation's preset-based API
     /// doesn't expose bitrate control), the video (and audio, if present) bitrate is computed
     /// from the clip's duration to aim for that size; this is a single-pass estimate, not exact.
     func convert(
@@ -86,7 +86,7 @@ final class VideoConverter {
 
     /// "Keep original format" for video: re-encodes into the *same container* as the source
     /// (H.264 + AAC, broadly compatible) instead of picking one of the target formats above.
-    /// Requires a target size — otherwise there's nothing to actually compress toward.
+    /// Requires a target size  -  otherwise there's nothing to actually compress toward.
     func compressKeepingContainer(
         sourceURL: URL,
         destinationFolder: URL?,
@@ -208,7 +208,7 @@ final class VideoConverter {
         if let targetSizeBytes {
             guard let duration, duration > 0 else { throw VideoConversionError.durationUnknown }
             let bitrates = Self.computeBitrates(targetSizeBytes: targetSizeBytes, durationSeconds: duration, hasAudio: audioCodec != nil)
-            // Strip any codec-default bitrate args (e.g. DNxHD's fixed -b:v) — ours takes priority.
+            // Strip any codec-default bitrate args (e.g. DNxHD's fixed -b:v)  -  ours takes priority.
             arguments += Self.stripBitrateArgs(extraArgs)
             arguments += ["-b:v", "\(bitrates.videoBps)", "-maxrate", "\(Int(Double(bitrates.videoBps) * 1.45))", "-bufsize", "\(bitrates.videoBps * 2)"]
             if let audioCodec {
@@ -229,8 +229,39 @@ final class VideoConverter {
             } else if videoCfg.audioCodec == "copy" {
                 arguments += ["-c:a", "copy"]
             } else if let audioCodec {
-                let chosenAudio = videoCfg.audioCodec.isEmpty ? audioCodec : videoCfg.audioCodec
-                arguments += ["-c:a", chosenAudio, "-b:a", "\(videoCfg.audioBitrateKbps)k"]
+                var chosenAudio = audioCodec
+                if videoCfg.audioCodec != "auto" && videoCfg.audioCodec != "default" && !videoCfg.audioCodec.isEmpty {
+                    let requested = videoCfg.audioCodec
+                    let ext = outputExtension.lowercased()
+                    let isCompatible: Bool
+                    switch ext {
+                    case "webm":
+                        isCompatible = (requested == "opus" || requested == "vorbis")
+                    case "mpg", "mpeg", "vob":
+                        isCompatible = (requested == "mp2" || requested == "ac3" || requested == "mp3")
+                    case "mxf", "dv":
+                        isCompatible = requested.hasPrefix("pcm_")
+                    case "wmv", "asf":
+                        isCompatible = (requested == "wmav2")
+                    default:
+                        isCompatible = true
+                    }
+                    if isCompatible {
+                        chosenAudio = requested
+                    }
+                }
+
+                let actualAudioCodec = (chosenAudio == "opus") ? "libopus" : chosenAudio
+                arguments += ["-c:a", actualAudioCodec]
+
+                if !actualAudioCodec.hasPrefix("pcm_") {
+                    arguments += ["-b:a", "\(videoCfg.audioBitrateKbps)k"]
+                }
+                if actualAudioCodec == "libopus" {
+                    arguments += ["-ar", "48000"]
+                } else if actualAudioCodec == "vorbis" {
+                    arguments += ["-strict", "-2", "-ac", "2"]
+                }
             } else {
                 arguments += ["-an"]
             }
@@ -273,7 +304,7 @@ final class VideoConverter {
 
         if targetSizeBytes != nil {
             let size = (try? FileManager.default.attributesOfItem(atPath: outputURL.path)[.size] as? Int64) ?? 0
-            note = "\(note ?? "") — actual: \(ByteSize.displayString(size))"
+            note = "\(note ?? "") - actual: \(ByteSize.displayString(size))"
         }
 
         onProgress(1.0)

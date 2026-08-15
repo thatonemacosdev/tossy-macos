@@ -3,7 +3,7 @@ import SwiftUI
 struct BenchmarkView: View {
     @State private var results: [BenchmarkResult] = []
     @State private var isRunning = false
-    @State private var statusText = "Runs synthetic, GPU-generated test images, a 1080p test clip, and a test tone — no sample files needed."
+    @State private var statusText = "Runs synthetic, GPU-generated test images, a 1080p test clip, and a test tone  -  no sample files needed."
 
     private let service = BenchmarkService()
     private let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("TossyBenchmark", isDirectory: true)
@@ -48,7 +48,7 @@ struct BenchmarkView: View {
                         if let score = result.score {
                             scoreBar(score)
                         } else {
-                            Text("—").foregroundStyle(TossyColor.textTertiary)
+                            Text(" - ").foregroundStyle(TossyColor.textTertiary)
                         }
                     }
                 }
@@ -233,6 +233,6 @@ struct BenchmarkView: View {
         }
         results.append(contentsOf: audioResults)
 
-        statusText = "Done — \(results.count) conversions timed."
+        statusText = "Done  -  \(results.count) conversions timed."
     }
 }

@@ -24,7 +24,7 @@ enum ConversionError: LocalizedError {
 
 struct ImageConversionResult {
     let outputURLs: [URL]
-    /// Set when a target size was requested — reports whether it was hit and the final size.
+    /// Set when a target size was requested  -  reports whether it was hit and the final size.
     let note: String?
 }
 
@@ -38,7 +38,7 @@ final class ImageConverter {
     private let ciContext: CIContext
     let isGPUAccelerated: Bool
 
-    /// Pass `forceSoftwareRenderer: true` to force the CPU rendering path — useful only for
+    /// Pass `forceSoftwareRenderer: true` to force the CPU rendering path  -  useful only for
     /// benchmarking the Metal-backed path against a software baseline.
     init(forceSoftwareRenderer: Bool = false) {
         if !forceSoftwareRenderer, let device = MTLCreateSystemDefaultDevice() {
@@ -57,8 +57,8 @@ final class ImageConverter {
     func convert(
         sourceURL: URL,
         to format: ImageFormat,
-        quality: Double,
-        destinationFolder: URL?,
+        quality: Double = 0.85,
+        destinationFolder: URL? = nil,
         targetSizeBytes: Int64? = nil,
         targetWidth: Int? = nil,
         customBaseName: String? = nil,
@@ -94,7 +94,7 @@ final class ImageConverter {
         for (index, cgImage) in sourceImages.enumerated() {
             var ciImage = CIImage(cgImage: cgImage)
 
-            // Explicit resize request — applied before any other pipeline step, aspect-preserving.
+            // Explicit resize request  -  applied before any other pipeline step, aspect-preserving.
             if let targetWidth, targetWidth > 0, ciImage.extent.width > 0 {
                 let scale = CGFloat(targetWidth) / ciImage.extent.width
                 if abs(scale - 1) > 0.001 {
@@ -111,7 +111,7 @@ final class ImageConverter {
                 }
             }
 
-            // ICNS only accepts specific square sizes (16/32/64/128/256/512/1024) — anything
+            // ICNS only accepts specific square sizes (16/32/64/128/256/512/1024)  -  anything
             // else fails to finalize. Snap to the nearest one, square-cropping first if needed.
             if format == .icns {
                 let standardSizes: [CGFloat] = [16, 32, 64, 128, 256, 512, 1024]
@@ -195,7 +195,7 @@ final class ImageConverter {
         }
     }
 
-    /// Binary-searches `parameter` in `low...high` (quality or resolution scale — higher is
+    /// Binary-searches `parameter` in `low...high` (quality or resolution scale  -  higher is
     /// "bigger file") for the largest value whose output still fits under `targetSizeBytes`.
     /// Writes the winning attempt to `outputURL` and reports whether the target was actually met.
     private func binarySearch(
@@ -241,7 +241,7 @@ final class ImageConverter {
             return (best.size, true)
         }
 
-        // Never fit even at the floor of the search range — write that floor attempt anyway
+        // Never fit even at the floor of the search range  -  write that floor attempt anyway
         // so the user still gets a (smallest-achievable) result rather than nothing.
         let fallbackURL = temporaryFileURL(matching: outputURL)
         try await write(lo, fallbackURL)

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Shared control (used by the Images/Video/Audio tabs) for the max input file size —
+/// Shared control (used by the Images/Video/Audio tabs) for the max input file size  - 
 /// files larger than this are flagged with a warning instead of silently attempted.
 struct MaxFileSizeMenu: View {
     @Bindable private var settings = AppSettings.shared

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Locates the bundled `cwebp`/`dwebp`/`img2webp` (Google's reference WebP tools) —
+/// Locates the bundled `cwebp`/`dwebp`/`img2webp` (Google's reference WebP tools)  - 
 /// this ffmpeg build wasn't compiled with a WebP encoder, so we use the canonical tool instead.
 enum WebPLocator {
     static let cwebpPath: String? = locate(binaryName: "cwebp")

@@ -24,7 +24,7 @@ final class FFmpegCapabilities {
     func canMux(_ name: String) -> Bool { muxers.contains(name) }
     func canDemux(_ name: String) -> Bool { demuxers.contains(name) }
 
-    /// Lines look like " V....D libx264              libx264 H.264 ..." — the second token is the name.
+    /// Lines look like " V....D libx264              libx264 H.264 ..."  -  the second token is the name.
     private static func parseCodecList(_ output: String) -> Set<String> {
         var names: Set<String> = []
         for line in output.split(separator: "\n") {
@@ -37,7 +37,7 @@ final class FFmpegCapabilities {
         return names
     }
 
-    /// Lines look like "  E  matroska        Matroska" or "  D   avi  AVI (...)" — name is the
+    /// Lines look like "  E  matroska        Matroska" or "  D   avi  AVI (...)"  -  name is the
     /// first non-flag token.
     private static func parseFormatList(_ output: String) -> Set<String> {
         var names: Set<String> = []
