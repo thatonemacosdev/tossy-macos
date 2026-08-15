@@ -45,8 +45,8 @@ codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/jxl/djxl"
 echo "Done. Launch with: open ${APP_BUNDLE}"
 
 mkdir -p dist
-rm -rf dist/Tossy.app dist/Tossy-1.4.0-macOS.zip
+rm -rf dist/Tossy.app dist/Tossy-*.zip
 cp -R "${APP_BUNDLE}" dist/Tossy.app
-(cd dist && zip -r -q -y Tossy-1.4.0-macOS.zip Tossy.app)
-echo "Packaged dist/Tossy-1.4.0-macOS.zip"
+(cd dist && zip -r -q -y Tossy-1.5.0-macOS.zip Tossy.app)
+echo "Packaged dist/Tossy-1.5.0-macOS.zip"
 

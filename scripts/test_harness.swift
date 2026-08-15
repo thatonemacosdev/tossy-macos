@@ -349,17 +349,41 @@ struct TestHarness {
             assertCondition(store.imagePresets.count == initialCount, "Preset count should return to initial")
         }
 
-        // 9. Benchmark Service Verification
-        print("\n[Phase 9] Testing Built-in Benchmark Service...")
+        // 9. Benchmark Service Verification (1.5.0 Redesign)
+        print("\n[Phase 9] Testing Built-in Benchmark Service (1.5.0 Suite)...")
         let benchService = BenchmarkService()
-        await runTest("Image Benchmark Suite (512px)") {
-            let res = await benchService.runImageBenchmark(resolutions: [512], formats: [.jpeg, .png], tempDir: tempDir) { _ in }
-            assertCondition(!res.isEmpty, "Benchmark results should not be empty")
+        await runTest("Benchmark Engine: Warmup Execution") {
+            await benchService.runWarmup(tempDir: tempDir) { _ in }
         }
 
-        await runTest("Audio Benchmark Suite (Tone)") {
-            let res = await benchService.runAudioBenchmark(formats: [.mp3, .aac], tempDir: tempDir) { _ in }
+        await runTest("Benchmark Engine: Image Benchmark Suite") {
+            let res = await benchService.runImageBenchmark(tempDir: tempDir) { _ in }
+            assertCondition(!res.isEmpty, "Benchmark results should not be empty")
+            assertCondition(res.allSatisfy { ($0.points ?? 0) > 0 }, "All image tests should score positive points")
+        }
+
+        await runTest("Benchmark Engine: Audio Benchmark Suite") {
+            let res = await benchService.runAudioBenchmark(tempDir: tempDir) { _ in }
             assertCondition(!res.isEmpty, "Audio benchmark results should not be empty")
+            assertCondition(res.allSatisfy { ($0.points ?? 0) > 0 }, "All audio tests should score positive points")
+        }
+
+        await runTest("Benchmark Engine: Concurrency & Scaling Suite") {
+            let res = await benchService.runConcurrencyBenchmark(tempDir: tempDir) { _ in }
+            assertCondition(!res.isEmpty, "Concurrency benchmark results should not be empty")
+        }
+
+        await runTest("Benchmark Engine: Composite TossyMark Calculation") {
+            let dummy = [
+                BenchmarkResult(domain: .image, label: "Test 1", duration: 0.1, throughput: 300.0, unit: .megapixelsPerSecond, points: 12000, detail: "300 MP/s", scoreGroup: "g1"),
+                BenchmarkResult(domain: .video, label: "Test 2", duration: 0.5, throughput: 15.0, unit: .realtimeMultiplier, points: 11000, detail: "15x", scoreGroup: "g2"),
+                BenchmarkResult(domain: .audio, label: "Test 3", duration: 0.2, throughput: 100.0, unit: .realtimeMultiplier, points: 9500, detail: "100x", scoreGroup: "g3"),
+                BenchmarkResult(domain: .concurrency, label: "Test 4", duration: 0.3, throughput: 20.0, unit: .tasksPerSecond, points: 10500, detail: "20 t/s", scoreGroup: "g4")
+            ]
+            let score = BenchmarkReferences.compositeScore(for: dummy)
+            assertCondition(score > 10000 && score < 12000, "Composite score should be valid average: \(score)")
+            let stability = BenchmarkReferences.overallStabilityIndex(for: dummy)
+            assertCondition(stability >= 95.0, "Stability should be near 100%: \(stability)")
         }
 
         // 10. Summary

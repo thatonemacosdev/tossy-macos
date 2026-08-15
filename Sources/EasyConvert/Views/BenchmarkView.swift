@@ -1,12 +1,22 @@
 import SwiftUI
+import AppKit
 
 struct BenchmarkView: View {
     @State private var results: [BenchmarkResult] = []
     @State private var isRunning = false
-    @State private var statusText = "Runs synthetic, GPU-generated test images, a 1080p test clip, and a test tone  -  no sample files needed."
+    @State private var currentProgress: Double = 0.0
+    @State private var statusText = "Ready to test 32 conversion workloads across Metal GPU, video transcode, audio DSP, and multi-core scaling."
+    @State private var activeDomain: BenchmarkDomain = .all
+    @State private var runHistory: [BenchmarkRunReport] = []
+    @State private var selectedHistoryRun: BenchmarkRunReport?
+    @State private var copiedBadgeNotification = false
 
     private let service = BenchmarkService()
     private let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("TossyBenchmark", isDirectory: true)
+
+    private let chipName = BenchmarkService.getChipDescription()
+    private let coreCount = ProcessInfo.processInfo.activeProcessorCount
+    private let thermalState = BenchmarkService.getThermalStateDescription()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -14,225 +24,561 @@ struct BenchmarkView: View {
 
             Divider().overlay(TossyColor.borderSubtle)
 
-            if results.isEmpty {
-                VStack(spacing: 16) {
-                    ZStack {
-                        Circle()
-                            .fill(TossyColor.surfaceElevated)
-                            .frame(width: 80, height: 80)
-                        Image(systemName: "speedometer")
-                            .font(.system(size: 40, weight: .light))
+            if isRunning {
+                runningView
+            } else if results.isEmpty && runHistory.isEmpty {
+                emptyStateView
+            } else {
+                contentDashboardView
+            }
+
+            Divider().overlay(TossyColor.borderSubtle)
+
+            bottomActionBar
+        }
+        .frame(minWidth: 740, minHeight: 520)
+        .background(TossyColor.pitchBlack)
+        .onAppear {
+            loadRunHistory()
+        }
+    }
+
+    // MARK: - Header
+
+    private var header: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 8) {
+                    Text("TossyMark System Benchmark")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.white)
+
+                    TossyPill(text: "v1.5.0 Suite", isSubtle: true)
+                }
+
+                Text("Standardized compute, GPU acceleration, and transcode benchmark calibrated to Apple Silicon reference standards.")
+                    .font(.caption)
+                    .foregroundStyle(TossyColor.textSecondary)
+            }
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                TossyPill(text: "\(chipName) (\(coreCount) Cores)", isSubtle: true)
+                TossyPill(text: thermalState, isSubtle: true)
+            }
+        }
+        .padding(14)
+        .background(TossyColor.pitchBlack)
+    }
+
+    // MARK: - Running View
+
+    private var runningView: some View {
+        VStack(spacing: 16) {
+            Spacer()
+            BenchmarkGaugeView(
+                progress: currentProgress,
+                activeTestName: statusText,
+                chipModel: "\(chipName) - \(coreCount) Cores"
+            )
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(TossyColor.pitchBlack)
+    }
+
+    // MARK: - Empty State View
+
+    private var emptyStateView: some View {
+        VStack(spacing: 18) {
+            Spacer()
+
+            ZStack {
+                Circle()
+                    .fill(TossyColor.surfaceElevated)
+                    .frame(width: 84, height: 84)
+
+                Image(systemName: "speedometer")
+                    .font(.system(size: 40, weight: .light))
+                    .foregroundStyle(Color.white)
+            }
+
+            VStack(spacing: 6) {
+                Text("Comprehensive Benchmark Suite")
+                    .font(.headline)
+                    .foregroundStyle(Color.white)
+
+                Text(statusText)
+                    .font(.caption)
+                    .foregroundStyle(TossyColor.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 480)
+            }
+
+            Button {
+                Task { await runAll() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "play.fill")
+                    Text("Run 32-Workload Benchmark")
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.white)
+            .foregroundStyle(.black)
+            .controlSize(.large)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(24)
+    }
+
+    // MARK: - Main Content Dashboard
+
+    private var contentDashboardView: some View {
+        ScrollView {
+            VStack(spacing: 14) {
+                // Top Score Card
+                if let score = overallScore {
+                    scoreOverviewCard(score: score)
+                    BenchmarkHardwareScaleView(currentScore: score)
+                }
+
+                // Domain Filter & History Selector
+                domainFilterBar
+
+                // Test Table
+                resultsTableView
+            }
+            .padding(14)
+        }
+    }
+
+    // MARK: - Score Overview Card
+
+    private func scoreOverviewCard(score: Int) -> some View {
+        VStack(spacing: 12) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("OVERALL TOSSYMARK")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(TossyColor.textSecondary)
+
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text("\(score)")
+                            .font(.system(size: 42, weight: .bold, design: .rounded))
                             .foregroundStyle(Color.white)
+
+                        Text("pts")
+                            .font(.title3.weight(.medium))
+                            .foregroundStyle(TossyColor.textTertiary)
+                    }
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 6) {
+                    let stability = BenchmarkReferences.overallStabilityIndex(for: displayedResults)
+                    HStack(spacing: 6) {
+                        Image(systemName: "waveform.path.ecg")
+                            .font(.caption)
+                            .foregroundStyle(TossyColor.successGreen)
+                        Text(String(format: "Stability: %.1f%%", stability))
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(TossyColor.textSecondary)
                     }
 
-                    Text(statusText)
-                        .font(.system(size: 13))
-                        .foregroundStyle(TossyColor.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: 400)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                if let overallScore {
-                    overallScoreCard(overallScore)
-                }
-                Table(scoredResults) {
-                    TableColumn("Category", value: \.category)
-                    TableColumn("Test", value: \.label)
-                    TableColumn("Time") { result in
-                        Text(String(format: "%.2fs", result.duration))
-                            .font(.system(size: 12, design: .monospaced))
-                    }
-                    TableColumn("Throughput", value: \.detail)
-                    TableColumn("Score") { result in
-                        if let score = result.score {
-                            scoreBar(score)
-                        } else {
-                            Text(" - ").foregroundStyle(TossyColor.textTertiary)
-                        }
-                    }
+                    Text("Calibrated baseline standard = 10,000 pts (Apple M2)")
+                        .font(.caption2)
+                        .foregroundStyle(TossyColor.textTertiary)
                 }
             }
 
             Divider().overlay(TossyColor.borderSubtle)
 
-            HStack {
-                Text(statusText)
-                    .font(.caption)
-                    .foregroundStyle(TossyColor.textSecondary)
-                    .lineLimit(1)
-
-                Spacer()
-
-                Button {
-                    Task { await runAll() }
-                } label: {
-                    if isRunning {
-                        HStack(spacing: 6) {
-                            ProgressView().controlSize(.small)
-                            Text("Running Benchmarks…")
-                        }
-                    } else {
-                        HStack(spacing: 6) {
-                            Image(systemName: "play.fill")
-                            Text("Run Benchmark Suite")
-                        }
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.white)
-                .foregroundStyle(.black)
-                .controlSize(.regular)
-                .disabled(isRunning)
+            // Sub-scores
+            HStack(spacing: 10) {
+                subScoreChip(title: "ImageMark", value: BenchmarkReferences.domainScore(for: results, in: .image), icon: "photo.stack")
+                subScoreChip(title: "VideoMark", value: BenchmarkReferences.domainScore(for: results, in: .video), icon: "film")
+                subScoreChip(title: "AudioMark", value: BenchmarkReferences.domainScore(for: results, in: .audio), icon: "waveform")
+                subScoreChip(title: "ConcurrencyMark", value: BenchmarkReferences.domainScore(for: results, in: .concurrency), icon: "cpu")
             }
-            .padding(12)
-            .background(TossyColor.surfaceDeep)
         }
-        .frame(minWidth: 620, minHeight: 460)
-        .background(TossyColor.pitchBlack)
+        .padding(16)
+        .tossyCard(cornerRadius: 14, isHighlighted: true)
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("Performance Benchmark")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Color.white)
-                
-                Spacer()
-                
-                TossyPill(text: "Apple Silicon & Metal GPU", isSubtle: true)
-            }
-            Text("Compares the Metal-backed GPU image pipeline against a CPU-only baseline, and times hardware video/audio transcoding. Scores are 0–100, calibrated so a baseline Apple M4 MacBook Air scores 70 on every test.")
-                .font(.caption)
+    private func subScoreChip(title: String, value: Int, icon: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 13))
                 .foregroundStyle(TossyColor.textSecondary)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(TossyColor.textTertiary)
+
+                Text(value > 0 ? "\(value)" : " - ")
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.white)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(TossyColor.pitchBlack)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .background(TossyColor.surfaceElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
-    // MARK: - Scoring
+    // MARK: - Domain Filter Bar
 
-    private struct ScoredResult: Identifiable {
-        let base: BenchmarkResult
-        var id: UUID { base.id }
-        var category: String { base.category }
-        var label: String { base.label }
-        var duration: TimeInterval { base.duration }
-        var detail: String { base.detail }
-        let score: Int?
-    }
-
-    private var scoredResults: [ScoredResult] {
-        var maxByGroup: [String: Double] = [:]
-        for result in results {
-            guard let value = result.metricValue else { continue }
-            maxByGroup[result.scoreGroup] = max(maxByGroup[result.scoreGroup] ?? 0, value)
-        }
-        return results.map { result in
-            guard let value = result.metricValue else {
-                return ScoredResult(base: result, score: nil)
-            }
-            if let calibratedScore = BenchmarkReferences.score(label: result.label, value: value) {
-                return ScoredResult(base: result, score: calibratedScore)
-            }
-            guard let maxValue = maxByGroup[result.scoreGroup], maxValue > 0 else {
-                return ScoredResult(base: result, score: nil)
-            }
-            let score = min(100, Int((value / maxValue) * 100))
-            return ScoredResult(base: result, score: score)
-        }
-    }
-
-    private var overallScore: Int? {
-        let scores = scoredResults.compactMap(\.score)
-        guard !scores.isEmpty else { return nil }
-        return scores.reduce(0, +) / scores.count
-    }
-
-    private func overallScoreCard(_ score: Int) -> some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Overall System Score")
-                    .font(.caption)
-                    .foregroundStyle(TossyColor.textSecondary)
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("\(score)")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundStyle(scoreColor(score))
-                    Text("/ 100")
-                        .font(.title3)
-                        .foregroundStyle(TossyColor.textTertiary)
+    private var domainFilterBar: some View {
+        HStack(spacing: 6) {
+            ForEach(BenchmarkDomain.allCases) { domain in
+                let count = results.filter { domain == .all || $0.domain == domain }.count
+                Button {
+                    activeDomain = domain
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: domain.iconName)
+                            .font(.system(size: 11))
+                        Text(domain.rawValue)
+                            .font(.system(size: 12, weight: .medium))
+                        if count > 0 {
+                            Text("(\(count))")
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundStyle(activeDomain == domain ? Color.black.opacity(0.8) : TossyColor.textTertiary)
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(activeDomain == domain ? Color.white : TossyColor.surfaceElevated)
+                    .foregroundStyle(activeDomain == domain ? Color.black : Color.white)
+                    .clipShape(Capsule())
                 }
+                .buttonStyle(.plain)
             }
+
             Spacer()
-            Text("Averaged across all conversions tested this run, scored against calibrated baseline performance.")
+
+            if copiedBadgeNotification {
+                Text("Copied badge to clipboard!")
+                    .font(.caption)
+                    .foregroundStyle(TossyColor.successGreen)
+                    .transition(.opacity)
+            }
+        }
+    }
+
+    // MARK: - Results Table
+
+    private var displayedResults: [BenchmarkResult] {
+        if activeDomain == .all {
+            return results
+        }
+        return results.filter { $0.domain == activeDomain }
+    }
+
+    private var resultsTableView: some View {
+        VStack(spacing: 6) {
+            ForEach(displayedResults) { item in
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.label)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color.white)
+
+                        if !item.descriptionText.isEmpty {
+                            Text(item.descriptionText)
+                                .font(.caption2)
+                                .foregroundStyle(TossyColor.textSecondary)
+                        }
+                    }
+
+                    Spacer()
+
+                    // Throughput metric
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(item.detail)
+                            .font(.system(size: 13, weight: .medium, design: .monospaced))
+                            .foregroundStyle(Color.white)
+
+                        Text(String(format: "%.2fs median", item.duration))
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundStyle(TossyColor.textTertiary)
+                    }
+                    .frame(width: 140, alignment: .trailing)
+
+                    // Point Score Bar
+                    if let pts = item.points {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            HStack(spacing: 4) {
+                                Text("\(pts)")
+                                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                                    .foregroundStyle(Color.white)
+                                Text("pts")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(TossyColor.textTertiary)
+                            }
+
+                            // Visual mini-bar relative to 10k baseline
+                            let fraction = min(1.0, max(0.05, Double(pts) / 20_000.0))
+                            GeometryReader { g in
+                                ZStack(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(TossyColor.surfaceElevated)
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Color.white)
+                                        .frame(width: g.size.width * fraction)
+                                }
+                            }
+                            .frame(width: 70, height: 4)
+                        }
+                        .frame(width: 85, alignment: .trailing)
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(TossyColor.surfaceDeep)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+        }
+    }
+
+    // MARK: - Bottom Action Bar
+
+    private var bottomActionBar: some View {
+        HStack {
+            Text(statusText)
                 .font(.caption)
                 .foregroundStyle(TossyColor.textSecondary)
-                .frame(maxWidth: 320, alignment: .trailing)
-                .multilineTextAlignment(.trailing)
-        }
-        .padding(14)
-        .tossyCard(cornerRadius: 12, isHighlighted: true)
-        .padding([.horizontal, .top], 12)
-    }
+                .lineLimit(1)
 
-    private func scoreBar(_ score: Int) -> some View {
-        HStack(spacing: 6) {
-            ProgressView(value: Double(score), total: 100)
-                .frame(width: 60)
-                .tint(scoreColor(score))
-            Text("\(score)")
-                .font(.caption.monospacedDigit())
+            Spacer()
+
+            if !results.isEmpty && !isRunning {
+                Button {
+                    copyBadgeToClipboard()
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "doc.on.doc")
+                        Text("Copy Badge")
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(TossyColor.surfaceElevated)
                 .foregroundStyle(Color.white)
-                .frame(width: 24, alignment: .trailing)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .font(.caption)
+
+                Button {
+                    exportJSONReport()
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("Export JSON")
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(TossyColor.surfaceElevated)
+                .foregroundStyle(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .font(.caption)
+            }
+
+            Button {
+                Task { await runAll() }
+            } label: {
+                if isRunning {
+                    HStack(spacing: 6) {
+                        ProgressView().controlSize(.small)
+                        Text("Benchmarking…")
+                    }
+                } else {
+                    HStack(spacing: 6) {
+                        Image(systemName: results.isEmpty ? "play.fill" : "arrow.clockwise")
+                        Text(results.isEmpty ? "Run Benchmark Suite" : "Re-run Benchmark")
+                    }
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.white)
+            .foregroundStyle(.black)
+            .controlSize(.regular)
+            .disabled(isRunning)
         }
+        .padding(12)
+        .background(TossyColor.surfaceDeep)
     }
 
-    private func scoreColor(_ score: Int) -> Color {
-        switch score {
-        case 80...: return TossyColor.successGreen
-        case 50..<80: return TossyColor.warningAmber
-        default: return TossyColor.errorRed
-        }
+    // MARK: - Scoring Calculation
+
+    private var overallScore: Int? {
+        guard !results.isEmpty else { return nil }
+        return BenchmarkReferences.compositeScore(for: results)
     }
 
-    // MARK: - Running
+    // MARK: - Execution
 
     private func runAll() async {
         isRunning = true
         results = []
+        currentProgress = 0.0
         defer { isRunning = false }
 
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let imageResults = await service.runImageBenchmark(
-            resolutions: [512, 1024, 2048, 4096],
-            formats: [.jpeg, .heic, .png, .avif],
-            tempDir: tempDir
-        ) { status in
-            Task { @MainActor in statusText = status }
+        // 1. Warmup
+        await service.runWarmup(tempDir: tempDir) { status in
+            Task { @MainActor in
+                statusText = status
+                currentProgress = 0.05
+            }
+        }
+
+        // 2. Images (12 tests)
+        let imageResults = await service.runImageBenchmark(tempDir: tempDir) { status in
+            Task { @MainActor in
+                statusText = status
+                currentProgress = min(0.40, currentProgress + 0.03)
+            }
         }
         results.append(contentsOf: imageResults)
+        currentProgress = 0.40
 
-        let videoResults = await service.runVideoBenchmark(
-            formats: [.mp4H264, .mp4Hevc, .movProRes422, .mkv, .webm],
-            tempDir: tempDir
-        ) { status in
-            Task { @MainActor in statusText = status }
+        // 3. Video (10 tests)
+        let videoResults = await service.runVideoBenchmark(tempDir: tempDir) { status in
+            Task { @MainActor in
+                statusText = status
+                currentProgress = min(0.75, currentProgress + 0.03)
+            }
         }
         results.append(contentsOf: videoResults)
+        currentProgress = 0.75
 
-        let audioResults = await service.runAudioBenchmark(
-            formats: [.mp3, .aac, .flac, .opus],
-            tempDir: tempDir
-        ) { status in
-            Task { @MainActor in statusText = status }
+        // 4. Audio (6 tests)
+        let audioResults = await service.runAudioBenchmark(tempDir: tempDir) { status in
+            Task { @MainActor in
+                statusText = status
+                currentProgress = min(0.90, currentProgress + 0.02)
+            }
         }
         results.append(contentsOf: audioResults)
+        currentProgress = 0.90
 
-        statusText = "Done  -  \(results.count) conversions timed."
+        // 5. Concurrency (4 tests)
+        let concurrencyResults = await service.runConcurrencyBenchmark(tempDir: tempDir) { status in
+            Task { @MainActor in
+                statusText = status
+                currentProgress = min(0.98, currentProgress + 0.02)
+            }
+        }
+        results.append(contentsOf: concurrencyResults)
+        currentProgress = 1.0
+
+        let finalScore = BenchmarkReferences.compositeScore(for: results)
+        statusText = "Benchmark complete: \(results.count) tests finished with TossyMark score \(finalScore)."
+
+        saveRunToHistory(score: finalScore)
+    }
+
+    // MARK: - History & Export
+
+    private func saveRunToHistory(score: Int) {
+        let report = BenchmarkRunReport(
+            timestamp: Date(),
+            deviceModel: chipName,
+            chipDescription: chipName,
+            coreCount: coreCount,
+            thermalState: thermalState,
+            overallTossyMark: score,
+            imageMark: BenchmarkReferences.domainScore(for: results, in: .image),
+            videoMark: BenchmarkReferences.domainScore(for: results, in: .video),
+            audioMark: BenchmarkReferences.domainScore(for: results, in: .audio),
+            concurrencyMark: BenchmarkReferences.domainScore(for: results, in: .concurrency),
+            stabilityIndex: BenchmarkReferences.overallStabilityIndex(for: results),
+            results: results
+        )
+
+        var history = runHistory
+        history.insert(report, at: 0)
+        if history.count > 5 {
+            history = Array(history.prefix(5))
+        }
+        runHistory = history
+
+        if let encoded = try? JSONEncoder().encode(history) {
+            UserDefaults.standard.set(encoded, forKey: "tossy_benchmark_history")
+        }
+    }
+
+    private func loadRunHistory() {
+        guard let data = UserDefaults.standard.data(forKey: "tossy_benchmark_history"),
+              let decoded = try? JSONDecoder().decode([BenchmarkRunReport].self, from: data) else { return }
+        self.runHistory = decoded
+        if let latest = decoded.first, results.isEmpty {
+            self.results = latest.results
+        }
+    }
+
+    private func copyBadgeToClipboard() {
+        guard let score = overallScore else { return }
+        let badge = """
+        **TossyMark Benchmark**: `\(score) pts`
+        - Hardware: \(chipName) (\(coreCount) Cores)
+        - ImageMark: \(BenchmarkReferences.domainScore(for: results, in: .image)) | VideoMark: \(BenchmarkReferences.domainScore(for: results, in: .video)) | AudioMark: \(BenchmarkReferences.domainScore(for: results, in: .audio)) | ConcurrencyMark: \(BenchmarkReferences.domainScore(for: results, in: .concurrency))
+        - Reference Standard: Apple M2 Mac = 10,000 pts
+        """
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(badge, forType: .string)
+
+        withAnimation {
+            copiedBadgeNotification = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            withAnimation {
+                copiedBadgeNotification = false
+            }
+        }
+    }
+
+    private func exportJSONReport() {
+        guard let score = overallScore else { return }
+        let report = BenchmarkRunReport(
+            timestamp: Date(),
+            deviceModel: chipName,
+            chipDescription: chipName,
+            coreCount: coreCount,
+            thermalState: thermalState,
+            overallTossyMark: score,
+            imageMark: BenchmarkReferences.domainScore(for: results, in: .image),
+            videoMark: BenchmarkReferences.domainScore(for: results, in: .video),
+            audioMark: BenchmarkReferences.domainScore(for: results, in: .audio),
+            concurrencyMark: BenchmarkReferences.domainScore(for: results, in: .concurrency),
+            stabilityIndex: BenchmarkReferences.overallStabilityIndex(for: results),
+            results: results
+        )
+
+        if let data = try? JSONEncoder().encode(report),
+           let jsonString = String(data: data, encoding: .utf8) {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(jsonString, forType: .string)
+            withAnimation {
+                copiedBadgeNotification = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                withAnimation {
+                    copiedBadgeNotification = false
+                }
+            }
+        }
     }
 }

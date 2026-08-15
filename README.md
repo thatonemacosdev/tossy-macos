@@ -1,6 +1,6 @@
 # Tossy
 
-[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.4.0)
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.5.0)
 [![License](https://img.shields.io/github/license/thatonemacosdev/tossy-macos)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/tossy-macos)](https://github.com/thatonemacosdev/tossy-macos/releases)
 
@@ -9,7 +9,7 @@
 A free, native macOS utility for converting images, video, and audio without Terminal, without uploading files anywhere, and without installing Homebrew or ffmpeg yourself. Toss files in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera files, MKV, WebM, FLAC, animated GIFs, animated WebP, and dozens more.
 
 Website: [thatonemacosdev.github.io/tossy-macos](https://thatonemacosdev.github.io/tossy-macos/)
-Download: [v1.4.0 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.4.0)
+Download: [v1.5.0 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.5.0)
 
 Under the hood: GPU-accelerated image processing (Metal via Core Image) and hardware video encoding (VideoToolbox via AVFoundation) where the platform supports it, falling back to a bundled `ffmpeg` for everything else.
 
@@ -22,7 +22,7 @@ Under the hood: GPU-accelerated image processing (Metal via Core Image) and hard
   </tr>
   <tr>
     <td width="50%"><img src="docs/screenshots/audio.png" alt="Tossy Audio tab on macOS: converting MP3, FLAC, and WAV with a bitrate picker" /><br /><sub>Audio: bitrate and format picker</sub></td>
-    <td width="50%"><img src="docs/screenshots/benchmark.png" alt="Tossy Benchmark tab on macOS: scoring conversion performance from 0 to 100 against a calibrated baseline" /><br /><sub>Benchmark: scored results table</sub></td>
+    <td width="50%"><img src="docs/screenshots/benchmark.png" alt="Tossy Benchmark tab on macOS: TossyMark system benchmark suite with hardware comparisons" /><br /><sub>Benchmark: TossyMark score and hardware baseline scale</sub></td>
   </tr>
 </table>
 
@@ -31,6 +31,7 @@ Under the hood: GPU-accelerated image processing (Metal via Core Image) and hard
 - **Images**: PNG, JPEG, HEIC, TIFF, BMP, GIF, JPEG 2000, AVIF, ICO, TGA, WebP, PSD, ICNS, DDS, OpenEXR, Radiance HDR, PNM, QOI, JPEG XL, and camera RAW (CR2, CR3, NEF, ARW, DNG, and most others Apple's built-in RAW pipeline supports). Also rasterizes SVG and PDF (one image per page).
 - **Video**: MP4/MOV (H.264, HEVC, ProRes 422) via hardware encode, plus MKV, WebM, AVI, FLV, MPEG, TS/MTS/M2TS, 3GP, ASF/WMV, MXF, VOB, DV, NUT, AV1, DNxHD, DNxHR, Animated GIF, and Animated WebP via ffmpeg.
 - **Audio**: MP3, AAC, M4A, WAV, FLAC, ALAC, AIFF, OGG, Opus, WMA, AC3, E-AC3, CAF.
+- **TossyMark System Benchmark (v1.5.0)**: High-precision 32-workload benchmarking engine measuring GPU rasterization, lossless compression, hardware vs software video encoding, broadcast audio DSP, and multi-core scaling with noise-resistant median timing and hardware baseline comparisons.
 - **Dedicated macOS Settings Window (Cmd+,)**: Configure global output directory policies, file conflict handling, concurrency throttling (1-8 tasks), completion notification toggles, sound chimes, auto-reveal in Finder, and delete source after conversion.
 - **Inline Format Inspector (CLI Knobs)**: Fine-tune WebP methods/presets/Sharp YUV, JPEG XL effort/distance, JPEG progressive/subsampling, PNG compression, TIFF algorithms, GIF dithering, Video CRF/presets/pixel formats/audio tracks/deinterlacing, and Audio CBR/VBR/sample rates/EBU R128 normalization.
 - **Per-Job Overrides**: Customize format and compression settings for individual files in the batch queue.
@@ -39,7 +40,6 @@ Under the hood: GPU-accelerated image processing (Metal via Core Image) and hard
 - **Presets**: Save and apply custom settings across tabs.
 - **Metadata control**: Option to preserve original EXIF/GPS/TIFF metadata on images, or strip container metadata on audio/video.
 - **Resize**: Set an output width; aspect ratio is preserved.
-- **Benchmark tab**: Times real conversions on your machine and scores them 0-100 against a calibrated baseline.
 
 ## Building
 
