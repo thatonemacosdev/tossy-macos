@@ -14,7 +14,7 @@ struct TestHarness {
 
     static func main() async {
         print("=======================================================")
-        print("Tossy 1.4.0 Clientside Integration and Stress Test Suite")
+        print("Tossy 1.5.0 Clientside Integration and Stress Test Suite")
         print("=======================================================")
 
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("TossyTestHarness_\(UUID().uuidString)")
