@@ -58,8 +58,9 @@ Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/Pro
 
 ## What's New in v1.5.3
 
-- **TossyMark Benchmark Recalibration**: Recalibrated baseline standard throughput across all 32 workloads for modern Apple Silicon chips. Corrected over-indexing on Apple M4 architecture so M2 anchors accurately at 10,000 points, M4 Air / base models score ~15,800 points, M4 Pro scores ~23,500 points, and M4 Max/Ultra scores up to 36,000+ points on the hardware comparison scale.
-- **Expanded Comparison Scale**: Increased hardware comparison scale upper boundary to 40,000 points with updated Apple Silicon tier brackets.
+- **TossyMark Benchmark Calibration (Apple M4 Baseline)**: Calibrated standard hardware tiers and baseline comparisons directly against Apple M4 silicon, establishing the Apple M4 Air (10-core GPU/CPU) at **32,000 points**. 
+- **Expanded Hardware Scale (80,000 Points)**: Expanded the comparison gauge upper limit to 80,000 points to accommodate modern Apple Silicon tiers: Apple M1 (12,000 pts), Apple M2/M3 (20,000 pts), Apple M4 Air (32,000 pts), Apple M4 Pro (48,000 pts), and Apple M4 Max/Ultra (75,000 pts).
+- **Hardened Release Bundling**: Upgraded packaging pipeline with inside-out recursive code signing across all bundled dynamic libraries and native ditto packaging to ensure zero Gatekeeper issues on distribution zips.
 
 ## What's New in v1.5.2
 

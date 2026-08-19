@@ -324,8 +324,8 @@ struct BenchmarkView: View {
                                     .foregroundStyle(TossyColor.textTertiary)
                             }
 
-                            // Visual mini-bar relative to 10k baseline
-                            let fraction = min(1.0, max(0.05, Double(pts) / 40_000.0))
+                            // Visual mini-bar relative to 32k M4 Air baseline
+                            let fraction = min(1.0, max(0.05, Double(pts) / 60_000.0))
                             GeometryReader { g in
                                 ZStack(alignment: .leading) {
                                     RoundedRectangle(cornerRadius: 2)

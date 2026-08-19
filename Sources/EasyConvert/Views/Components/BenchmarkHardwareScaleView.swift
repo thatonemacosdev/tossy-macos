@@ -13,14 +13,14 @@ struct BenchmarkHardwareScaleView: View {
 
                 Spacer()
 
-                Text("Reference Standard: M2 Mac (10,000 pts)")
+                Text("Calibrated Baseline: Apple M4 Air (32,000 pts)")
                     .font(.caption2)
                     .foregroundStyle(TossyColor.textTertiary)
             }
 
             GeometryReader { geo in
                 let width = geo.size.width
-                let maxPoints = 40_000.0
+                let maxPoints = 80_000.0
 
                 ZStack(alignment: .leading) {
                     // Background track
@@ -28,8 +28,8 @@ struct BenchmarkHardwareScaleView: View {
                         .fill(TossyColor.surfaceElevated)
                         .frame(height: 12)
 
-                    // Reference threshold marker at 10,000 pts (1/3 of bar)
-                    let refPos = width * (10_000.0 / maxPoints)
+                    // Reference threshold marker at 32,000 pts (M4 Air calibrated baseline)
+                    let refPos = width * (32_000.0 / maxPoints)
                     Rectangle()
                         .fill(Color.white.opacity(0.3))
                         .frame(width: 2, height: 20)
