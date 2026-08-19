@@ -357,6 +357,26 @@
   .specs-bar span { color: var(--text-secondary); }
   .specs-bar .divider { color: var(--border); margin: 0 10px; }
 
+  /* Hero Preview Image */
+  .hero-preview {
+    margin-top: 48px;
+    position: relative;
+  }
+
+  .hero-image-frame {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    background: var(--bg-surface);
+    overflow: hidden;
+    box-shadow: 0 28px 80px -16px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .hero-desktop-image {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
   /* Horizontal Showcase Carousel Section */
   section.showcase {
     padding: 40px 0 80px;
@@ -662,6 +682,12 @@
 
         <div class="specs-bar">
           <span>macOS 14+</span><span class="divider">/</span><span>Apple Silicon &amp; Intel</span><span class="divider">/</span><span>22 MB</span><span class="divider">/</span><span>GPL-3.0</span>
+        </div>
+      </div>
+
+      <div class="hero-preview" id="heroPreview">
+        <div class="hero-image-frame">
+          <img src="screenshots/desktop_hero.jpg" alt="Tossy macOS Desktop application interface overview with batch processing and target-size compression" class="hero-desktop-image" />
         </div>
       </div>
     </div>
