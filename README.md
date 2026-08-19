@@ -15,6 +15,10 @@ Under the hood: GPU-accelerated image processing (Metal via Core Image) and hard
 
 ## Screenshots
 
+<p align="center">
+  <img src="docs/screenshots/desktop_hero.jpg" alt="Tossy macOS Desktop Application Overview" width="100%" />
+</p>
+
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/image.png" alt="Tossy Images tab on macOS: drag and drop HEIC, RAW, and JPEG conversion with target-size compression" /><br /><sub>Images: toss in, target-size compression</sub></td>
