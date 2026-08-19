@@ -21,7 +21,25 @@ enum OutputNaming {
     /// for a custom output filename instead of the one derived from `sourceURL`.
     static func uniqueOutputURL(for sourceURL: URL, fileExtension: String, destinationFolder: URL?, nameSuffix: String = "", baseNameOverride: String? = nil) -> URL {
         let folder = destinationFolder ?? sourceURL.deletingLastPathComponent()
-        let baseName = (baseNameOverride ?? sourceURL.deletingPathExtension().lastPathComponent) + nameSuffix
+        let rawBaseName = baseNameOverride ?? sourceURL.deletingPathExtension().lastPathComponent
+        let formattedBaseName: String
+        if baseNameOverride != nil {
+            formattedBaseName = rawBaseName
+        } else {
+            switch AppSettings.shared.namingTemplate {
+            case .standard:
+                formattedBaseName = rawBaseName
+            case .suffixFormat:
+                formattedBaseName = "\(rawBaseName)_\(fileExtension)"
+            case .timestamp:
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyyMMdd_HHmmss"
+                formattedBaseName = "\(rawBaseName)_\(formatter.string(from: Date()))"
+            case .compressed:
+                formattedBaseName = "\(rawBaseName)-compressed"
+            }
+        }
+        let baseName = formattedBaseName + nameSuffix
 
         lock.lock()
         defer { lock.unlock() }

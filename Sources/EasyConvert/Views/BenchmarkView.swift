@@ -10,6 +10,7 @@ struct BenchmarkView: View {
     @State private var runHistory: [BenchmarkRunReport] = []
     @State private var selectedHistoryRun: BenchmarkRunReport?
     @State private var copiedToastText: String? = nil
+    @State private var showingShareCardSheet = false
 
     private let service = BenchmarkService()
     private let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("TossyBenchmark", isDirectory: true)
@@ -41,6 +42,16 @@ struct BenchmarkView: View {
         .onAppear {
             loadRunHistory()
         }
+        .sheet(isPresented: $showingShareCardSheet) {
+            if let score = overallScore {
+                BenchmarkShareCardView(
+                    score: score,
+                    chipName: chipName,
+                    coreCount: coreCount,
+                    results: results
+                )
+            }
+        }
     }
 
     // MARK: - Header
@@ -53,7 +64,7 @@ struct BenchmarkView: View {
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.white)
 
-                    TossyPill(text: "v1.5.3 Suite", isSubtle: true)
+                    TossyPill(text: "v1.6.0 Suite", isSubtle: true)
                 }
 
                 Text("Standardized compute, GPU acceleration, and transcode benchmark calibrated to Apple Silicon reference standards.")
@@ -366,6 +377,22 @@ struct BenchmarkView: View {
                     HStack(spacing: 5) {
                         Image(systemName: "doc.on.doc")
                         Text("Copy Badge")
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(TossyColor.surfaceElevated)
+                .foregroundStyle(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .font(.caption)
+
+                Button {
+                    showingShareCardSheet = true
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "photo")
+                        Text("Share Card")
                     }
                 }
                 .buttonStyle(.plain)

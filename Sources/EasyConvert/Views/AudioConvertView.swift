@@ -198,6 +198,22 @@ struct AudioConvertView: View {
                 Text(batchSummaryText)
                     .font(.caption)
                     .foregroundStyle(TossyColor.textSecondary)
+            } else if isConverting {
+                HStack(spacing: 6) {
+                    ProgressView().controlSize(.small)
+                    Text("Processing Audio DSP (Threads: \(AppSettings.shared.maxConcurrentJobs))")
+                        .font(.caption)
+                        .foregroundStyle(TossyColor.textSecondary)
+                }
+            } else {
+                HStack(spacing: 6) {
+                    Image(systemName: "waveform")
+                        .font(.system(size: 10))
+                        .foregroundStyle(TossyColor.textTertiary)
+                    Text("Engine: ffmpeg / CoreAudio DSP")
+                        .font(.caption2)
+                        .foregroundStyle(TossyColor.textTertiary)
+                }
             }
 
             Spacer()

@@ -19,6 +19,15 @@ enum FileConflictAction: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+enum OutputNamingTemplate: String, CaseIterable, Identifiable {
+    case standard = "Standard ({name}.{ext})"
+    case suffixFormat = "Format Suffix ({name}_{format}.{ext})"
+    case timestamp = "Timestamped ({name}_{date}.{ext})"
+    case compressed = "Compressed Tag ({name}-compressed.{ext})"
+
+    var id: String { rawValue }
+}
+
 // MARK: - Format Settings Structs
 
 struct WebPConfig: Codable, Equatable {
@@ -119,6 +128,14 @@ final class AppSettings {
     var deleteSourceAfterConversion: Bool {
         didSet { UserDefaults.standard.set(deleteSourceAfterConversion, forKey: "deleteSourceAfterConversion") }
     }
+
+    var showMenuBarDropzone: Bool {
+        didSet { UserDefaults.standard.set(showMenuBarDropzone, forKey: "showMenuBarDropzone") }
+    }
+
+    var namingTemplate: OutputNamingTemplate {
+        didSet { UserDefaults.standard.set(namingTemplate.rawValue, forKey: "namingTemplate") }
+    }
     
     var maxFileSizeBytes: Int64? {
         didSet {
@@ -175,6 +192,10 @@ final class AppSettings {
         self.playCompletionSound = defaults.object(forKey: "playCompletionSound") as? Bool ?? true
         self.autoRevealInFinder = defaults.object(forKey: "autoRevealInFinder") as? Bool ?? false
         self.deleteSourceAfterConversion = defaults.object(forKey: "deleteSourceAfterConversion") as? Bool ?? false
+        self.showMenuBarDropzone = defaults.object(forKey: "showMenuBarDropzone") as? Bool ?? false
+
+        let templateRaw = defaults.string(forKey: "namingTemplate") ?? OutputNamingTemplate.standard.rawValue
+        self.namingTemplate = OutputNamingTemplate(rawValue: templateRaw) ?? .standard
         
         if let stored = defaults.object(forKey: "maxFileSizeBytes") as? NSNumber {
             let val = stored.int64Value

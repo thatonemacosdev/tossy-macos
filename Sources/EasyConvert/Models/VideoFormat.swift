@@ -175,4 +175,10 @@ enum VideoFormat: String, CaseIterable, Identifiable {
     /// Umbrella type covering everything AVFoundation/ffmpeg can read (mp4, mov, mkv, webm,
     /// avi, and essentially any other container ffmpeg demuxes).
     static let readableContentTypes: [UTType] = [.movie, .audiovisualContent]
+
+    static let readableExtensions: Set<String> = [
+        "mp4", "mov", "m4v", "mkv", "webm", "avi", "flv", "mpg", "mpeg",
+        "ts", "mts", "m2ts", "ogv", "3gp", "wmv", "asf", "mxf", "f4v",
+        "vob", "dv", "nut"
+    ]
 }

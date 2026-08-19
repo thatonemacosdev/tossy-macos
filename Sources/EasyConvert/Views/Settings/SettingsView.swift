@@ -91,6 +91,12 @@ struct GeneralSettingsTab: View {
                         Text(action.rawValue).tag(action)
                     }
                 }
+
+                Picker("Output Filename Pattern", selection: $settings.namingTemplate) {
+                    ForEach(OutputNamingTemplate.allCases) { template in
+                        Text(template.rawValue).tag(template)
+                    }
+                }
             }
             
             Section("Performance & Limits") {
@@ -118,7 +124,16 @@ struct GeneralSettingsTab: View {
                 }
             }
             
-            Section("Workflow & Feedback") {
+            Section("Workflow & System Integration") {
+                Toggle("Show Quick-Toss icon in macOS Menu Bar", isOn: Binding(
+                    get: { settings.showMenuBarDropzone },
+                    set: {
+                        settings.showMenuBarDropzone = $0
+                        MenuBarManager.shared.updateStatusItemVisibility()
+                    }
+                ))
+                .toggleStyle(.checkbox)
+
                 Toggle("Send macOS Notification when batch finishes", isOn: $settings.notifyOnComplete)
                     .toggleStyle(.checkbox)
                 

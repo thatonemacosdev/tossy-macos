@@ -13,6 +13,7 @@ struct JobRowView: View {
 
     @State private var isHovered = false
     @State private var showingOverrideSheet = false
+    @State private var showingComparisonSheet = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -66,6 +67,11 @@ struct JobRowView: View {
         .onHover { isHovered = $0 }
         .popover(isPresented: $showingOverrideSheet) {
             jobOverridePopover
+        }
+        .sheet(isPresented: $showingComparisonSheet) {
+            if case .done(let outputURL, _) = job.status {
+                BeforeAfterComparisonView(sourceURL: job.sourceURL, outputURL: outputURL)
+            }
         }
     }
 
@@ -174,7 +180,19 @@ struct JobRowView: View {
             EmptyView()
 
         case .done(let outputURL, let note):
-            TossyDragChip(url: outputURL, note: note)
+            HStack(spacing: 8) {
+                Button {
+                    showingComparisonSheet = true
+                } label: {
+                    Image(systemName: "square.split.2x1")
+                        .font(.system(size: 11))
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(TossyColor.textSecondary)
+                .help("Inspect & Compare Quality Before / After")
+
+                TossyDragChip(url: outputURL, note: note)
+            }
 
         case .failed:
             if let onRetry {

@@ -85,6 +85,11 @@ enum AudioFormat: String, CaseIterable, Identifiable {
     /// the Video tab first.
     static let readableContentTypes: [UTType] = [.audio, .movie, .audiovisualContent]
 
+    static let readableExtensions: Set<String> = [
+        "mp3", "aac", "m4a", "wav", "wave", "flac", "aif", "aiff", "alac",
+        "ogg", "opus", "wma", "ac3", "eac3", "amr", "caf"
+    ]
+
     /// Maps a source file's extension back to one of our writable formats  -  used by
     /// "keep original format" (recompress in place without converting).
     static func matching(sourceURL: URL) -> AudioFormat? {

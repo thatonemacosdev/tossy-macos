@@ -149,6 +149,13 @@ enum ImageFormat: String, CaseIterable, Identifiable {
         UTType(filenameExtension: "ai")
     ].compactMap { $0 }
 
+    static let readableExtensions: Set<String> = [
+        "jpg", "jpeg", "png", "heic", "heif", "tif", "tiff", "bmp", "gif",
+        "jp2", "j2k", "avif", "ico", "tga", "webp", "psd", "icns", "dds",
+        "exr", "hdr", "ppm", "pgm", "pbm", "pnm", "qoi", "ff", "jxl",
+        "svg", "pdf", "eps", "ai", "dng", "cr2", "cr3", "nef", "arw", "rw2"
+    ]
+
     /// Maps a source file's extension back to one of our writable formats  -  used by
     /// "keep original format" (recompress in place without converting).
     static func matching(sourceURL: URL) -> ImageFormat? {

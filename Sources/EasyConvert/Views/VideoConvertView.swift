@@ -214,6 +214,22 @@ struct VideoConvertView: View {
                 Text(batchSummaryText)
                     .font(.caption)
                     .foregroundStyle(TossyColor.textSecondary)
+            } else if isConverting {
+                HStack(spacing: 6) {
+                    ProgressView().controlSize(.small)
+                    Text("Encoding via VideoToolbox / ffmpeg (Threads: \(AppSettings.shared.maxConcurrentJobs))")
+                        .font(.caption)
+                        .foregroundStyle(TossyColor.textSecondary)
+                }
+            } else {
+                HStack(spacing: 6) {
+                    Image(systemName: "film.stack")
+                        .font(.system(size: 10))
+                        .foregroundStyle(TossyColor.textTertiary)
+                    Text("Engine: VideoToolbox Hardware / ffmpeg")
+                        .font(.caption2)
+                        .foregroundStyle(TossyColor.textTertiary)
+                }
             }
 
             Spacer()
