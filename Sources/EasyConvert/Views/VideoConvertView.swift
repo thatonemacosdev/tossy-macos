@@ -69,7 +69,7 @@ struct VideoConvertView: View {
         }
         .frame(minWidth: 540, minHeight: 440)
         .background(TossyColor.pitchBlack)
-        .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
+        .onDrop(of: [.fileURL, .movie, .video, .data, .item], isTargeted: $isTargeted) { providers in
             handleDrop(providers)
         }
         .fileImporter(
@@ -289,22 +289,44 @@ struct VideoConvertView: View {
         let lock = NSLock()
         let group = DispatchGroup()
 
-        for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+        for provider in providers {
             group.enter()
-            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
-                defer { group.leave() }
-                var resolvedURL: URL? = nil
-                if let url = item as? URL {
-                    resolvedURL = url
-                } else if let nsURL = item as? NSURL {
-                    resolvedURL = nsURL as URL
-                } else if let data = item as? Data {
-                    resolvedURL = URL(dataRepresentation: data, relativeTo: nil)
+
+            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+                provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+                    var resolvedURL: URL? = nil
+                    if let url = item as? URL {
+                        resolvedURL = url
+                    } else if let nsURL = item as? NSURL {
+                        resolvedURL = nsURL as URL
+                    } else if let data = item as? Data {
+                        resolvedURL = URL(dataRepresentation: data, relativeTo: nil)
+                    }
+
+                    if let resolvedURL {
+                        lock.lock()
+                        collected.append(resolvedURL)
+                        lock.unlock()
+                        group.leave()
+                    } else {
+                        self.extractVideoData(from: provider, lock: lock) { url in
+                            if let url {
+                                lock.lock()
+                                collected.append(url)
+                                lock.unlock()
+                            }
+                            group.leave()
+                        }
+                    }
                 }
-                if let resolvedURL {
-                    lock.lock()
-                    collected.append(resolvedURL)
-                    lock.unlock()
+            } else {
+                self.extractVideoData(from: provider, lock: lock) { url in
+                    if let url {
+                        lock.lock()
+                        collected.append(url)
+                        lock.unlock()
+                    }
+                    group.leave()
                 }
             }
         }
@@ -313,6 +335,50 @@ struct VideoConvertView: View {
             addJobs(for: collected)
         }
         return true
+    }
+
+    private func extractVideoData(from provider: NSItemProvider, lock: NSLock, completion: @escaping (URL?) -> Void) {
+        if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
+            provider.loadDataRepresentation(forTypeIdentifier: UTType.movie.identifier) { data, _ in
+                if let data, let url = self.writeTempVideo(data: data, ext: "mov") {
+                    completion(url)
+                    return
+                }
+                completion(nil)
+            }
+        } else if provider.hasItemConformingToTypeIdentifier(UTType.video.identifier) {
+            provider.loadDataRepresentation(forTypeIdentifier: UTType.video.identifier) { data, _ in
+                if let data, let url = self.writeTempVideo(data: data, ext: "mp4") {
+                    completion(url)
+                    return
+                }
+                completion(nil)
+            }
+        } else if provider.hasItemConformingToTypeIdentifier(UTType.data.identifier) {
+            provider.loadDataRepresentation(forTypeIdentifier: UTType.data.identifier) { data, _ in
+                if let data, let url = self.writeTempVideo(data: data, ext: "mov") {
+                    completion(url)
+                    return
+                }
+                completion(nil)
+            }
+        } else {
+            completion(nil)
+        }
+    }
+
+    private func writeTempVideo(data: Data, ext: String) -> URL? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd 'at' HH.mm.ss"
+        let timestamp = formatter.string(from: Date())
+        let filename = "Screen Recording \(timestamp) \(UUID().uuidString.prefix(4)).\(ext)"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        do {
+            try data.write(to: tempURL)
+            return tempURL
+        } catch {
+            return nil
+        }
     }
 
     private func convertAll() async {

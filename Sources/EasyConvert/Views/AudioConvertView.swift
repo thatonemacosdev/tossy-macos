@@ -68,7 +68,7 @@ struct AudioConvertView: View {
         }
         .frame(minWidth: 540, minHeight: 440)
         .background(TossyColor.pitchBlack)
-        .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
+        .onDrop(of: [.fileURL, .audio, .data, .item], isTargeted: $isTargeted) { providers in
             handleDrop(providers)
         }
         .fileImporter(
@@ -273,22 +273,44 @@ struct AudioConvertView: View {
         let lock = NSLock()
         let group = DispatchGroup()
 
-        for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+        for provider in providers {
             group.enter()
-            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
-                defer { group.leave() }
-                var resolvedURL: URL? = nil
-                if let url = item as? URL {
-                    resolvedURL = url
-                } else if let nsURL = item as? NSURL {
-                    resolvedURL = nsURL as URL
-                } else if let data = item as? Data {
-                    resolvedURL = URL(dataRepresentation: data, relativeTo: nil)
+
+            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+                provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+                    var resolvedURL: URL? = nil
+                    if let url = item as? URL {
+                        resolvedURL = url
+                    } else if let nsURL = item as? NSURL {
+                        resolvedURL = nsURL as URL
+                    } else if let data = item as? Data {
+                        resolvedURL = URL(dataRepresentation: data, relativeTo: nil)
+                    }
+
+                    if let resolvedURL {
+                        lock.lock()
+                        collected.append(resolvedURL)
+                        lock.unlock()
+                        group.leave()
+                    } else {
+                        self.extractAudioData(from: provider, lock: lock) { url in
+                            if let url {
+                                lock.lock()
+                                collected.append(url)
+                                lock.unlock()
+                            }
+                            group.leave()
+                        }
+                    }
                 }
-                if let resolvedURL {
-                    lock.lock()
-                    collected.append(resolvedURL)
-                    lock.unlock()
+            } else {
+                self.extractAudioData(from: provider, lock: lock) { url in
+                    if let url {
+                        lock.lock()
+                        collected.append(url)
+                        lock.unlock()
+                    }
+                    group.leave()
                 }
             }
         }
@@ -297,6 +319,42 @@ struct AudioConvertView: View {
             addJobs(for: collected)
         }
         return true
+    }
+
+    private func extractAudioData(from provider: NSItemProvider, lock: NSLock, completion: @escaping (URL?) -> Void) {
+        if provider.hasItemConformingToTypeIdentifier(UTType.audio.identifier) {
+            provider.loadDataRepresentation(forTypeIdentifier: UTType.audio.identifier) { data, _ in
+                if let data, let url = self.writeTempAudio(data: data, ext: "m4a") {
+                    completion(url)
+                    return
+                }
+                completion(nil)
+            }
+        } else if provider.hasItemConformingToTypeIdentifier(UTType.data.identifier) {
+            provider.loadDataRepresentation(forTypeIdentifier: UTType.data.identifier) { data, _ in
+                if let data, let url = self.writeTempAudio(data: data, ext: "m4a") {
+                    completion(url)
+                    return
+                }
+                completion(nil)
+            }
+        } else {
+            completion(nil)
+        }
+    }
+
+    private func writeTempAudio(data: Data, ext: String) -> URL? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd 'at' HH.mm.ss"
+        let timestamp = formatter.string(from: Date())
+        let filename = "Audio Clip \(timestamp) \(UUID().uuidString.prefix(4)).\(ext)"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        do {
+            try data.write(to: tempURL)
+            return tempURL
+        } catch {
+            return nil
+        }
     }
 
     private func convertAll() async {

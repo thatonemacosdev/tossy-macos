@@ -1,6 +1,6 @@
 # Tossy
 
-[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.5.1)
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.5.2)
 [![License](https://img.shields.io/github/license/thatonemacosdev/tossy-macos)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/tossy-macos)](https://github.com/thatonemacosdev/tossy-macos/releases)
 
@@ -9,7 +9,7 @@
 A free, native macOS utility for converting images, video, and audio without Terminal, without uploading files anywhere, and without installing Homebrew or ffmpeg yourself. Toss files in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera files, MKV, WebM, FLAC, animated GIFs, animated WebP, and dozens more.
 
 Website: [thatonemacosdev.github.io/tossy-macos](https://thatonemacosdev.github.io/tossy-macos/)  
-Download: [v1.5.1 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.5.1)
+Download: [v1.5.2 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.5.2)
 
 Under the hood: GPU-accelerated image processing (Metal via Core Image) and hardware video encoding (VideoToolbox via AVFoundation) where the platform supports it, falling back to a bundled `ffmpeg` for everything else.
 
@@ -55,6 +55,10 @@ open ./Tossy.app
 ## Why vendored binaries instead of just Core Image / AVFoundation everywhere?
 
 Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/ProRes. But they do not touch MKV, WebM, most legacy codecs, or most audio formats. For those, this app shells out to a bundled, self-contained copy of `ffmpeg` (and the WebP and JPEG XL reference tools, since this particular ffmpeg build was not compiled with encoders for those). Everything under `Vendor/` was relinked with `dylibbundler` so it runs standalone, with no Homebrew or system `ffmpeg` install required on the machine running the app.
+
+## What's New in v1.5.2
+
+- **Screenshot & In-Memory Drop Ingestion**: Fixed an issue where macOS floating screenshot preview thumbnails (bottom-right screen capture thumbnails), browser image drags, and unsaved clipboard payloads could not be dragged into Tossy. Expanded drop ingestion to handle raw image/audio/video data and NSImage objects seamlessly.
 
 ## What's New in v1.5.1
 
