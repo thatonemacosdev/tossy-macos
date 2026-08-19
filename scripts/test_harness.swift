@@ -349,8 +349,8 @@ struct TestHarness {
             assertCondition(store.imagePresets.count == initialCount, "Preset count should return to initial")
         }
 
-        // 9. Benchmark Service Verification (1.5.0 Redesign)
-        print("\n[Phase 9] Testing Built-in Benchmark Service (1.5.0 Suite)...")
+        // 9. Benchmark Service Verification (1.5.2 Suite)
+        print("\n[Phase 9] Testing Built-in Benchmark Service (1.5.2 Suite)...")
         let benchService = BenchmarkService()
         await runTest("Benchmark Engine: Warmup Execution") {
             await benchService.runWarmup(tempDir: tempDir) { _ in }
