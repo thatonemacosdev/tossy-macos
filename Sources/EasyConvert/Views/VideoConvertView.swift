@@ -286,15 +286,26 @@ struct VideoConvertView: View {
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
         var collected: [URL] = []
+        let lock = NSLock()
         let group = DispatchGroup()
 
         for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
             group.enter()
             provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
                 defer { group.leave() }
-                guard let data = item as? Data,
-                      let url = URL(dataRepresentation: data, relativeTo: nil) else { return }
-                collected.append(url)
+                var resolvedURL: URL? = nil
+                if let url = item as? URL {
+                    resolvedURL = url
+                } else if let nsURL = item as? NSURL {
+                    resolvedURL = nsURL as URL
+                } else if let data = item as? Data {
+                    resolvedURL = URL(dataRepresentation: data, relativeTo: nil)
+                }
+                if let resolvedURL {
+                    lock.lock()
+                    collected.append(resolvedURL)
+                    lock.unlock()
+                }
             }
         }
 

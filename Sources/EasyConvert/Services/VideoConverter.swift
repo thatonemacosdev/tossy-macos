@@ -277,16 +277,27 @@ final class VideoConverter {
         if videoCfg.deinterlace {
             videoFilters.append("yadif")
         }
-        if let targetWidth, targetWidth > 0 {
-            videoFilters.append("scale=\(targetWidth):-2:flags=\(videoCfg.scalingAlgorithm)")
-        }
 
-        if !videoFilters.isEmpty {
-            let filterString = videoFilters.joined(separator: ",")
-            if let vfIndex = arguments.firstIndex(of: "-vf"), vfIndex + 1 < arguments.count {
-                arguments[vfIndex + 1] = filterString + "," + arguments[vfIndex + 1]
+        if let vfIndex = arguments.firstIndex(of: "-vf"), vfIndex + 1 < arguments.count {
+            var existingVF = arguments[vfIndex + 1]
+            if let targetWidth, targetWidth > 0 {
+                if existingVF.contains("scale=480:-1") {
+                    existingVF = existingVF.replacingOccurrences(of: "scale=480:-1", with: "scale=\(targetWidth):-2")
+                } else {
+                    videoFilters.append("scale=\(targetWidth):-2:flags=\(videoCfg.scalingAlgorithm)")
+                }
+            }
+            if !videoFilters.isEmpty {
+                arguments[vfIndex + 1] = videoFilters.joined(separator: ",") + "," + existingVF
             } else {
-                arguments += ["-vf", filterString]
+                arguments[vfIndex + 1] = existingVF
+            }
+        } else {
+            if let targetWidth, targetWidth > 0 {
+                videoFilters.append("scale=\(targetWidth):-2:flags=\(videoCfg.scalingAlgorithm)")
+            }
+            if !videoFilters.isEmpty {
+                arguments += ["-vf", videoFilters.joined(separator: ",")]
             }
         }
 

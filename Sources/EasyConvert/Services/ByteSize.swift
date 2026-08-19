@@ -20,10 +20,13 @@ enum ByteSize {
         let multiplier: Double
         switch unitPart {
         case "", "m", "mb": multiplier = 1_000_000
+        case "mib": multiplier = 1024 * 1024
         case "k", "kb": multiplier = 1_000
+        case "kib": multiplier = 1024
         case "g", "gb": multiplier = 1_000_000_000
-        case "b": multiplier = 1
-        default: multiplier = 1_000_000
+        case "gib": multiplier = 1024 * 1024 * 1024
+        case "b", "bytes": multiplier = 1
+        default: return nil
         }
         return Int64(number * multiplier)
     }

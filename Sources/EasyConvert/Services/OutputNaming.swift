@@ -28,7 +28,8 @@ enum OutputNaming {
 
         let candidate = folder.appendingPathComponent(baseName).appendingPathExtension(fileExtension)
         if AppSettings.shared.fileConflictAction == .overwrite {
-            if candidate.path == sourceURL.path {
+            let isSameAsSource = candidate.standardizedFileURL.path.caseInsensitiveCompare(sourceURL.standardizedFileURL.path) == .orderedSame
+            if isSameAsSource {
                 var out = folder.appendingPathComponent("\(baseName)-converted").appendingPathExtension(fileExtension)
                 var counter = 2
                 while FileManager.default.fileExists(atPath: out.path) || claimedPaths.contains(out.path) {
@@ -38,9 +39,7 @@ enum OutputNaming {
                 claimedPaths.insert(out.path)
                 return out
             }
-            if FileManager.default.fileExists(atPath: candidate.path) {
-                try? FileManager.default.removeItem(at: candidate)
-            }
+            claimedPaths.insert(candidate.path)
             return candidate
         }
 

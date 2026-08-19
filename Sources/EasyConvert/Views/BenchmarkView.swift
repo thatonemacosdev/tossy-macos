@@ -9,7 +9,7 @@ struct BenchmarkView: View {
     @State private var activeDomain: BenchmarkDomain = .all
     @State private var runHistory: [BenchmarkRunReport] = []
     @State private var selectedHistoryRun: BenchmarkRunReport?
-    @State private var copiedBadgeNotification = false
+    @State private var copiedToastText: String? = nil
 
     private let service = BenchmarkService()
     private let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("TossyBenchmark", isDirectory: true)
@@ -53,7 +53,7 @@ struct BenchmarkView: View {
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.white)
 
-                    TossyPill(text: "v1.5.0 Suite", isSubtle: true)
+                    TossyPill(text: "v1.5.1 Suite", isSubtle: true)
                 }
 
                 Text("Standardized compute, GPU acceleration, and transcode benchmark calibrated to Apple Silicon reference standards.")
@@ -264,8 +264,8 @@ struct BenchmarkView: View {
 
             Spacer()
 
-            if copiedBadgeNotification {
-                Text("Copied badge to clipboard!")
+            if let copiedToastText {
+                Text(copiedToastText)
                     .font(.caption)
                     .foregroundStyle(TossyColor.successGreen)
                     .transition(.opacity)
@@ -541,11 +541,11 @@ struct BenchmarkView: View {
         NSPasteboard.general.setString(badge, forType: .string)
 
         withAnimation {
-            copiedBadgeNotification = true
+            copiedToastText = "Copied badge to clipboard!"
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
             withAnimation {
-                copiedBadgeNotification = false
+                copiedToastText = nil
             }
         }
     }
@@ -572,11 +572,11 @@ struct BenchmarkView: View {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(jsonString, forType: .string)
             withAnimation {
-                copiedBadgeNotification = true
+                copiedToastText = "Copied JSON report to clipboard!"
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                 withAnimation {
-                    copiedBadgeNotification = false
+                    copiedToastText = nil
                 }
             }
         }

@@ -125,7 +125,7 @@ final class AppSettings {
             if let maxFileSizeBytes {
                 UserDefaults.standard.set(maxFileSizeBytes, forKey: "maxFileSizeBytes")
             } else {
-                UserDefaults.standard.removeObject(forKey: "maxFileSizeBytes")
+                UserDefaults.standard.set(-1, forKey: "maxFileSizeBytes")
             }
         }
     }
@@ -176,8 +176,9 @@ final class AppSettings {
         self.autoRevealInFinder = defaults.object(forKey: "autoRevealInFinder") as? Bool ?? false
         self.deleteSourceAfterConversion = defaults.object(forKey: "deleteSourceAfterConversion") as? Bool ?? false
         
-        if defaults.object(forKey: "maxFileSizeBytes") != nil {
-            self.maxFileSizeBytes = defaults.object(forKey: "maxFileSizeBytes") as? Int64
+        if let stored = defaults.object(forKey: "maxFileSizeBytes") as? NSNumber {
+            let val = stored.int64Value
+            self.maxFileSizeBytes = val < 0 ? nil : val
         } else {
             self.maxFileSizeBytes = 4_000_000_000
         }

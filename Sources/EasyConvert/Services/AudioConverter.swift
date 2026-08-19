@@ -128,7 +128,7 @@ final class AudioConverter {
             if audioCfg.bitrateMode == "vbr" && format == .mp3 {
                 arguments += ["-q:a", "\(audioCfg.vbrQuality)"]
             } else {
-                let bitrateKbps = audioCfg.cbrBitrateKbps > 0 ? audioCfg.cbrBitrateKbps : Int(64 + quality * 192)
+                let bitrateKbps = max(32, min(320, Int(64 + quality * 192)))
                 arguments += ["-b:a", "\(bitrateKbps)k"]
             }
         }

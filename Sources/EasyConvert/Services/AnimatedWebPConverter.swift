@@ -46,7 +46,7 @@ final class AnimatedWebPConverter {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let framePattern = tempDir.appendingPathComponent("frame_%04d.png").path
+        let framePattern = tempDir.appendingPathComponent("frame_%06d.png").path
 
         var vfFilter = "fps=15"
         if let targetWidth, targetWidth > 0 {
@@ -68,7 +68,7 @@ final class AnimatedWebPConverter {
 
         let frameFiles = (try? FileManager.default.contentsOfDirectory(atPath: tempDir.path))?
             .filter { $0.hasPrefix("frame_") && $0.hasSuffix(".png") }
-            .sorted() ?? []
+            .sorted { $0.localizedStandardCompare($1) == .orderedAscending } ?? []
 
         guard !frameFiles.isEmpty else {
             throw AnimatedWebPError.frameExtractionFailed

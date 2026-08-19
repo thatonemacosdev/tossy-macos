@@ -306,9 +306,46 @@ final class ImageConverter {
         if format.supportsQuality {
             properties[kCGImageDestinationLossyCompressionQuality] = quality
         }
+
+        // Apply format-specific CLI / settings configurations
+        if format == .jpeg {
+            let jpegCfg = AppSettings.shared.jpegConfig
+            var jfifDict: [CFString: Any] = [:]
+            if jpegCfg.isProgressive {
+                jfifDict[kCGImagePropertyJFIFIsProgressive] = kCFBooleanTrue
+            }
+            if !jfifDict.isEmpty {
+                properties[kCGImagePropertyJFIFDictionary] = jfifDict
+            }
+        } else if format == .png {
+            let pngCfg = AppSettings.shared.pngConfig
+            var pngDict: [CFString: Any] = [:]
+            if pngCfg.isInterlaced {
+                pngDict[kCGImagePropertyPNGInterlaceType] = 1
+            }
+            if !pngDict.isEmpty {
+                properties[kCGImagePropertyPNGDictionary] = pngDict
+            }
+        } else if format == .tiff {
+            let tiffCfg = AppSettings.shared.tiffConfig
+            let compressionValue: Int
+            switch tiffCfg.compression.lowercased() {
+            case "none": compressionValue = 1
+            case "lzw": compressionValue = 5
+            case "deflate", "zip": compressionValue = 8
+            case "packbits": compressionValue = 32773
+            default: compressionValue = 5
+            }
+            var tiffDict = (metadataDict?[kCGImagePropertyTIFFDictionary] as? [CFString: Any]) ?? [:]
+            tiffDict[kCGImagePropertyTIFFCompression] = compressionValue
+            properties[kCGImagePropertyTIFFDictionary] = tiffDict
+        }
+
         if let metadataDict {
             for (key, value) in metadataDict {
-                properties[key] = value
+                if properties[key] == nil {
+                    properties[key] = value
+                }
             }
         }
 

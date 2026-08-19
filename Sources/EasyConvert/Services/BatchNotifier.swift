@@ -18,9 +18,6 @@ enum BatchNotifier {
             let content = UNMutableNotificationContent()
             content.title = jobCount == 1 ? "Conversion Complete" : "Batch Conversion Complete"
             content.body = summary
-            if AppSettings.shared.playCompletionSound {
-                content.sound = .default
-            }
 
             let request = UNNotificationRequest(
                 identifier: UUID().uuidString,

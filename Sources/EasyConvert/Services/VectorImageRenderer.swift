@@ -68,9 +68,16 @@ enum VectorImageRenderer {
 
         for pageIndex in 1...document.numberOfPages {
             guard let page = document.page(at: pageIndex) else { continue }
-            let mediaBox = page.getBoxRect(.mediaBox)
-            let pixelWidth = max(Int(mediaBox.width * scale), 1)
-            let pixelHeight = max(Int(mediaBox.height * scale), 1)
+            let cropBox = page.getBoxRect(.cropBox)
+            let box = cropBox.isEmpty ? page.getBoxRect(.mediaBox) : cropBox
+            let rotation = page.rotationAngle
+            let isTransposed = (rotation == 90 || rotation == 270 || rotation == -90 || rotation == -270)
+            let width = isTransposed ? box.height : box.width
+            let height = isTransposed ? box.width : box.height
+
+            let pixelWidth = max(Int(width * scale), 1)
+            let pixelHeight = max(Int(height * scale), 1)
+            let targetRect = CGRect(x: 0, y: 0, width: CGFloat(pixelWidth), height: CGFloat(pixelHeight))
 
             guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
                   let context = CGContext(
@@ -84,8 +91,10 @@ enum VectorImageRenderer {
                   ) else { continue }
 
             context.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
-            context.fill(CGRect(x: 0, y: 0, width: pixelWidth, height: pixelHeight))
-            context.scaleBy(x: scale, y: scale)
+            context.fill(targetRect)
+
+            let transform = page.getDrawingTransform(.cropBox, rect: targetRect, rotate: 0, preserveAspectRatio: true)
+            context.concatenate(transform)
             context.drawPDFPage(page)
 
             if let image = context.makeImage() {
