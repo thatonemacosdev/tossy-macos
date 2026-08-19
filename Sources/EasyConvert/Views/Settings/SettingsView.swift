@@ -47,10 +47,10 @@ struct SettingsView: View {
                 .tabItem { Label(SettingsTab.tools.rawValue, systemImage: SettingsTab.tools.icon) }
                 .tag(SettingsTab.tools)
         }
-        .frame(width: 580, height: 460)
+        .frame(width: 580, height: 490)
         .padding(20)
         .background(TossyColor.pitchBlack)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(settings.appTheme == .light ? .light : .dark)
     }
 }
 
@@ -61,6 +61,15 @@ struct GeneralSettingsTab: View {
     
     var body: some View {
         Form {
+            Section("Appearance & Theme") {
+                Picker("Theme Mode", selection: $settings.appTheme) {
+                    ForEach(AppTheme.allCases) { theme in
+                        Label(theme.rawValue, systemImage: theme.icon).tag(theme)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+
             Section("Output Destination & File Handling") {
                 Picker("Default Output Location", selection: $settings.destinationPolicy) {
                     ForEach(DestinationPolicy.allCases) { policy in

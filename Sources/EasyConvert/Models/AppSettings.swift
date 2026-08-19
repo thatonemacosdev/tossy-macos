@@ -19,6 +19,22 @@ enum FileConflictAction: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+enum AppTheme: String, CaseIterable, Identifiable {
+    case dark = "Dark"
+    case light = "Light"
+    case liquidGlass = "Liquid Glass"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .dark: return "moon.fill"
+        case .light: return "sun.max.fill"
+        case .liquidGlass: return "sparkles"
+        }
+    }
+}
+
 enum OutputNamingTemplate: String, CaseIterable, Identifiable {
     case standard = "Standard ({name}.{ext})"
     case suffixFormat = "Format Suffix ({name}_{format}.{ext})"
@@ -136,6 +152,10 @@ final class AppSettings {
     var namingTemplate: OutputNamingTemplate {
         didSet { UserDefaults.standard.set(namingTemplate.rawValue, forKey: "namingTemplate") }
     }
+
+    var appTheme: AppTheme {
+        didSet { UserDefaults.standard.set(appTheme.rawValue, forKey: "appTheme") }
+    }
     
     var maxFileSizeBytes: Int64? {
         didSet {
@@ -196,6 +216,9 @@ final class AppSettings {
 
         let templateRaw = defaults.string(forKey: "namingTemplate") ?? OutputNamingTemplate.standard.rawValue
         self.namingTemplate = OutputNamingTemplate(rawValue: templateRaw) ?? .standard
+
+        let themeRaw = defaults.string(forKey: "appTheme") ?? AppTheme.dark.rawValue
+        self.appTheme = AppTheme(rawValue: themeRaw) ?? .dark
         
         if let stored = defaults.object(forKey: "maxFileSizeBytes") as? NSNumber {
             let val = stored.int64Value

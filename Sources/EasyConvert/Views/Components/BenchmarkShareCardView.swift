@@ -58,7 +58,7 @@ struct BenchmarkShareCardView: View {
             .padding(.bottom, 20)
         }
         .background(TossyColor.pitchBlack)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
     }
 
     private var cardView: some View {

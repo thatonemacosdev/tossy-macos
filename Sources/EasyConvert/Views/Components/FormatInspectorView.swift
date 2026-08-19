@@ -50,7 +50,7 @@ struct FormatInspectorView: View {
         .padding(16)
         .frame(width: 380)
         .background(TossyColor.pitchBlack)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
     }
     
     private var headerTitle: String {

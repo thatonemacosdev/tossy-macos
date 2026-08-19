@@ -86,7 +86,7 @@ struct BeforeAfterComparisonView: View {
         }
         .frame(minWidth: 780, minHeight: 560)
         .background(TossyColor.pitchBlack)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
     }
 
     // MARK: - Header Bar
