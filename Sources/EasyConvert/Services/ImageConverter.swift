@@ -237,6 +237,9 @@ final class ImageConverter {
         }
 
         if let best {
+            if FileManager.default.fileExists(atPath: outputURL.path) {
+                try? FileManager.default.removeItem(at: outputURL)
+            }
             try FileManager.default.moveItem(at: best.url, to: outputURL)
             return (best.size, true)
         }
@@ -246,6 +249,9 @@ final class ImageConverter {
         let fallbackURL = temporaryFileURL(matching: outputURL)
         try await write(lo, fallbackURL)
         let size = fileSize(fallbackURL)
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try? FileManager.default.removeItem(at: outputURL)
+        }
         try FileManager.default.moveItem(at: fallbackURL, to: outputURL)
         return (size, false)
     }
