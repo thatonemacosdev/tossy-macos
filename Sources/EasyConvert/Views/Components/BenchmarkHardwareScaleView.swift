@@ -20,7 +20,7 @@ struct BenchmarkHardwareScaleView: View {
 
             GeometryReader { geo in
                 let width = geo.size.width
-                let maxPoints = 30_000.0
+                let maxPoints = 40_000.0
 
                 ZStack(alignment: .leading) {
                     // Background track

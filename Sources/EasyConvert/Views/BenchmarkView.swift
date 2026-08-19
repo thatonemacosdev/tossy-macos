@@ -53,7 +53,7 @@ struct BenchmarkView: View {
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.white)
 
-                    TossyPill(text: "v1.5.2 Suite", isSubtle: true)
+                    TossyPill(text: "v1.5.3 Suite", isSubtle: true)
                 }
 
                 Text("Standardized compute, GPU acceleration, and transcode benchmark calibrated to Apple Silicon reference standards.")
@@ -325,7 +325,7 @@ struct BenchmarkView: View {
                             }
 
                             // Visual mini-bar relative to 10k baseline
-                            let fraction = min(1.0, max(0.05, Double(pts) / 20_000.0))
+                            let fraction = min(1.0, max(0.05, Double(pts) / 40_000.0))
                             GeometryReader { g in
                                 ZStack(alignment: .leading) {
                                     RoundedRectangle(cornerRadius: 2)

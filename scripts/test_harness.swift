@@ -14,7 +14,7 @@ struct TestHarness {
 
     static func main() async {
         print("=======================================================")
-        print("Tossy 1.5.2 Clientside Integration and Stress Test Suite")
+        print("Tossy 1.5.3 Clientside Integration and Stress Test Suite")
         print("=======================================================")
 
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("TossyTestHarness_\(UUID().uuidString)")
@@ -349,8 +349,8 @@ struct TestHarness {
             assertCondition(store.imagePresets.count == initialCount, "Preset count should return to initial")
         }
 
-        // 9. Benchmark Service Verification (1.5.2 Suite)
-        print("\n[Phase 9] Testing Built-in Benchmark Service (1.5.2 Suite)...")
+        // 9. Benchmark Service Verification (1.5.3 Suite)
+        print("\n[Phase 9] Testing Built-in Benchmark Service (1.5.3 Suite)...")
         let benchService = BenchmarkService()
         await runTest("Benchmark Engine: Warmup Execution") {
             await benchService.runWarmup(tempDir: tempDir) { _ in }
