@@ -21,8 +21,8 @@ Under the hood: GPU-accelerated image processing (Metal via Core Image) and hard
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/image.png" alt="Tossy Images tab on macOS: drag and drop HEIC, RAW, and JPEG conversion with target-size compression" /><br /><sub>Images: toss in, target-size compression</sub></td>
-    <td width="50%"><img src="docs/screenshots/video.png" alt="Tossy Video tab on macOS: converting between MP4, MKV, and WebM with hardware and ffmpeg-backed encoding" /><br /><sub>Video: hardware and ffmpeg-backed formats side by side</sub></td>
+    <td width="50%"><img src="docs/screenshots/images.png" alt="Tossy Images tab on macOS: drag and drop HEIC, RAW, and JPEG conversion with target-size compression" /><br /><sub>Images: toss in, target-size compression</sub></td>
+    <td width="50%"><img src="docs/screenshots/videos.png" alt="Tossy Video tab on macOS: converting between MP4, MKV, and WebM with hardware and ffmpeg-backed encoding" /><br /><sub>Video: hardware and ffmpeg-backed formats side by side</sub></td>
   </tr>
   <tr>
     <td width="50%"><img src="docs/screenshots/audio.png" alt="Tossy Audio tab on macOS: converting MP3, FLAC, and WAV with a bitrate picker" /><br /><sub>Audio: bitrate and format picker</sub></td>
