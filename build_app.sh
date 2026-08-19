@@ -34,7 +34,8 @@ echo "Bundling cjxl/djxl…"
 mkdir -p "${APP_BUNDLE}/Contents/Resources/jxl"
 cp -R Vendor/jxl/cjxl Vendor/jxl/djxl Vendor/jxl/libs "${APP_BUNDLE}/Contents/Resources/jxl/"
 
-echo "Re-signing bundled binaries and app…"
+echo "Re-signing bundled binaries, libraries, and app bundle…"
+find "${APP_BUNDLE}/Contents/Resources" -name "*.dylib" -exec codesign --force --sign - {} +
 codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/ffmpeg/ffmpeg"
 codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/ffmpeg/ffprobe"
 codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/webp/cwebp"
@@ -42,11 +43,17 @@ codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/webp/dwebp"
 codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/webp/img2webp"
 codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/jxl/cjxl"
 codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/jxl/djxl"
-echo "Done. Launch with: open ${APP_BUNDLE}"
+codesign --force --sign - "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+codesign --force --deep --sign - "${APP_BUNDLE}"
+
+echo "Verifying code signature…"
+codesign --verify --deep --strict "${APP_BUNDLE}"
 
 mkdir -p dist
 rm -rf dist/Tossy.app dist/Tossy-*.zip
 cp -R "${APP_BUNDLE}" dist/Tossy.app
-(cd dist && zip -r -q -y Tossy-1.5.3-macOS.zip Tossy.app)
+
+echo "Packaging clean distribution zip with ditto…"
+ditto -c -k --keepParent "dist/Tossy.app" "dist/Tossy-1.5.3-macOS.zip"
 echo "Packaged dist/Tossy-1.5.3-macOS.zip"
 
