@@ -1,6 +1,6 @@
 # Tossy
 
-[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.0)
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.1)
 [![License](https://img.shields.io/github/license/thatonemacosdev/tossy-macos)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/tossy-macos)](https://github.com/thatonemacosdev/tossy-macos/releases)
 
@@ -9,7 +9,7 @@
 A free, native macOS utility for converting images, video, and audio without Terminal, without uploading files anywhere, and without installing Homebrew or ffmpeg yourself. Toss files in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera files, MKV, WebM, FLAC, animated GIFs, animated WebP, and dozens more.
 
 Website: [thatonemacosdev.github.io/tossy-macos](https://thatonemacosdev.github.io/tossy-macos/)  
-Download: [v1.6.0 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.0)
+Download: [v1.6.1 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.1)
 
 Under the hood: GPU-accelerated image processing (Metal via Core Image) and hardware video encoding (VideoToolbox via AVFoundation) where the platform supports it, falling back to a bundled `ffmpeg` for everything else.
 
@@ -59,6 +59,13 @@ open ./Tossy.app
 ## Why vendored binaries instead of just Core Image / AVFoundation everywhere?
 
 Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/ProRes. But they do not touch MKV, WebM, most legacy codecs, or most audio formats. For those, this app shells out to a bundled, self-contained copy of `ffmpeg` (and the WebP and JPEG XL reference tools, since this particular ffmpeg build was not compiled with encoders for those). Everything under `Vendor/` was relinked with `dylibbundler` so it runs standalone, with no Homebrew or system `ffmpeg` install required on the machine running the app.
+
+## What's New in v1.6.1
+
+- **Zero-Scroll Format Knobs & Structured 2-Column Layout**: Redesigned the Format Inspector window across Video, Audio, and Image tabs into a clean 2-column grid. Eliminated vertical scrolling on compact formats and prevented the Video Knobs window from overflowing small viewports.
+- **Fixed Vertical Text & Bitrate Squeeze Glitches**: Moved labels above controls and applied hidden picker labels to prevent macOS SwiftUI from squeezing picker labels into vertical single-character columns. Added rigid horizontal limits to the Bitrate and Quality sliders.
+- **Restored Video & Audio Dropzone Icons**: Resolved an issue where non-existent SF Symbol identifiers caused the dropzone icon on Video and Audio tabs to disappear and skeleton-load indefinitely. Restored native symbols (`film.stack` and `waveform`).
+- **Dark, Light, and Full Liquid Glass Theme Modes**: Personalize Tossy with deep pitch-black OLED mode, crisp off-white light mode, or translucent liquid glass mode with native macOS `NSVisualEffectView` acrylic backdrop blur.
 
 ## What's New in v1.6.0
 

@@ -9,7 +9,7 @@
 
 That's the only tier. Tossy is a free, open-source macOS app; there is no paid version.
 
-Download: https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.0
+Download: https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.1
 Source: https://github.com/thatonemacosdev/tossy-macos
 
 Note: the app bundles a copy of ffmpeg (GPL-licensed, built with libx264/libx265) and the WebP/JPEG XL reference tools (BSD-licensed) to handle formats Apple's own frameworks don't cover. See [Vendor/ffmpeg/LICENSE_NOTICE.md](https://github.com/thatonemacosdev/tossy-macos/blob/main/Vendor/ffmpeg/LICENSE_NOTICE.md) for details.
