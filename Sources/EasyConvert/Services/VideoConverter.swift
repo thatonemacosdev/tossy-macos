@@ -146,6 +146,7 @@ final class VideoConverter {
         progressTask.cancel()
 
         guard exportSession.status == .completed else {
+            try? FileManager.default.removeItem(at: outputURL)
             let message = exportSession.error?.localizedDescription ?? "The export did not complete."
             throw VideoConversionError.exportFailed(message)
         }

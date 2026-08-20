@@ -165,6 +165,11 @@ struct RootView: View {
                 .foregroundStyle(TossyColor.textTertiary)
                 .padding(6)
         }
+        .sheet(isPresented: Bindable(UpdateManager.shared).isShowingUpdateModal) {
+            if let release = UpdateManager.shared.availableUpdate {
+                UpdateModalView(release: release)
+            }
+        }
     }
 
     private func openSettings() {

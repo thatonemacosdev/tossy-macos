@@ -156,6 +156,48 @@ struct GeneralSettingsTab: View {
                     .toggleStyle(.checkbox)
                     .foregroundStyle(settings.deleteSourceAfterConversion ? TossyColor.warningAmber : TossyColor.textPrimary)
             }
+
+            Section("Software Updates") {
+                Toggle("Automatically check for updates on launch", isOn: $settings.automaticallyCheckForUpdates)
+                    .toggleStyle(.checkbox)
+
+                HStack {
+                    if let lastDate = settings.lastUpdateCheckDate {
+                        Text("Last checked: \(lastDate.formatted(date: .abbreviated, time: .shortened))")
+                            .font(.caption)
+                            .foregroundStyle(TossyColor.textSecondary)
+                    } else {
+                        Text("Never checked")
+                            .font(.caption)
+                            .foregroundStyle(TossyColor.textSecondary)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        UpdateManager.shared.checkForUpdates(isUserInitiated: true)
+                    } label: {
+                        if UpdateManager.shared.isChecking {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Text("Check for Updates Now…")
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .disabled(UpdateManager.shared.isChecking)
+                }
+
+                if UpdateManager.shared.isUpToDateBannerShowing {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(TossyColor.successGreen)
+                        Text("Tossy is up to date (v\(AppVersion.string)).")
+                            .font(.caption)
+                            .foregroundStyle(TossyColor.successGreen)
+                    }
+                }
+            }
         }
         .formStyle(.grouped)
     }

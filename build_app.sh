@@ -1,5 +1,6 @@
 #!/bin/bash
-# Builds Tossy in release mode and packages it as a double-clickable .app bundle.
+# Builds Tossy in release mode and packages it as a double-clickable .app bundle,
+# compressed .dmg installer (with /Applications symlink), and clean .zip archive.
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -50,11 +51,22 @@ echo "Verifying code signature…"
 codesign --verify --deep --strict "${APP_BUNDLE}"
 
 mkdir -p dist
-rm -rf dist/Tossy.app dist/Tossy-*.zip
+rm -rf dist/Tossy.app dist/Tossy-*.zip dist/Tossy-*.dmg dist/dmg_staging
 cp -R "${APP_BUNDLE}" dist/Tossy.app
 
 VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "Info.plist" 2>/dev/null || echo "1.6.1")
+
 echo "Packaging clean distribution zip with ditto (v${VERSION})…"
 ditto -c -k --keepParent "dist/Tossy.app" "dist/Tossy-${VERSION}-macOS.zip"
 echo "Packaged dist/Tossy-${VERSION}-macOS.zip"
 
+echo "Packaging clean distribution DMG with hdiutil (v${VERSION})…"
+DMG_STAGING="dist/dmg_staging"
+mkdir -p "${DMG_STAGING}"
+cp -R "${APP_BUNDLE}" "${DMG_STAGING}/Tossy.app"
+ln -s /Applications "${DMG_STAGING}/Applications"
+
+hdiutil create -volname "Tossy" -srcfolder "${DMG_STAGING}" -ov -format UDZO "dist/Tossy-${VERSION}-macOS.dmg"
+codesign --force --sign - "dist/Tossy-${VERSION}-macOS.dmg"
+rm -rf "${DMG_STAGING}"
+echo "Packaged dist/Tossy-${VERSION}-macOS.dmg"

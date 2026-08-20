@@ -156,6 +156,18 @@ final class AppSettings {
     var appTheme: AppTheme {
         didSet { UserDefaults.standard.set(appTheme.rawValue, forKey: "appTheme") }
     }
+
+    var automaticallyCheckForUpdates: Bool {
+        didSet { UserDefaults.standard.set(automaticallyCheckForUpdates, forKey: "automaticallyCheckForUpdates") }
+    }
+
+    var skippedUpdateVersion: String? {
+        didSet { UserDefaults.standard.set(skippedUpdateVersion, forKey: "skippedUpdateVersion") }
+    }
+
+    var lastUpdateCheckDate: Date? {
+        didSet { UserDefaults.standard.set(lastUpdateCheckDate, forKey: "lastUpdateCheckDate") }
+    }
     
     var maxFileSizeBytes: Int64? {
         didSet {
@@ -219,6 +231,10 @@ final class AppSettings {
 
         let themeRaw = defaults.string(forKey: "appTheme") ?? AppTheme.dark.rawValue
         self.appTheme = AppTheme(rawValue: themeRaw) ?? .dark
+
+        self.automaticallyCheckForUpdates = defaults.object(forKey: "automaticallyCheckForUpdates") as? Bool ?? true
+        self.skippedUpdateVersion = defaults.string(forKey: "skippedUpdateVersion")
+        self.lastUpdateCheckDate = defaults.object(forKey: "lastUpdateCheckDate") as? Date
         
         if let stored = defaults.object(forKey: "maxFileSizeBytes") as? NSNumber {
             let val = stored.int64Value
