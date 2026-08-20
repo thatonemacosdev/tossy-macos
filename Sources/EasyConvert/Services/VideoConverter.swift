@@ -56,11 +56,41 @@ final class VideoConverter {
 
         switch format.backend {
         case .avFoundation:
-            guard targetSizeBytes == nil else {
-                throw VideoConversionError.formatUnavailable("Target size isn't supported for hardware-accelerated formats like \(format.displayName). Pick an ffmpeg-backed format (e.g. MKV or WebM) to target a size.")
-            }
-            guard targetWidth == nil else {
-                throw VideoConversionError.formatUnavailable("Custom resolution isn't supported for hardware-accelerated formats like \(format.displayName). Pick an ffmpeg-backed format (e.g. MKV or WebM) to resize.")
+            if targetSizeBytes != nil || targetWidth != nil {
+                // Route through ffmpeg to enable precise bitrate targeting and custom resolution scaling
+                let (vCodec, aCodec, extra): (String, String?, [String])
+                switch format {
+                case .mp4H264, .movH264:
+                    vCodec = "libx264"
+                    aCodec = "aac"
+                    extra = []
+                case .mp4Hevc, .movHevc:
+                    vCodec = "libx265"
+                    aCodec = "aac"
+                    extra = []
+                case .movProRes422:
+                    vCodec = "prores_ks"
+                    aCodec = "pcm_s16le"
+                    extra = ["-profile:v", "2"]
+                default:
+                    vCodec = "libx264"
+                    aCodec = "aac"
+                    extra = []
+                }
+                return try await convertViaFFmpeg(
+                    sourceURL: sourceURL,
+                    outputExtension: format.fileExtension,
+                    muxer: nil,
+                    videoCodec: vCodec,
+                    audioCodec: aCodec,
+                    extraArgs: extra,
+                    destinationFolder: destinationFolder,
+                    targetSizeBytes: targetSizeBytes,
+                    targetWidth: targetWidth,
+                    customBaseName: customBaseName,
+                    preserveMetadata: preserveMetadata,
+                    onProgress: onProgress
+                )
             }
             let outputURL = try await convertViaAVFoundation(sourceURL: sourceURL, format: format, destinationFolder: destinationFolder, customBaseName: customBaseName, onProgress: onProgress)
             return VideoConversionResult(outputURL: outputURL, note: nil)
