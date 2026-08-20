@@ -35,7 +35,7 @@ struct AudioConvertView: View {
             if jobs.isEmpty {
                 DropZoneView(
                     isTargeted: isTargeted,
-                    icon: "waveform.badge.arrow.down",
+                    icon: "waveform",
                     title: "Toss audio here to convert",
                     subtitle: "MP3, AAC, FLAC, WAV, ALAC, OGG, Opus, WMA, AC3  -  or drop a video to extract audio",
                     formatTags: ["MP3", "AAC", "FLAC", "WAV", "ALAC", "Opus", "OGG"]
@@ -120,12 +120,15 @@ struct AudioConvertView: View {
 
                 if selectedFormat.supportsQuality && !keepOriginalFormat {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Bitrate \(Int(64 + quality * 192))kbps")
+                        Text("Bitrate \(Int(64 + quality * 192)) kbps")
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(TossyColor.textSecondary)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                         Slider(value: $quality, in: 0...1)
                             .frame(width: 120)
                     }
+                    .fixedSize(horizontal: true, vertical: false)
                 }
 
                 Spacer()

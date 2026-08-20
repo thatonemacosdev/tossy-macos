@@ -36,7 +36,7 @@ struct VideoConvertView: View {
             if jobs.isEmpty {
                 DropZoneView(
                     isTargeted: isTargeted,
-                    icon: "video.badge.arrow.down",
+                    icon: "film.stack",
                     title: "Toss videos here to convert",
                     subtitle: "MP4, MOV, MKV, WebM, AVI, FLV, AV1, ProRes, Animated GIF, and more",
                     formatTags: ["MP4", "MOV", "MKV", "WebM", "AV1", "ProRes", "GIF"]

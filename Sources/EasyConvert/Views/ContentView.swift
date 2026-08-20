@@ -125,9 +125,12 @@ struct ContentView: View {
                         Text("Quality \(Int(quality * 100))%")
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(TossyColor.textSecondary)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                         Slider(value: $quality, in: 0.1...1.0)
                             .frame(width: 120)
                     }
+                    .fixedSize(horizontal: true, vertical: false)
                 }
 
                 Spacer()

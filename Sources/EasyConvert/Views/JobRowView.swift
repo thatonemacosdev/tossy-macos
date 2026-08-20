@@ -218,39 +218,48 @@ struct JobRowView: View {
 
             Divider().overlay(TossyColor.borderSubtle)
 
-            switch categoryType {
-            case .image:
-                Picker("Target Format", selection: Binding(
-                    get: { job.overrideImageFormat ?? .png },
-                    set: { job.overrideImageFormat = $0 }
-                )) {
-                    ForEach(ImageFormat.allCases) { format in
-                        Text(format.displayName).tag(format)
-                    }
-                }
-                .pickerStyle(.menu)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Target Format")
+                    .font(.caption)
+                    .foregroundStyle(TossyColor.textSecondary)
 
-            case .video:
-                Picker("Target Format", selection: Binding(
-                    get: { job.overrideVideoFormat ?? .mp4H264 },
-                    set: { job.overrideVideoFormat = $0 }
-                )) {
-                    ForEach(VideoFormat.allCases) { format in
-                        Text(format.displayName).tag(format)
+                switch categoryType {
+                case .image:
+                    Picker("", selection: Binding(
+                        get: { job.overrideImageFormat ?? .png },
+                        set: { job.overrideImageFormat = $0 }
+                    )) {
+                        ForEach(ImageFormat.allCases) { format in
+                            Text(format.displayName).tag(format)
+                        }
                     }
-                }
-                .pickerStyle(.menu)
+                    .labelsHidden()
+                    .pickerStyle(.menu)
 
-            case .audio:
-                Picker("Target Format", selection: Binding(
-                    get: { job.overrideAudioFormat ?? .mp3 },
-                    set: { job.overrideAudioFormat = $0 }
-                )) {
-                    ForEach(AudioFormat.allCases) { format in
-                        Text(format.displayName).tag(format)
+                case .video:
+                    Picker("", selection: Binding(
+                        get: { job.overrideVideoFormat ?? .mp4H264 },
+                        set: { job.overrideVideoFormat = $0 }
+                    )) {
+                        ForEach(VideoFormat.allCases) { format in
+                            Text(format.displayName).tag(format)
+                        }
                     }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+
+                case .audio:
+                    Picker("", selection: Binding(
+                        get: { job.overrideAudioFormat ?? .mp3 },
+                        set: { job.overrideAudioFormat = $0 }
+                    )) {
+                        ForEach(AudioFormat.allCases) { format in
+                            Text(format.displayName).tag(format)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
                 }
-                .pickerStyle(.menu)
             }
 
             HStack {
