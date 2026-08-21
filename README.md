@@ -11,6 +11,13 @@ A free, native macOS utility for converting images, video, and audio without Ter
 Website: [thatonemacosdev.github.io/tossy-macos](https://thatonemacosdev.github.io/tossy-macos/)  
 Download: [v1.6.2 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.2)
 
+### Opening on macOS (Gatekeeper Notice)
+
+Because Tossy is an open-source tool distributed directly on GitHub without an Apple Developer ID subscription:
+- **First Launch**: **Right-click** (or **Control-click**) `Tossy.app` in `/Applications` and select **Open**, then click **Open** in the dialog. macOS will remember this exception permanently.
+- **Alternative**: Go to **System Settings > Privacy & Security** > scroll to **Security** > click **"Open Anyway"**.
+- **Terminal One-Liner**: Run `xattr -cr /Applications/Tossy.app`.
+
 Under the hood: GPU-accelerated image processing (Metal via Core Image) and hardware video encoding (VideoToolbox via AVFoundation) where the platform supports it, falling back to a bundled `ffmpeg` for everything else.
 
 ## Screenshots

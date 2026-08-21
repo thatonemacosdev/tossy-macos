@@ -35,6 +35,9 @@ echo "Bundling cjxl/djxl…"
 mkdir -p "${APP_BUNDLE}/Contents/Resources/jxl"
 cp -R Vendor/jxl/cjxl Vendor/jxl/djxl Vendor/jxl/libs "${APP_BUNDLE}/Contents/Resources/jxl/"
 
+echo "Stripping quarantine and extended attributes…"
+xattr -cr "${APP_BUNDLE}" 2>/dev/null || true
+
 echo "Re-signing bundled binaries, libraries, and app bundle…"
 find "${APP_BUNDLE}/Contents/Resources" -name "*.dylib" -exec codesign --force --sign - {} +
 codesign --force --sign - "${APP_BUNDLE}/Contents/Resources/ffmpeg/ffmpeg"
