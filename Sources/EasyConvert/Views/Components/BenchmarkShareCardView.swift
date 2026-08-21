@@ -75,7 +75,7 @@ struct BenchmarkShareCardView: View {
                         Text("TossyMark Benchmark")
                             .font(.system(size: 13, weight: .bold))
                             .foregroundStyle(Color.white)
-                        Text("v1.6.2 Suite · Silicon Reference")
+                        Text("v1.7.0 Suite · Silicon Reference")
                             .font(.system(size: 10))
                             .foregroundStyle(TossyColor.textTertiary)
                     }

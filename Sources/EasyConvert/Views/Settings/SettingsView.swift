@@ -3,6 +3,7 @@ import AppKit
 
 enum SettingsTab: String, CaseIterable, Identifiable {
     case general = "General"
+    case finder = "Finder"
     case images = "Images"
     case video = "Video"
     case audio = "Audio"
@@ -13,6 +14,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .general: return "gearshape"
+        case .finder: return "folder.badge.gearshape"
         case .images: return "photo"
         case .video: return "video"
         case .audio: return "waveform"
@@ -30,6 +32,10 @@ struct SettingsView: View {
             GeneralSettingsTab()
                 .tabItem { Label(SettingsTab.general.rawValue, systemImage: SettingsTab.general.icon) }
                 .tag(SettingsTab.general)
+            
+            FinderIntegrationTab()
+                .tabItem { Label(SettingsTab.finder.rawValue, systemImage: SettingsTab.finder.icon) }
+                .tag(SettingsTab.finder)
             
             ImagesSettingsTab()
                 .tabItem { Label(SettingsTab.images.rawValue, systemImage: SettingsTab.images.icon) }

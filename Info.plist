@@ -15,9 +15,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.6.2</string>
+    <string>1.7.0</string>
     <key>CFBundleVersion</key>
-    <string>1.6.2</string>
+    <string>1.7.0</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSHighResolutionCapable</key>
@@ -26,5 +26,164 @@
     <string>public.app-category.utilities</string>
     <key>NSHumanReadableCopyright</key>
     <string>Tossy</string>
+
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.easyconvert.app.url</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>tossy</string>
+            </array>
+        </dict>
+    </array>
+
+    <key>NSServices</key>
+    <array>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Convert with Tossy</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>convertService</string>
+            <key>NSPortName</key>
+            <string>Tossy</string>
+            <key>NSSendFileTypes</key>
+            <array>
+                <string>public.item</string>
+                <string>public.image</string>
+                <string>public.movie</string>
+                <string>public.audio</string>
+            </array>
+            <key>NSSendTypes</key>
+            <array>
+                <string>NSFilenamesPboardType</string>
+            </array>
+        </dict>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Convert to PNG with Tossy</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>convertToPngService</string>
+            <key>NSPortName</key>
+            <string>Tossy</string>
+            <key>NSSendFileTypes</key>
+            <array>
+                <string>public.image</string>
+                <string>public.item</string>
+            </array>
+            <key>NSSendTypes</key>
+            <array>
+                <string>NSFilenamesPboardType</string>
+            </array>
+        </dict>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Convert to JPEG with Tossy</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>convertToJpegService</string>
+            <key>NSPortName</key>
+            <string>Tossy</string>
+            <key>NSSendFileTypes</key>
+            <array>
+                <string>public.image</string>
+                <string>public.item</string>
+            </array>
+            <key>NSSendTypes</key>
+            <array>
+                <string>NSFilenamesPboardType</string>
+            </array>
+        </dict>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Convert to WebP with Tossy</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>convertToWebpService</string>
+            <key>NSPortName</key>
+            <string>Tossy</string>
+            <key>NSSendFileTypes</key>
+            <array>
+                <string>public.image</string>
+                <string>public.item</string>
+            </array>
+            <key>NSSendTypes</key>
+            <array>
+                <string>NSFilenamesPboardType</string>
+            </array>
+        </dict>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Convert to MP4 with Tossy</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>convertToMp4Service</string>
+            <key>NSPortName</key>
+            <string>Tossy</string>
+            <key>NSSendFileTypes</key>
+            <array>
+                <string>public.movie</string>
+                <string>public.item</string>
+            </array>
+            <key>NSSendTypes</key>
+            <array>
+                <string>NSFilenamesPboardType</string>
+            </array>
+        </dict>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Convert to MP3 with Tossy</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>convertToMp3Service</string>
+            <key>NSPortName</key>
+            <string>Tossy</string>
+            <key>NSSendFileTypes</key>
+            <array>
+                <string>public.audio</string>
+                <string>public.movie</string>
+                <string>public.item</string>
+            </array>
+            <key>NSSendTypes</key>
+            <array>
+                <string>NSFilenamesPboardType</string>
+            </array>
+        </dict>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key>
+                <string>Convert to FLAC with Tossy</string>
+            </dict>
+            <key>NSMessage</key>
+            <string>convertToFlacService</string>
+            <key>NSPortName</key>
+            <string>Tossy</string>
+            <key>NSSendFileTypes</key>
+            <array>
+                <string>public.audio</string>
+                <string>public.item</string>
+            </array>
+            <key>NSSendTypes</key>
+            <array>
+                <string>NSFilenamesPboardType</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

@@ -44,6 +44,13 @@ enum OutputNamingTemplate: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+enum FinderActionBehavior: String, CaseIterable, Identifiable {
+    case silentBackground = "Convert silently in background"
+    case openInApp = "Open in Tossy batch queue"
+
+    var id: String { rawValue }
+}
+
 // MARK: - Format Settings Structs
 
 struct WebPConfig: Codable, Equatable {
@@ -168,6 +175,14 @@ final class AppSettings {
     var lastUpdateCheckDate: Date? {
         didSet { UserDefaults.standard.set(lastUpdateCheckDate, forKey: "lastUpdateCheckDate") }
     }
+
+    var finderActionBehavior: FinderActionBehavior {
+        didSet { UserDefaults.standard.set(finderActionBehavior.rawValue, forKey: "finderActionBehavior") }
+    }
+
+    var enabledFinderFormats: [String] {
+        didSet { UserDefaults.standard.set(enabledFinderFormats, forKey: "enabledFinderFormats") }
+    }
     
     var maxFileSizeBytes: Int64? {
         didSet {
@@ -235,6 +250,11 @@ final class AppSettings {
         self.automaticallyCheckForUpdates = defaults.object(forKey: "automaticallyCheckForUpdates") as? Bool ?? true
         self.skippedUpdateVersion = defaults.string(forKey: "skippedUpdateVersion")
         self.lastUpdateCheckDate = defaults.object(forKey: "lastUpdateCheckDate") as? Date
+
+        let finderBehaviorRaw = defaults.string(forKey: "finderActionBehavior") ?? FinderActionBehavior.silentBackground.rawValue
+        self.finderActionBehavior = FinderActionBehavior(rawValue: finderBehaviorRaw) ?? .silentBackground
+
+        self.enabledFinderFormats = defaults.stringArray(forKey: "enabledFinderFormats") ?? ["png", "jpeg", "webp", "mp4", "mp3", "flac"]
         
         if let stored = defaults.object(forKey: "maxFileSizeBytes") as? NSNumber {
             let val = stored.int64Value
@@ -251,6 +271,13 @@ final class AppSettings {
         self.gifConfig = Self.loadJSON(forKey: "gifConfig") ?? GIFConfig()
         self.videoConfig = Self.loadJSON(forKey: "videoConfig") ?? VideoConfig()
         self.audioConfig = Self.loadJSON(forKey: "audioConfig") ?? AudioConfig()
+    }
+    
+    func destinationFolder(for sourceURL: URL) -> URL? {
+        if destinationPolicy == .customFolder && !customDestinationPath.isEmpty {
+            return URL(fileURLWithPath: customDestinationPath)
+        }
+        return sourceURL.deletingLastPathComponent()
     }
     
     // MARK: - Helpers

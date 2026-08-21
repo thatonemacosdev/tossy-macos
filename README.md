@@ -1,6 +1,6 @@
 # Tossy
 
-[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.2)
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.7.0)
 [![License](https://img.shields.io/github/license/thatonemacosdev/tossy-macos)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/tossy-macos)](https://github.com/thatonemacosdev/tossy-macos/releases)
 
@@ -9,7 +9,7 @@
 A free, native macOS utility for converting images, video, and audio without Terminal, without uploading files anywhere, and without installing Homebrew or ffmpeg yourself. Toss files in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera files, MKV, WebM, FLAC, animated GIFs, animated WebP, and dozens more.
 
 Website: [thatonemacosdev.github.io/tossy-macos](https://thatonemacosdev.github.io/tossy-macos/)  
-Download: [v1.6.2 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.2)
+Download: [v1.7.0 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.7.0)
 
 ### Opening on macOS (Gatekeeper Notice)
 
@@ -66,6 +66,13 @@ open ./Tossy.app
 ## Why vendored binaries instead of just Core Image / AVFoundation everywhere?
 
 Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/ProRes. But they do not touch MKV, WebM, most legacy codecs, or most audio formats. For those, this app shells out to a bundled, self-contained copy of `ffmpeg` (and the WebP and JPEG XL reference tools, since this particular ffmpeg build was not compiled with encoders for those). Everything under `Vendor/` was relinked with `dylibbundler` so it runs standalone, with no Homebrew or system `ffmpeg` install required on the machine running the app.
+
+## What's New in v1.7.0
+
+- **Finder Right-Click Context Menu & Quick Actions ("Convert to >")**: Convert images, videos, and audio files directly from the macOS Finder right-click context menu and Quick Actions pane without having to open the app beforehand.
+- **Dedicated Finder Integration Tab in Settings**: Install and manage native macOS Quick Action workflows (`~/Library/Services/`) with a single click. Configure behavior between silent background conversion and interactive app launch.
+- **Silent Headless Background Conversion Engine**: Convert files quietly in the background next to originals (or in default output folders), with progress execution, automatic sound chime, and rich macOS User Notifications featuring converted file count, megabytes saved, and "Show in Finder" action.
+- **System Services & Custom `tossy://` URL Scheme**: Registered native macOS `NSServices` and `tossy://convert?format=...&files=...` URL scheme for seamless integration with macOS Shortcuts, Automator, Raycast, and shell scripts.
 
 ## What's New in v1.6.2
 
