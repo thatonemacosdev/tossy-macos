@@ -170,7 +170,7 @@ final class UpdateManager: NSObject, @unchecked Sendable {
     // MARK: - Download & Install
     
     func downloadAndInstall(release: AppReleaseInfo) {
-        guard let downloadURL = release.dmgDownloadURL ?? release.zipDownloadURL else {
+        guard let downloadURL = release.zipDownloadURL ?? release.dmgDownloadURL else {
             NSWorkspace.shared.open(release.htmlURL)
             return
         }

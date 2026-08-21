@@ -77,10 +77,9 @@ Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/Pro
 ## What's New in v1.6.2
 
 - **Native GitHub Auto-Updater & macOS Update Screen**: Check for updates automatically or on-demand directly from GitHub Releases. Includes a native macOS update sheet with formatted release changelogs, "Skip This Version", "Remind Me Later", and "Update Now" actions with live download progress and atomic in-place app replacement.
-- **Apple DMG Installer Pipeline**: Standardized release distribution with compressed, code-signed macOS `.dmg` installer packages featuring an `/Applications` drag-and-drop symlink alongside `.zip` archives.
 - **Universal Target Size & Custom Resolution for All Video Formats**: Eliminated the "Target size isn't supported for hardware-accelerated formats" limitation. Setting a target size (e.g. 25MB) or custom export resolution on MP4 (H.264), MP4 (HEVC), MOV, or ProRes now automatically routes through high-efficiency ffmpeg encoding to achieve exact target sizes and scales.
 - **Codebase Concurrency Audit & Cleanup Hardening**: Synchronized path reservation locks across multi-threaded batch ingestion and guaranteed immediate deletion of partial video export files upon cancellation or failure.
-- **Website Direct Download Buttons**: Updated web showcase with separate buttons for direct `.dmg` release downloads and browsing the GitHub Releases page.
+- **Website Direct Download Buttons**: Updated web showcase with direct `.zip` release downloads and browsing the GitHub Releases page.
 
 ## What's New in v1.6.1
 

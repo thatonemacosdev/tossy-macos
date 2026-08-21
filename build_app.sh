@@ -63,13 +63,3 @@ echo "Packaging clean distribution zip with ditto (v${VERSION})…"
 ditto -c -k --keepParent "dist/Tossy.app" "dist/Tossy-${VERSION}-macOS.zip"
 echo "Packaged dist/Tossy-${VERSION}-macOS.zip"
 
-echo "Packaging clean distribution DMG with hdiutil (v${VERSION})…"
-DMG_STAGING="dist/dmg_staging"
-mkdir -p "${DMG_STAGING}"
-cp -R "${APP_BUNDLE}" "${DMG_STAGING}/Tossy.app"
-ln -s /Applications "${DMG_STAGING}/Applications"
-
-hdiutil create -volname "Tossy" -srcfolder "${DMG_STAGING}" -ov -format UDZO "dist/Tossy-${VERSION}-macOS.dmg"
-codesign --force --sign - "dist/Tossy-${VERSION}-macOS.dmg"
-rm -rf "${DMG_STAGING}"
-echo "Packaged dist/Tossy-${VERSION}-macOS.dmg"
