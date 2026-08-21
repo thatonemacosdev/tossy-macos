@@ -1,6 +1,6 @@
 # Tossy
 
-[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.1)
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.2)
 [![License](https://img.shields.io/github/license/thatonemacosdev/tossy-macos)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/tossy-macos)](https://github.com/thatonemacosdev/tossy-macos/releases)
 
@@ -9,7 +9,7 @@
 A free, native macOS utility for converting images, video, and audio without Terminal, without uploading files anywhere, and without installing Homebrew or ffmpeg yourself. Toss files in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera files, MKV, WebM, FLAC, animated GIFs, animated WebP, and dozens more.
 
 Website: [thatonemacosdev.github.io/tossy-macos](https://thatonemacosdev.github.io/tossy-macos/)  
-Download: [v1.6.1 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.1)
+Download: [v1.6.2 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.6.2)
 
 Under the hood: GPU-accelerated image processing (Metal via Core Image) and hardware video encoding (VideoToolbox via AVFoundation) where the platform supports it, falling back to a bundled `ffmpeg` for everything else.
 
@@ -59,6 +59,14 @@ open ./Tossy.app
 ## Why vendored binaries instead of just Core Image / AVFoundation everywhere?
 
 Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/ProRes. But they do not touch MKV, WebM, most legacy codecs, or most audio formats. For those, this app shells out to a bundled, self-contained copy of `ffmpeg` (and the WebP and JPEG XL reference tools, since this particular ffmpeg build was not compiled with encoders for those). Everything under `Vendor/` was relinked with `dylibbundler` so it runs standalone, with no Homebrew or system `ffmpeg` install required on the machine running the app.
+
+## What's New in v1.6.2
+
+- **Native GitHub Auto-Updater & macOS Update Screen**: Check for updates automatically or on-demand directly from GitHub Releases. Includes a native macOS update sheet with formatted release changelogs, "Skip This Version", "Remind Me Later", and "Update Now" actions with live download progress and atomic in-place app replacement.
+- **Apple DMG Installer Pipeline**: Standardized release distribution with compressed, code-signed macOS `.dmg` installer packages featuring an `/Applications` drag-and-drop symlink alongside `.zip` archives.
+- **Universal Target Size & Custom Resolution for All Video Formats**: Eliminated the "Target size isn't supported for hardware-accelerated formats" limitation. Setting a target size (e.g. 25MB) or custom export resolution on MP4 (H.264), MP4 (HEVC), MOV, or ProRes now automatically routes through high-efficiency ffmpeg encoding to achieve exact target sizes and scales.
+- **Codebase Concurrency Audit & Cleanup Hardening**: Synchronized path reservation locks across multi-threaded batch ingestion and guaranteed immediate deletion of partial video export files upon cancellation or failure.
+- **Website Direct Download Buttons**: Updated web showcase with separate buttons for direct `.dmg` release downloads and browsing the GitHub Releases page.
 
 ## What's New in v1.6.1
 
