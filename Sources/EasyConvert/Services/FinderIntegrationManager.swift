@@ -66,7 +66,8 @@ final class FinderIntegrationManager: @unchecked Sendable {
         }
         
         let validURLs = filePaths.compactMap { path -> URL? in
-            let clean = path.trimmingCharacters(in: .whitespacesAndNewlines)
+            let unescaped = path.removingPercentEncoding ?? path
+            let clean = unescaped.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !clean.isEmpty else { return nil }
             return URL(fileURLWithPath: clean)
         }
@@ -112,6 +113,9 @@ final class FinderIntegrationManager: @unchecked Sendable {
             let pbsProcess = Process()
             pbsProcess.executableURL = URL(fileURLWithPath: "/System/Library/CoreServices/pbs")
             pbsProcess.arguments = ["-flush"]
+            try? pbsProcess.run()
+            pbsProcess.waitUntilExit()
+            
             let finalCount = successCount
             await MainActor.run {
                 self.isInstalling = false
@@ -146,9 +150,16 @@ final class FinderIntegrationManager: @unchecked Sendable {
         
         let script = """
         for f in "$@"; do
-            open "tossy://convert?format=\(formatExt)&files=$f"
+            encoded=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$f" 2>/dev/null || echo "$f")
+            open "tossy://convert?format=\(formatExt)&files=$encoded"
         done
         """
+        
+        let escapedScript = script
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
         
         let documentPlist = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -173,7 +184,7 @@ final class FinderIntegrationManager: @unchecked Sendable {
                         <key>ActionParameters</key>
                         <dict>
                             <key>COMMAND_STRING</key>
-                            <string>\(script)</string>
+                            <string>\(escapedScript)</string>
                             <key>inputMethod</key>
                             <integer>1</integer>
                             <key>shell</key>
