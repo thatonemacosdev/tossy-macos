@@ -4,6 +4,7 @@ import AppKit
 enum SettingsTab: String, CaseIterable, Identifiable {
     case general = "General"
     case finder = "Finder"
+    case watchFolders = "Watch Folders"
     case images = "Images"
     case video = "Video"
     case audio = "Audio"
@@ -15,6 +16,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         switch self {
         case .general: return "gearshape"
         case .finder: return "folder.badge.gearshape"
+        case .watchFolders: return "binoculars"
         case .images: return "photo"
         case .video: return "video"
         case .audio: return "waveform"
@@ -37,6 +39,10 @@ struct SettingsView: View {
                 .tabItem { Label(SettingsTab.finder.rawValue, systemImage: SettingsTab.finder.icon) }
                 .tag(SettingsTab.finder)
             
+            WatchFolderSettingsTab()
+                .tabItem { Label(SettingsTab.watchFolders.rawValue, systemImage: SettingsTab.watchFolders.icon) }
+                .tag(SettingsTab.watchFolders)
+            
             ImagesSettingsTab()
                 .tabItem { Label(SettingsTab.images.rawValue, systemImage: SettingsTab.images.icon) }
                 .tag(SettingsTab.images)
@@ -53,7 +59,7 @@ struct SettingsView: View {
                 .tabItem { Label(SettingsTab.tools.rawValue, systemImage: SettingsTab.tools.icon) }
                 .tag(SettingsTab.tools)
         }
-        .frame(width: 580, height: 490)
+        .frame(width: 620, height: 500)
         .padding(20)
         .background(TossyColor.pitchBlack)
         .preferredColorScheme(settings.appTheme == .light ? .light : .dark)
@@ -386,7 +392,7 @@ struct ToolsSettingsTab: View {
                 
                 toolCard(
                     title: "JPEG XL Suite (cjxl, djxl)",
-                    icon: "sparkles.rectangle.stack",
+                    icon: "photo.badge.checkmark",
                     status: JXLLocator.cjxlPath != nil ? "Active (Bundled)" : "Not found",
                     path: JXLLocator.cjxlPath ?? "Unavailable",
                     details: "Encodes: JPEG XL (lossless, VarDCT, Butteraugli distance tuning, multi-effort)."

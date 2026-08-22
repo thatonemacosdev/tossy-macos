@@ -30,7 +30,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
         switch self {
         case .dark: return "moon.fill"
         case .light: return "sun.max.fill"
-        case .liquidGlass: return "sparkles"
+        case .liquidGlass: return "drop.fill"
         }
     }
 }

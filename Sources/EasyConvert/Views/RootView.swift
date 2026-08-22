@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 
 enum AppTab: String, CaseIterable, Identifiable {
+    case canvas = "Canvas"
     case images = "Images"
     case video = "Video"
     case audio = "Audio"
@@ -11,6 +12,7 @@ enum AppTab: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
+        case .canvas: return "rectangle.stack.fill"
         case .images: return "photo.stack"
         case .video: return "video"
         case .audio: return "waveform"
@@ -20,10 +22,11 @@ enum AppTab: String, CaseIterable, Identifiable {
 }
 
 struct RootView: View {
-    @State private var selectedTab: AppTab = .images
+    @State private var selectedTab: AppTab = .canvas
     @Namespace private var tabNamespace
     @Environment(\.openSettings) private var openSettingsAction
     @Bindable var settings = AppSettings.shared
+    @State private var isHeaderTargeted: Bool = false
 
     var body: some View {
         ZStack {
@@ -89,8 +92,12 @@ struct RootView: View {
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                            .strokeBorder(isHeaderTargeted ? Color.accentColor : TossyColor.borderSubtle, lineWidth: 1)
                     )
+                    .onDrop(of: [.fileURL], isTargeted: $isHeaderTargeted) { providers in
+                        routeDroppedProviders(providers)
+                        return true
+                    }
 
                     Spacer()
 
@@ -147,6 +154,7 @@ struct RootView: View {
                 // Active Tab View
                 Group {
                     switch selectedTab {
+                    case .canvas: UniversalCanvasView()
                     case .images: ContentView()
                     case .video: VideoConvertView()
                     case .audio: AudioConvertView()
@@ -182,6 +190,32 @@ struct RootView: View {
 
     private func openSettings() {
         openSettingsAction()
+    }
+    
+    private func routeDroppedProviders(_ providers: [NSItemProvider]) {
+        for provider in providers {
+            _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                guard let url else { return }
+                DispatchQueue.main.async {
+                    let ext = url.pathExtension.lowercased()
+                    let imageExts = ["png", "jpg", "jpeg", "heic", "webp", "gif", "svg", "jxl", "avif", "tiff", "bmp", "ico"]
+                    let videoExts = ["mov", "mp4", "m4v", "mkv", "webm", "avi", "flv", "wmv"]
+                    let audioExts = ["mp3", "m4a", "wav", "flac", "aac", "ogg", "aiff", "wma", "opus"]
+                    
+                    withAnimation(TossyMotion.springSmooth) {
+                        if imageExts.contains(ext) {
+                            self.selectedTab = .images
+                        } else if videoExts.contains(ext) {
+                            self.selectedTab = .video
+                        } else if audioExts.contains(ext) {
+                            self.selectedTab = .audio
+                        } else {
+                            self.selectedTab = .canvas
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

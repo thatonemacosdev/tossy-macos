@@ -47,3 +47,13 @@ enum MediaProbe {
         return MediaInfo(durationSeconds: duration, videoCodec: videoCodec, audioCodec: audioCodec, width: width, height: height)
     }
 }
+
+extension MediaInfo {
+    var hasAudio: Bool {
+        audioCodec != nil && !(audioCodec?.isEmpty ?? true)
+    }
+    
+    var hasVideo: Bool {
+        videoCodec != nil && !(videoCodec?.isEmpty ?? true)
+    }
+}
