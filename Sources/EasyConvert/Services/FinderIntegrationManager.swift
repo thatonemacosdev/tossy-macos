@@ -9,6 +9,9 @@ final class FinderIntegrationManager: @unchecked Sendable {
     var statusMessage: String? = nil
     var isInstalled: Bool = false
     
+    var quickConvertFiles: [URL]? = nil
+    var isShowingQuickConvert: Bool = false
+    
     private init() {
         checkInstallationStatus()
     }
@@ -17,8 +20,8 @@ final class FinderIntegrationManager: @unchecked Sendable {
     
     func checkInstallationStatus() {
         let servicesDir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Services")
-        let testWorkflow = servicesDir.appendingPathComponent("Convert to PNG with Tossy.workflow")
-        self.isInstalled = FileManager.default.fileExists(atPath: testWorkflow.path)
+        let mainWorkflow = servicesDir.appendingPathComponent("Convert with Tossy.workflow")
+        self.isInstalled = FileManager.default.fileExists(atPath: mainWorkflow.path)
     }
     
     // MARK: - Service Handling
@@ -27,19 +30,28 @@ final class FinderIntegrationManager: @unchecked Sendable {
         guard !urls.isEmpty else { return }
         
         let settings = AppSettings.shared
-        if settings.finderActionBehavior == .silentBackground {
-            Task {
-                await HeadlessConversionWorker.shared.processFiles(urls, targetFormat: targetFormat, isSilent: true)
+        if let targetFormat {
+            // Explicit format provided (e.g. from script or CLI)
+            if settings.finderActionBehavior == .silentBackground {
+                Task {
+                    await HeadlessConversionWorker.shared.processFiles(urls, targetFormat: targetFormat, isSilent: true)
+                }
+            } else {
+                Task { @MainActor in
+                    NSApp.activate(ignoringOtherApps: true)
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("TossyEnqueueExternalFiles"),
+                        object: nil,
+                        userInfo: ["urls": urls, "targetFormat": targetFormat as Any]
+                    )
+                }
             }
         } else {
-            // Interactive mode: Open main window and enqueue files
+            // No format specified -> Open Mini Tossy Quick Convert window!
             Task { @MainActor in
+                self.quickConvertFiles = urls
+                self.isShowingQuickConvert = true
                 NSApp.activate(ignoringOtherApps: true)
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("TossyEnqueueExternalFiles"),
-                    object: nil,
-                    userInfo: ["urls": urls, "targetFormat": targetFormat as Any]
-                )
             }
         }
     }
@@ -81,33 +93,20 @@ final class FinderIntegrationManager: @unchecked Sendable {
     
     func installQuickActions() {
         isInstalling = true
-        statusMessage = "Installing Quick Actions in Finder…"
+        statusMessage = "Installing 'Convert with Tossy' in Finder…"
         
         Task {
-            let formats = [
-                ("PNG", "png", "public.image"),
-                ("JPEG", "jpeg", "public.image"),
-                ("WebP", "webp", "public.image"),
-                ("JPEG XL", "jxl", "public.image"),
-                ("MP4", "mp4", "public.movie"),
-                ("WebM", "webm", "public.movie"),
-                ("MP3", "mp3", "public.audio"),
-                ("FLAC", "flac", "public.audio"),
-                ("WAV", "wav", "public.audio")
-            ]
-            
             let servicesDir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Services")
             try? FileManager.default.createDirectory(at: servicesDir, withIntermediateDirectories: true)
             
-            var successCount = 0
-            for (title, ext, uti) in formats {
-                let workflowName = "Convert to \(title) with Tossy.workflow"
-                let targetURL = servicesDir.appendingPathComponent(workflowName)
-                
-                if createQuickActionWorkflow(at: targetURL, formatTitle: title, formatExt: ext, inputType: uti) {
-                    successCount += 1
-                }
-            }
+            // Clean up any legacy per-format workflows
+            uninstallLegacyWorkflows()
+            
+            // Create the single unified "Convert with Tossy" Quick Action
+            let mainWorkflowName = "Convert with Tossy.workflow"
+            let targetURL = servicesDir.appendingPathComponent(mainWorkflowName)
+            
+            let success = createUnifiedQuickActionWorkflow(at: targetURL)
             
             // Refresh macOS Services cache
             let pbsProcess = Process()
@@ -116,16 +115,28 @@ final class FinderIntegrationManager: @unchecked Sendable {
             try? pbsProcess.run()
             pbsProcess.waitUntilExit()
             
-            let finalCount = successCount
             await MainActor.run {
                 self.isInstalling = false
                 self.checkInstallationStatus()
-                self.statusMessage = "Successfully installed \(finalCount) Finder Quick Actions!"
+                self.statusMessage = success ? "Successfully installed 'Convert with Tossy' Quick Action!" : "Failed to install Quick Action."
             }
         }
     }
     
     func uninstallQuickActions() {
+        let servicesDir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Services")
+        let fileManager = FileManager.default
+        
+        let mainWorkflow = servicesDir.appendingPathComponent("Convert with Tossy.workflow")
+        try? fileManager.removeItem(at: mainWorkflow)
+        
+        uninstallLegacyWorkflows()
+        
+        checkInstallationStatus()
+        statusMessage = "Removed Finder Quick Action."
+    }
+    
+    private func uninstallLegacyWorkflows() {
         let servicesDir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Services")
         let fileManager = FileManager.default
         
@@ -136,12 +147,9 @@ final class FinderIntegrationManager: @unchecked Sendable {
                 }
             }
         }
-        
-        checkInstallationStatus()
-        statusMessage = "Removed Finder Quick Actions."
     }
     
-    private func createQuickActionWorkflow(at targetURL: URL, formatTitle: String, formatExt: String, inputType: String) -> Bool {
+    private func createUnifiedQuickActionWorkflow(at targetURL: URL) -> Bool {
         let fileManager = FileManager.default
         try? fileManager.removeItem(at: targetURL)
         
@@ -156,7 +164,7 @@ final class FinderIntegrationManager: @unchecked Sendable {
         let script = """
         for f in "$@"; do
             encoded=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$f" 2>/dev/null || echo "$f")
-            open "tossy://convert?format=\(formatExt)&files=$encoded"
+            open "tossy://convert?files=$encoded"
         done
         """
         
@@ -316,9 +324,9 @@ final class FinderIntegrationManager: @unchecked Sendable {
             <key>CFBundleDevelopmentRegion</key>
             <string>en_US</string>
             <key>CFBundleIdentifier</key>
-            <string>com.easyconvert.quickaction.\(formatExt)</string>
+            <string>com.easyconvert.quickaction.convertWithTossy</string>
             <key>CFBundleName</key>
-            <string>Convert to \(formatTitle) with Tossy</string>
+            <string>Convert with Tossy</string>
             <key>CFBundleShortVersionString</key>
             <string>1.0</string>
             <key>NSServices</key>
@@ -331,7 +339,7 @@ final class FinderIntegrationManager: @unchecked Sendable {
                     <key>NSMenuItem</key>
                     <dict>
                         <key>default</key>
-                        <string>Convert to \(formatTitle) with Tossy</string>
+                        <string>Convert with Tossy</string>
                     </dict>
                     <key>NSMessage</key>
                     <string>runWorkflowAsService</string>
@@ -342,7 +350,6 @@ final class FinderIntegrationManager: @unchecked Sendable {
                     </dict>
                     <key>NSSendFileTypes</key>
                     <array>
-                        <string>\(inputType)</string>
                         <string>public.item</string>
                     </array>
                 </dict>

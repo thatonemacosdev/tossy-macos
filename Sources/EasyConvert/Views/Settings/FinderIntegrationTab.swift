@@ -7,7 +7,7 @@ struct FinderIntegrationTab: View {
     var body: some View {
         Form {
             Section("Right-Click Action Behavior") {
-                Picker("When Right-Clicking Files", selection: $settings.finderActionBehavior) {
+                Picker("When Right-Clicking Files in Finder", selection: $settings.finderActionBehavior) {
                     ForEach(FinderActionBehavior.allCases) { behavior in
                         Text(behavior.rawValue).tag(behavior)
                     }
@@ -15,20 +15,20 @@ struct FinderIntegrationTab: View {
                 .pickerStyle(.radioGroup)
                 
                 Text(settings.finderActionBehavior == .silentBackground 
-                     ? "Files will convert in the background with a completion notification and audio chime without opening the Tossy window."
-                     : "Files will be automatically added to the Tossy batch queue and the window will be brought to focus.")
+                     ? "Opens the sleek Mini Tossy quick-convert popup to choose your target format and convert directly."
+                     : "Files will be automatically added to the full Tossy batch queue and the window will be brought to focus.")
                     .font(.caption)
                     .foregroundStyle(TossyColor.textSecondary)
             }
             
-            Section("Finder Quick Actions Installation") {
+            Section("Finder Quick Action Installation") {
                 HStack(alignment: .center, spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(finderManager.isInstalled ? "Finder Quick Actions Active" : "Quick Actions Not Installed")
+                        Text(finderManager.isInstalled ? "Finder Quick Action Active" : "Quick Action Not Installed")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(finderManager.isInstalled ? TossyColor.successGreen : TossyColor.textPrimary)
                         
-                        Text(finderManager.statusMessage ?? "Enables 'Convert with Tossy' options directly inside macOS Finder right-click menus.")
+                        Text(finderManager.statusMessage ?? "Adds 'Convert with Tossy' directly into macOS Finder right-click Quick Actions to open the Mini Tossy format picker.")
                             .font(.caption)
                             .foregroundStyle(TossyColor.textSecondary)
                     }
@@ -38,7 +38,7 @@ struct FinderIntegrationTab: View {
                     if finderManager.isInstalling {
                         ProgressView().controlSize(.small)
                     } else {
-                        Button(finderManager.isInstalled ? "Refresh Quick Actions" : "Install Quick Actions") {
+                        Button(finderManager.isInstalled ? "Reinstall Quick Action" : "Install Quick Action") {
                             finderManager.installQuickActions()
                         }
                         .buttonStyle(.borderedProminent)
@@ -48,7 +48,7 @@ struct FinderIntegrationTab: View {
                 .padding(.vertical, 4)
                 
                 if finderManager.isInstalled {
-                    Button("Remove Finder Quick Actions") {
+                    Button("Remove Finder Quick Action") {
                         finderManager.uninstallQuickActions()
                     }
                     .buttonStyle(.bordered)
@@ -57,22 +57,19 @@ struct FinderIntegrationTab: View {
                 }
             }
             
-            Section("Supported Right-Click Formats") {
-                Text("Installed Quick Actions will be available for:")
+            Section("Mini Tossy Fast Conversion Formats") {
+                Text("Selecting 'Convert with Tossy' in Finder opens the format picker for:")
                     .font(.caption)
                     .foregroundStyle(TossyColor.textSecondary)
                 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                     Group {
-                        FormatBadge(name: "PNG", category: "Image")
-                        FormatBadge(name: "JPEG", category: "Image")
-                        FormatBadge(name: "WebP", category: "Image")
-                        FormatBadge(name: "JPEG XL", category: "Image")
-                        FormatBadge(name: "MP4", category: "Video")
-                        FormatBadge(name: "WebM", category: "Video")
-                        FormatBadge(name: "MP3", category: "Audio")
-                        FormatBadge(name: "FLAC", category: "Audio")
-                        FormatBadge(name: "WAV", category: "Audio")
+                        FormatBadge(name: "PNG, JPEG, WebP", category: "Images")
+                        FormatBadge(name: "JPEG XL, HEIC, GIF", category: "Images")
+                        FormatBadge(name: "MP4 (H.264 / HEVC)", category: "Videos")
+                        FormatBadge(name: "MKV, WebM, ProRes", category: "Videos")
+                        FormatBadge(name: "MP3, FLAC, WAV", category: "Audio")
+                        FormatBadge(name: "AAC, OGG, ALAC", category: "Audio")
                     }
                 }
                 .padding(.top, 4)

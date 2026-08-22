@@ -170,6 +170,14 @@ struct RootView: View {
                 UpdateModalView(release: release)
             }
         }
+        .sheet(isPresented: Bindable(FinderIntegrationManager.shared).isShowingQuickConvert) {
+            if let files = FinderIntegrationManager.shared.quickConvertFiles {
+                MiniTossyModalView(files: files) {
+                    FinderIntegrationManager.shared.isShowingQuickConvert = false
+                    FinderIntegrationManager.shared.quickConvertFiles = nil
+                }
+            }
+        }
     }
 
     private func openSettings() {

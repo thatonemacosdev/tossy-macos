@@ -57,7 +57,7 @@ mkdir -p dist
 rm -rf dist/Tossy.app dist/Tossy-*.zip dist/Tossy-*.dmg dist/dmg_staging
 cp -R "${APP_BUNDLE}" dist/Tossy.app
 
-VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "Info.plist" 2>/dev/null || echo "1.7.0")
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "Info.plist" 2>/dev/null || echo "1.7.1")
 
 echo "Packaging clean distribution zip with ditto (v${VERSION})…"
 ditto -c -k --keepParent "dist/Tossy.app" "dist/Tossy-${VERSION}-macOS.zip"

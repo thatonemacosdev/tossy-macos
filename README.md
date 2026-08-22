@@ -1,6 +1,6 @@
 # Tossy
 
-[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.7.0)
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.7.1)
 [![License](https://img.shields.io/github/license/thatonemacosdev/tossy-macos)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/tossy-macos)](https://github.com/thatonemacosdev/tossy-macos/releases)
 
@@ -9,7 +9,7 @@
 A free, native macOS utility for converting images, video, and audio without Terminal, without uploading files anywhere, and without installing Homebrew or ffmpeg yourself. Toss files in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera files, MKV, WebM, FLAC, animated GIFs, animated WebP, and dozens more.
 
 Website: [thatonemacosdev.github.io/tossy-macos](https://thatonemacosdev.github.io/tossy-macos/)  
-Download: [v1.7.0 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.7.0)
+Download: [v1.7.1 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.7.1)
 
 ### Opening on macOS (Gatekeeper Notice)
 
@@ -66,6 +66,12 @@ open ./Tossy.app
 ## Why vendored binaries instead of just Core Image / AVFoundation everywhere?
 
 Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/ProRes. But they do not touch MKV, WebM, most legacy codecs, or most audio formats. For those, this app shells out to a bundled, self-contained copy of `ffmpeg` (and the WebP and JPEG XL reference tools, since this particular ffmpeg build was not compiled with encoders for those). Everything under `Vendor/` was relinked with `dylibbundler` so it runs standalone, with no Homebrew or system `ffmpeg` install required on the machine running the app.
+
+## What's New in v1.7.1
+
+- **Mini Tossy Quick-Convert Window**: Right-clicking files in macOS Finder and selecting "Convert with Tossy" now opens a sleek, compact Mini Tossy modal. Automatically detects whether selected files are images, videos, or audio, and provides 1-click format chips, optional target size input, live progress feedback, and instant Finder reveal upon completion.
+- **Unified Single Quick Action**: Replaced the cluttered list of individual per-format Quick Actions with one clean, unified "Convert with Tossy" action in the macOS Finder right-click context menu.
+- **Automator Bundle Structure & XML Fix**: Resolved the "document is damaged or incomplete" Automator loading error by generating standard `Contents/Resources/document.wflow` hierarchies, valid XML ampersand escaping, and standard action UUID metadata.
 
 ## What's New in v1.7.0
 
