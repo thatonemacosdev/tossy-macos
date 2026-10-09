@@ -5,10 +5,11 @@
 Only the latest release gets security fixes. This is a small, solo-maintained project, not
 something with a long-term support matrix.
 
-| Version | Supported |
-| ------- | --------- |
-| 1.7.1   | Yes       |
-| < 1.7.1 | No        |
+| Version        | Supported |
+| -------------- | --------- |
+| 2.0.0-beta     | Yes       |
+| 1.7.1          | Yes       |
+| < 1.7.1        | No        |
 
 ## Reporting a vulnerability
 

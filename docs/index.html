@@ -33,7 +33,7 @@
   "url": "https://thatonemacosdev.github.io/tossy-macos/",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "macOS 14+",
-  "softwareVersion": "1.7.1",
+  "softwareVersion": "2.0.0-beta",
   "fileFormat": [
     "image/heic",
     "image/jpeg",
@@ -45,10 +45,17 @@
     "video/webm",
     "audio/flac",
     "audio/mpeg",
-    "audio/aac"
+    "audio/aac",
+    "application/pdf",
+    "application/zip"
   ],
   "featureList": [
-    "Drag and drop batch file conversion",
+    "Universal File Canvas with batch token renaming",
+    "Complete PDF Studio with Apple Vision OCR and compression",
+    "Media Studio with lossless video trimmer and watermark overlay",
+    "Carbon-style Code Card PNG exporter with syntax highlighting",
+    "Menu Bar Quick-Toss drag-to-convert status dropzone",
+    "Archive Suite with AES-256 encryption and volume splitting",
     "Target megabyte size fitting",
     "Hardware VideoToolbox encoding",
     "GPU Core Image Metal processing",
@@ -61,7 +68,7 @@
     "price": "0",
     "priceCurrency": "USD"
   },
-  "downloadUrl": "https://github.com/thatonemacosdev/tossy-macos/releases/tag/v1.7.1",
+  "downloadUrl": "https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.0.0-beta",
   "image": "https://thatonemacosdev.github.io/tossy-macos/icons/icon_512.png",
   "author": {
     "@type": "Person",
@@ -655,7 +662,7 @@
     <nav class="nav-links">
       <a class="link" id="linkNavReleases" href="https://github.com/thatonemacosdev/tossy-macos/releases">Releases</a>
       <a class="link" id="linkNavGithub" href="https://github.com/thatonemacosdev/tossy-macos">GitHub</a>
-      <a class="btn btn-primary" id="btnDownloadNav" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v1.7.1/Tossy-1.7.1-macOS.zip">Download ZIP (v1.7.1)</a>
+      <a class="btn btn-primary" id="btnDownloadNav" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v2.0.0-beta/Tossy-2.0.0-beta-macOS.zip">Download ZIP (v2.0 Beta)</a>
     </nav>
   </div>
 </header>
@@ -667,7 +674,7 @@
       <div class="hero-content">
         <h1>Toss your files. Done.</h1>
         <p class="hero-sub">
-          Tossy is a fast, native macOS utility for converting and transforming your files. Just toss something in and let Tossy handle the rest.
+          Tossy is a fast, native macOS utility for converting and transforming your files. Universal file canvas, PDF studio, lossless video trimmer, code cards, and menu bar Quick-Toss.
         </p>
 
         <div class="ticker-box" id="tickerBox" aria-hidden="true">
@@ -678,9 +685,9 @@
         </div>
 
         <div class="cta-group">
-          <a class="btn btn-primary" id="btnDownloadHero" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v1.7.1/Tossy-1.7.1-macOS.zip">Download Tossy v1.7.1 (.zip)</a>
+          <a class="btn btn-primary" id="btnDownloadHero" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v2.0.0-beta/Tossy-2.0.0-beta-macOS.zip">Download v2.0 Beta (.zip)</a>
+          <a class="btn btn-secondary" id="btnDownloadDmg" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v2.0.0-beta/Tossy-2.0.0-beta-macOS.dmg">Installer DMG (.dmg)</a>
           <a class="btn btn-secondary" id="btnReleasesHero" href="https://github.com/thatonemacosdev/tossy-macos/releases">Releases &amp; Changelog</a>
-          <a class="btn btn-secondary" id="btnSourceHero" href="https://github.com/thatonemacosdev/tossy-macos">Source Code</a>
         </div>
 
         <div class="specs-bar">
