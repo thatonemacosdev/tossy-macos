@@ -28,7 +28,7 @@ struct JobRowView: View {
                 HStack(spacing: 6) {
                     Text(job.displayName)
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(TossyColor.textPrimary)
                         .lineLimit(1)
                         .truncationMode(.middle)
                     
@@ -103,7 +103,7 @@ struct JobRowView: View {
                     if let progress {
                         Text("\(Int(progress * 100))%")
                             .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(TossyColor.textPrimary)
                     } else {
                         Text("Converting…")
                             .font(.caption)
@@ -126,7 +126,7 @@ struct JobRowView: View {
 
                 Text("Ready")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(TossyColor.textPrimary)
 
                 if let note {
                     Text("· \(note)")

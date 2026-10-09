@@ -10,6 +10,10 @@ APP_NAME="Tossy"
 BUILD_DIR=".build/${CONFIG}"
 APP_BUNDLE="./${APP_NAME}.app"
 
+if [ -z "${SDKROOT:-}" ] && [ -d "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk" ]; then
+    export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk"
+fi
+
 echo "Building ${APP_NAME} (${CONFIG})…"
 swift build -c "${CONFIG}"
 
@@ -57,9 +61,34 @@ mkdir -p dist
 rm -rf dist/Tossy.app dist/Tossy-*.zip dist/Tossy-*.dmg dist/dmg_staging
 cp -R "${APP_BUNDLE}" dist/Tossy.app
 
-VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "Info.plist" 2>/dev/null || echo "1.7.1")
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "Info.plist" 2>/dev/null || echo "2.0.0-beta")
 
 echo "Packaging clean distribution zip with ditto (v${VERSION})…"
 ditto -c -k --keepParent "dist/Tossy.app" "dist/Tossy-${VERSION}-macOS.zip"
 echo "Packaged dist/Tossy-${VERSION}-macOS.zip"
+
+echo "Packaging clean distribution DMG (v${VERSION})…"
+DMG_STAGING="dist/dmg_staging"
+rm -rf "${DMG_STAGING}" "dist/Tossy-${VERSION}-macOS.dmg"
+mkdir -p "${DMG_STAGING}"
+cp -R "dist/Tossy.app" "${DMG_STAGING}/"
+ln -s /Applications "${DMG_STAGING}/Applications"
+
+hdiutil create -volname "Tossy" \
+    -srcfolder "${DMG_STAGING}" \
+    -ov -format UDZO \
+    "dist/Tossy-${VERSION}-macOS.dmg"
+rm -rf "${DMG_STAGING}"
+echo "Packaged dist/Tossy-${VERSION}-macOS.dmg"
+
+echo ""
+echo "================================================================"
+echo "          RELEASE PACKAGING COMPLETE (v${VERSION})              "
+echo "================================================================"
+echo "ZIP Archive:   dist/Tossy-${VERSION}-macOS.zip ($(du -sh "dist/Tossy-${VERSION}-macOS.zip" | cut -f1))"
+echo "DMG Installer: dist/Tossy-${VERSION}-macOS.dmg ($(du -sh "dist/Tossy-${VERSION}-macOS.dmg" | cut -f1))"
+echo ""
+echo "SHA-256 Checksums:"
+shasum -a 256 "dist/Tossy-${VERSION}-macOS.zip" "dist/Tossy-${VERSION}-macOS.dmg"
+echo "================================================================"
 

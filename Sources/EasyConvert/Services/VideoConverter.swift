@@ -251,6 +251,8 @@ final class VideoConverter {
         } else {
             if videoCfg.encodingMode == "crf" && (videoCodec.contains("libx264") || videoCodec.contains("libx265") || videoCodec.contains("libsvtav1") || videoCodec.contains("libvpx")) {
                 arguments += ["-crf", "\(videoCfg.crfValue)"]
+            } else if videoCfg.encodingMode == "bitrate" && videoCfg.targetBitrateKbps > 0 {
+                arguments += ["-b:v", "\(videoCfg.targetBitrateKbps)k"]
             }
             arguments += extraArgs
             

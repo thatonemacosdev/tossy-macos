@@ -269,8 +269,8 @@ struct ContentView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-            .tint(.white)
-            .foregroundStyle(.black)
+            .tint(TossyColor.accentProminentBg)
+            .foregroundStyle(TossyColor.accentProminentFg)
             .controlSize(.regular)
             .disabled(jobs.isEmpty || isConverting)
         }
@@ -307,118 +307,11 @@ struct ContentView: View {
     }
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
-        var collected: [URL] = []
-        let lock = NSLock()
-        let group = DispatchGroup()
-
-        for provider in providers {
-            group.enter()
-
-            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-                provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
-                    var resolvedURL: URL? = nil
-                    if let url = item as? URL {
-                        resolvedURL = url
-                    } else if let nsURL = item as? NSURL {
-                        resolvedURL = nsURL as URL
-                    } else if let data = item as? Data {
-                        resolvedURL = URL(dataRepresentation: data, relativeTo: nil)
-                    }
-
-                    if let resolvedURL {
-                        lock.lock()
-                        collected.append(resolvedURL)
-                        lock.unlock()
-                        group.leave()
-                    } else {
-                        self.extractImageData(from: provider, lock: lock) { url in
-                            if let url {
-                                lock.lock()
-                                collected.append(url)
-                                lock.unlock()
-                            }
-                            group.leave()
-                        }
-                    }
-                }
-            } else {
-                self.extractImageData(from: provider, lock: lock) { url in
-                    if let url {
-                        lock.lock()
-                        collected.append(url)
-                        lock.unlock()
-                    }
-                    group.leave()
-                }
-            }
-        }
-
-        group.notify(queue: .main) {
-            addJobs(for: collected)
+        Task { @MainActor in
+            let urls = await FileDropResolver.resolveURLs(from: providers)
+            addJobs(for: urls)
         }
         return true
-    }
-
-    private func extractImageData(from provider: NSItemProvider, lock: NSLock, completion: @escaping (URL?) -> Void) {
-        if provider.hasItemConformingToTypeIdentifier(UTType.png.identifier) {
-            provider.loadDataRepresentation(forTypeIdentifier: UTType.png.identifier) { data, _ in
-                if let data, let url = self.writeTempScreenshot(data: data, ext: "png") {
-                    completion(url)
-                    return
-                }
-                self.extractImageObject(from: provider, completion: completion)
-            }
-        } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-            provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { data, _ in
-                if let data, let url = self.writeTempScreenshot(data: data, ext: "png") {
-                    completion(url)
-                    return
-                }
-                self.extractImageObject(from: provider, completion: completion)
-            }
-        } else if provider.hasItemConformingToTypeIdentifier(UTType.data.identifier) {
-            provider.loadDataRepresentation(forTypeIdentifier: UTType.data.identifier) { data, _ in
-                if let data, let url = self.writeTempScreenshot(data: data, ext: "png") {
-                    completion(url)
-                    return
-                }
-                self.extractImageObject(from: provider, completion: completion)
-            }
-        } else {
-            self.extractImageObject(from: provider, completion: completion)
-        }
-    }
-
-    private func extractImageObject(from provider: NSItemProvider, completion: @escaping (URL?) -> Void) {
-        if provider.canLoadObject(ofClass: NSImage.self) {
-            provider.loadObject(ofClass: NSImage.self) { image, _ in
-                guard let nsImage = image as? NSImage,
-                      let tiffData = nsImage.tiffRepresentation,
-                      let bitmap = NSBitmapImageRep(data: tiffData),
-                      let pngData = bitmap.representation(using: .png, properties: [:]) else {
-                    completion(nil)
-                    return
-                }
-                let url = self.writeTempScreenshot(data: pngData, ext: "png")
-                completion(url)
-            }
-        } else {
-            completion(nil)
-        }
-    }
-
-    private func writeTempScreenshot(data: Data, ext: String) -> URL? {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd 'at' HH.mm.ss"
-        let timestamp = formatter.string(from: Date())
-        let filename = "Screenshot \(timestamp) \(UUID().uuidString.prefix(4)).\(ext)"
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-        do {
-            try data.write(to: tempURL)
-            return tempURL
-        } catch {
-            return nil
-        }
     }
 
     private func convertAll() async {

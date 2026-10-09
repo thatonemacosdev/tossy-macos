@@ -19,7 +19,7 @@ struct BenchmarkGaugeView: View {
                 Circle()
                     .trim(from: 0.0, to: max(0.02, progress))
                     .stroke(
-                        Color.white,
+                        TossyColor.accentProminentBg,
                         style: StrokeStyle(lineWidth: 10, lineCap: .round)
                     )
                     .rotationEffect(.degrees(-90))
@@ -30,7 +30,7 @@ struct BenchmarkGaugeView: View {
                 VStack(spacing: 4) {
                     Image(systemName: "speedometer")
                         .font(.system(size: 28, weight: .light))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(TossyColor.textPrimary)
                         .scaleEffect(isPulsing ? 1.08 : 0.95)
                         .animation(
                             .easeInOut(duration: 0.8).repeatForever(autoreverses: true),
@@ -39,7 +39,7 @@ struct BenchmarkGaugeView: View {
 
                     Text("\(Int(progress * 100))%")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(TossyColor.textPrimary)
                 }
             }
             .onAppear {
@@ -49,7 +49,7 @@ struct BenchmarkGaugeView: View {
             VStack(spacing: 6) {
                 Text(activeTestName.isEmpty ? "Benchmarking system throughput..." : activeTestName)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(TossyColor.textPrimary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .frame(maxWidth: 420)

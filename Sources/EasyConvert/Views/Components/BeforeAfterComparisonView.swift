@@ -10,6 +10,7 @@ struct BeforeAfterComparisonView: View {
 
     @State private var splitPosition: CGFloat = 0.5 // 0.0 ... 1.0
     @State private var comparisonMode: ComparisonMode = .split
+    @State private var selectedBackdrop: ComparisonBackdrop = .checkerboard
     @State private var zoomScale: CGFloat = 1.0
     @State private var panOffset: CGSize = .zero
     @State private var isDraggingSlider = false
@@ -165,7 +166,7 @@ struct BeforeAfterComparisonView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(isVideo ? "Video Quality & Artifact Inspector" : "Quality & Artifact Inspector")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(TossyColor.textPrimary)
 
                 Text("\(sourceURL.lastPathComponent) → \(outputURL.lastPathComponent)")
                     .font(.system(size: 11))
@@ -183,6 +184,18 @@ struct BeforeAfterComparisonView: View {
             }
             .pickerStyle(.segmented)
             .frame(width: 260)
+
+            // Backdrop Selector (Images & Transparent PNGs / Cutouts)
+            if !isVideo {
+                Picker("Backdrop", selection: $selectedBackdrop) {
+                    ForEach(ComparisonBackdrop.allCases) { backdrop in
+                        Label(backdrop.rawValue, systemImage: backdrop.icon).tag(backdrop)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(width: 125)
+                .help("Change Transparency Backdrop (Checkerboard / Dark / Light / Chroma Green)")
+            }
 
             // Zoom Controls (Images only)
             if !isVideo {
@@ -262,19 +275,19 @@ struct BeforeAfterComparisonView: View {
                 // Divider Line
                 let splitX = size.width * splitPosition
                 Rectangle()
-                    .fill(Color.white)
+                    .fill(TossyColor.accentProminentBg)
                     .frame(width: 2)
                     .position(x: splitX, y: size.height / 2)
                     .shadow(color: Color.black.opacity(0.8), radius: 4)
 
                 // Drag Handle
                 Circle()
-                    .fill(Color.white)
+                    .fill(TossyColor.accentProminentBg)
                     .frame(width: 28, height: 28)
                     .overlay(
                         Image(systemName: "arrow.left.and.right")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color.black)
+                            .foregroundStyle(TossyColor.accentProminentFg)
                     )
                     .shadow(color: Color.black.opacity(0.6), radius: 6)
                     .position(x: splitX, y: size.height / 2)
@@ -347,6 +360,10 @@ struct BeforeAfterComparisonView: View {
 
     private func splitSliderView(source: NSImage, output: NSImage, size: CGSize) -> some View {
         ZStack {
+            // Transparency backdrop under converted cutout / image
+            ComparisonBackdropView(backdrop: selectedBackdrop)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             // Converted (Right / Base layer)
             Image(nsImage: output)
                 .resizable()
@@ -370,19 +387,19 @@ struct BeforeAfterComparisonView: View {
             // Divider Line & Handle
             let splitX = size.width * splitPosition
             Rectangle()
-                .fill(Color.white)
+                .fill(TossyColor.accentProminentBg)
                 .frame(width: 2)
                 .position(x: splitX, y: size.height / 2)
                 .shadow(color: Color.black.opacity(0.8), radius: 4)
 
             // Floating Handle Grabber
             Circle()
-                .fill(Color.white)
+                .fill(TossyColor.accentProminentBg)
                 .frame(width: 28, height: 28)
                 .overlay(
                     Image(systemName: "arrow.left.and.right")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(Color.black)
+                        .foregroundStyle(TossyColor.accentProminentFg)
                 )
                 .shadow(color: Color.black.opacity(0.6), radius: 6)
                 .position(x: splitX, y: size.height / 2)
@@ -407,7 +424,7 @@ struct BeforeAfterComparisonView: View {
 
                     Spacer()
 
-                    Text("Converted (\(outputURL.pathExtension.uppercased()))")
+                    Text("Converted / Cutout (\(outputURL.pathExtension.uppercased()))")
                         .font(.system(size: 11, weight: .semibold))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -432,43 +449,87 @@ struct BeforeAfterComparisonView: View {
 
     private func sideBySideView(source: NSImage, output: NSImage, size: CGSize) -> some View {
         HStack(spacing: 12) {
+            // Left: Original
             VStack(spacing: 6) {
-                Text("Original")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(TossyColor.textSecondary)
+                HStack {
+                    Text("Original (\(sourceURL.pathExtension.uppercased()))")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(TossyColor.textSecondary)
+                    Spacer()
+                    Text(ByteSize.displayString(sourceSizeBytes))
+                        .font(.caption2.monospaced())
+                        .foregroundStyle(TossyColor.textTertiary)
+                }
 
-                Image(nsImage: source)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .scaleEffect(zoomScale)
-                    .offset(panOffset)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(TossyColor.surfaceBase)
-                    .cornerRadius(8)
+                ZStack {
+                    TossyColor.surfaceBase
+
+                    Image(nsImage: source)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .scaleEffect(zoomScale)
+                        .offset(panOffset)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                )
             }
 
+            // Right: Converted / Cutout
             VStack(spacing: 6) {
-                Text("Converted")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(TossyColor.textSecondary)
+                HStack {
+                    Text("Converted / Cutout (\(outputURL.pathExtension.uppercased()))")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(TossyColor.textSecondary)
+                    Spacer()
+                    Text(ByteSize.displayString(outputSizeBytes))
+                        .font(.caption2.monospaced())
+                        .foregroundStyle(TossyColor.textTertiary)
+                }
 
-                Image(nsImage: output)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .scaleEffect(zoomScale)
-                    .offset(panOffset)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(TossyColor.surfaceBase)
-                    .cornerRadius(8)
+                ZStack {
+                    ComparisonBackdropView(backdrop: selectedBackdrop)
+
+                    Image(nsImage: output)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .scaleEffect(zoomScale)
+                        .offset(panOffset)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                )
             }
         }
         .padding(16)
+        .gesture(
+            DragGesture()
+                .onChanged { val in
+                    if zoomScale > 1.0 {
+                        panOffset = CGSize(
+                            width: panOffset.width + val.translation.width * 0.1,
+                            height: panOffset.height + val.translation.height * 0.1
+                        )
+                    }
+                }
+        )
     }
 
     // MARK: - A/B Toggle View
 
     private func toggleView(source: NSImage, output: NSImage, size: CGSize) -> some View {
         ZStack {
+            if !showOriginalInToggle {
+                ComparisonBackdropView(backdrop: selectedBackdrop)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+
             Image(nsImage: showOriginalInToggle ? source : output)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -476,6 +537,16 @@ struct BeforeAfterComparisonView: View {
                 .offset(panOffset)
 
             VStack {
+                HStack {
+                    Text(showOriginalInToggle ? "Original (\(sourceURL.pathExtension.uppercased()))" : "Converted / Cutout (\(outputURL.pathExtension.uppercased()))")
+                        .font(.system(size: 11, weight: .semibold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.black.opacity(0.7))
+                        .clipShape(Capsule())
+                        .padding(12)
+                    Spacer()
+                }
                 Spacer()
                 Button(showOriginalInToggle ? "Showing Original (Click for Converted)" : "Showing Converted (Click for Original)") {
                     showOriginalInToggle.toggle()
@@ -485,6 +556,14 @@ struct BeforeAfterComparisonView: View {
                 .padding(.bottom, 20)
             }
         }
+        .gesture(
+            DragGesture()
+                .onChanged { val in
+                    if zoomScale > 1.0 {
+                        panOffset = CGSize(width: panOffset.width + val.translation.width * 0.1, height: panOffset.height + val.translation.height * 0.1)
+                    }
+                }
+        )
     }
 
     // MARK: - Footer Metrics Bar
@@ -501,7 +580,7 @@ struct BeforeAfterComparisonView: View {
                             .font(.system(size: 14))
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(TossyColor.textPrimary)
                     
                     Text(formatTime(currentTime))
                         .font(.system(size: 11, design: .monospaced))
@@ -528,7 +607,7 @@ struct BeforeAfterComparisonView: View {
                         .foregroundStyle(TossyColor.textTertiary)
                     Text(ByteSize.displayString(sourceSizeBytes))
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(TossyColor.textPrimary)
                 }
 
                 // Arrow
@@ -543,7 +622,7 @@ struct BeforeAfterComparisonView: View {
                         .foregroundStyle(TossyColor.textTertiary)
                     Text(ByteSize.displayString(outputSizeBytes))
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(TossyColor.textPrimary)
                 }
 
                 // Savings Pill

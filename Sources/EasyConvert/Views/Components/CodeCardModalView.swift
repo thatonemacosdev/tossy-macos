@@ -1,8 +1,40 @@
 import SwiftUI
 
+enum CodeLanguageDetector {
+    static func detectLanguage(for ext: String) -> String {
+        switch ext.lowercased() {
+        case "swift": return "Swift"
+        case "py", "pyw": return "Python"
+        case "ts", "tsx": return "TypeScript"
+        case "js", "mjs", "cjs", "jsx": return "JavaScript"
+        case "rs": return "Rust"
+        case "go": return "Go"
+        case "json": return "JSON"
+        case "html", "htm": return "HTML"
+        case "css", "scss", "sass", "less": return "CSS"
+        case "md", "markdown": return "Markdown"
+        case "sh", "bash", "zsh", "fish": return "Shell"
+        case "c", "h": return "C"
+        case "cpp", "cc", "cxx", "hpp": return "C++"
+        case "java": return "Java"
+        case "kt", "kts": return "Kotlin"
+        case "rb": return "Ruby"
+        case "php": return "PHP"
+        case "sql": return "SQL"
+        case "yaml", "yml": return "YAML"
+        default: return "Swift"
+        }
+    }
+    
+    static let codeExtensions = Set([
+        "swift", "py", "ts", "tsx", "js", "jsx", "rs", "go", "json", "html", "css", "scss", "md", "sh", "bash", "zsh", "c", "h", "cpp", "hpp", "java", "kt", "rb", "php", "sql", "yaml", "yml"
+    ])
+}
+
 struct CodeCardModalView: View {
     var initialCode: String = ""
     var initialFileName: String = "snippet.swift"
+    var initialLanguage: String? = nil
     @Environment(\.dismiss) private var dismiss
     
     @State private var codeText: String = """
@@ -10,7 +42,7 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        Text("Hello, Tossy 2.0 Titanium!")
+        Text("Hello, Tossy 2.0!")
             .font(.largeTitle.bold())
             .foregroundStyle(.tint)
     }
@@ -23,7 +55,7 @@ struct ContentView: View {
     @State private var statusMessage: String?
     @State private var outputURL: URL?
     
-    let languages = ["Swift", "Python", "TypeScript", "JavaScript", "Rust", "Go", "JSON", "HTML", "CSS", "Markdown", "Shell"]
+    let languages = ["Swift", "Python", "TypeScript", "JavaScript", "Rust", "Go", "JSON", "HTML", "CSS", "Markdown", "Shell", "C", "C++", "Java", "Kotlin", "Ruby", "PHP", "SQL", "YAML"]
     
     var body: some View {
         VStack(spacing: 0) {
@@ -59,21 +91,21 @@ struct ContentView: View {
                 HStack(spacing: 16) {
                     TextField("Card Title", text: $title)
                         .textFieldStyle(.roundedBorder)
-                        .frame(maxWidth: 200)
+                        .frame(maxWidth: 220)
                     
                     Picker("Language", selection: $selectedLanguage) {
                         ForEach(languages, id: \.self) { lang in
                             Text(lang).tag(lang)
                         }
                     }
-                    .frame(width: 140)
+                    .frame(width: 150)
                     
                     Picker("Theme", selection: $selectedTheme) {
                         ForEach(CodeCardTheme.allCases) { theme in
                             Text(theme.rawValue).tag(theme)
                         }
                     }
-                    .frame(width: 160)
+                    .frame(width: 170)
                     
                     Spacer()
                 }
@@ -129,11 +161,17 @@ struct ContentView: View {
             .padding()
             .background(Color(nsColor: .windowBackgroundColor))
         }
-        .frame(minWidth: 680, minHeight: 520)
+        .frame(minWidth: 700, minHeight: 530)
         .onAppear {
             if !initialCode.isEmpty {
                 codeText = initialCode
                 title = initialFileName
+                if let lang = initialLanguage {
+                    selectedLanguage = lang
+                } else {
+                    let ext = (initialFileName as NSString).pathExtension
+                    selectedLanguage = CodeLanguageDetector.detectLanguage(for: ext)
+                }
             }
         }
     }

@@ -1,25 +1,35 @@
 #!/bin/bash
-# Builds Tossy v2.0 Titanium in Release Mode and installs to /Applications as Tossy-2-alpha.app
+# Builds Tossy v2.0 Beta in Release Mode and installs to /Applications as Tossy-2-beta.app
 set -euo pipefail
 
 cd "$(dirname "$0")"
 
 CONFIG="release"
 APP_NAME="Tossy"
-INSTALL_NAME="Tossy-2-alpha"
+INSTALL_NAME="Tossy-2-beta"
 TARGET_APP="/Applications/${INSTALL_NAME}.app"
 USER_APP="${HOME}/Applications/${INSTALL_NAME}.app"
 BUILD_DIR=".build/${CONFIG}"
 STAGING_DIR="./dist/${INSTALL_NAME}.app"
+ZIP_OUTPUT="./dist/Tossy-2-beta-macOS.zip"
 
 echo "================================================================"
-echo "          BUILDING AND INSTALLING TOSSY V2.0 ALPHA              "
+echo "          BUILDING AND INSTALLING TOSSY V2.0 BETA               "
 echo "================================================================"
 
-echo "1/6 Building native binary in ${CONFIG} mode..."
+echo "0/7 Terminating any running Tossy instances..."
+killall Tossy 2>/dev/null || true
+pkill -f "Tossy-2-beta" 2>/dev/null || true
+sleep 0.5
+
+if [ -z "${SDKROOT:-}" ] && [ -d "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk" ]; then
+    export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk"
+fi
+
+echo "1/7 Building native binary in ${CONFIG} mode..."
 swift build -c "${CONFIG}"
 
-echo "2/6 Assembling application bundle: ${STAGING_DIR}..."
+echo "2/7 Assembling application bundle: ${STAGING_DIR}..."
 rm -rf "${STAGING_DIR}"
 mkdir -p "${STAGING_DIR}/Contents/MacOS"
 mkdir -p "${STAGING_DIR}/Contents/Resources"
@@ -28,45 +38,10 @@ cp "${BUILD_DIR}/${APP_NAME}" "${STAGING_DIR}/Contents/MacOS/${APP_NAME}"
 cp "AppIcon.icns" "${STAGING_DIR}/Contents/Resources/AppIcon.icns"
 cp "icons/icon_128.png" "${STAGING_DIR}/Contents/Resources/TossyLogo.png"
 
-# Generate Info.plist customized for Tossy 2 Alpha
-cat << 'EOF' > "${STAGING_DIR}/Contents/Info.plist"
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleDevelopmentRegion</key>
-    <string>en</string>
-    <key>CFBundleExecutable</key>
-    <string>Tossy</string>
-    <key>CFBundleIconFile</key>
-    <string>AppIcon</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.thatonemacosdev.tossy2alpha</string>
-    <key>CFBundleInfoDictionaryVersion</key>
-    <string>6.0</string>
-    <key>CFBundleName</key>
-    <string>Tossy 2 Alpha</string>
-    <key>CFBundleDisplayName</key>
-    <string>Tossy 2 Alpha</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleShortVersionString</key>
-    <string>2.0.0-alpha</string>
-    <key>CFBundleVersion</key>
-    <string>2.0.0</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>14.0</string>
-    <key>NSHumanReadableCopyright</key>
-    <string>Copyright (c) 2026 ThatOneMacOSDev. All rights reserved.</string>
-    <key>NSPrincipalClass</key>
-    <string>NSApplication</string>
-    <key>NSSupportsAutomaticGraphicsSwitching</key>
-    <true/>
-</dict>
-</plist>
-EOF
+# Copy complete Info.plist with system services and registered url schemes
+cp "Info.plist" "${STAGING_DIR}/Contents/Info.plist"
 
-echo "3/6 Bundling vendored engines (ffmpeg, webp, jxl)..."
+echo "3/7 Bundling vendored engines (ffmpeg, webp, jxl)..."
 mkdir -p "${STAGING_DIR}/Contents/Resources/ffmpeg"
 cp -R Vendor/ffmpeg/ffmpeg Vendor/ffmpeg/ffprobe Vendor/ffmpeg/libs "${STAGING_DIR}/Contents/Resources/ffmpeg/"
 
@@ -76,7 +51,7 @@ cp -R Vendor/webp/cwebp Vendor/webp/dwebp Vendor/webp/img2webp Vendor/webp/libs 
 mkdir -p "${STAGING_DIR}/Contents/Resources/jxl"
 cp -R Vendor/jxl/cjxl Vendor/jxl/djxl Vendor/jxl/libs "${STAGING_DIR}/Contents/Resources/jxl/"
 
-echo "4/6 Code-signing binaries and bundle..."
+echo "4/7 Code-signing binaries and bundle..."
 xattr -cr "${STAGING_DIR}" 2>/dev/null || true
 find "${STAGING_DIR}/Contents/Resources" -name "*.dylib" -exec codesign --force --sign - {} +
 codesign --force --sign - "${STAGING_DIR}/Contents/Resources/ffmpeg/ffmpeg"
@@ -89,21 +64,29 @@ codesign --force --sign - "${STAGING_DIR}/Contents/Resources/jxl/djxl"
 codesign --force --sign - "${STAGING_DIR}/Contents/MacOS/${APP_NAME}"
 codesign --force --deep --sign - "${STAGING_DIR}"
 
-echo "5/6 Verifying signature..."
+echo "5/7 Verifying signature..."
 codesign --verify --deep --strict "${STAGING_DIR}"
 
-echo "6/6 Installing to /Applications..."
+echo "6/7 Packaging full release ZIP archive: ${ZIP_OUTPUT}..."
+rm -f "${ZIP_OUTPUT}"
+ditto -c -k --keepParent "${STAGING_DIR}" "${ZIP_OUTPUT}"
+echo "Packaged full release archive ($(du -sh "${ZIP_OUTPUT}" | cut -f1))"
+
+echo "7/7 Installing to /Applications..."
 if rm -rf "${TARGET_APP}" 2>/dev/null && cp -R "${STAGING_DIR}" "${TARGET_APP}" 2>/dev/null; then
-    echo "Successfully installed Tossy 2 Alpha to: ${TARGET_APP}"
+    echo "Successfully installed Tossy 2 Beta to: ${TARGET_APP}"
 else
     echo "Installing to user application directory: ${USER_APP}"
     mkdir -p "${HOME}/Applications"
     rm -rf "${USER_APP}"
     cp -R "${STAGING_DIR}" "${USER_APP}"
-    echo "Successfully installed Tossy 2 Alpha to: ${USER_APP}"
+    echo "Successfully installed Tossy 2 Beta to: ${USER_APP}"
 fi
+
+echo "Launching Tossy 2 Beta..."
+open "${TARGET_APP}" 2>/dev/null || open "${USER_APP}" 2>/dev/null || true
 
 echo ""
 echo "================================================================"
-echo "          INSTALLATION COMPLETE: Tossy-2-alpha.app              "
+echo "          INSTALLATION COMPLETE: Tossy-2-beta.app               "
 echo "================================================================"

@@ -10,6 +10,10 @@ echo "================================================================"
 
 mkdir -p build_sandbox/tests
 
+if [ -z "${SDKROOT:-}" ] && [ -d "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk" ]; then
+    export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk"
+fi
+
 echo "Compiling QA Bug Fixes Test Binary..."
 swiftc -parse-as-library $(find Sources/EasyConvert -name "*.swift" ! -name "EasyConvertApp.swift") build_sandbox/tests/test_qa_bugs_only.swift -o build_sandbox/tests/test_qa_bugs_only_bin
 

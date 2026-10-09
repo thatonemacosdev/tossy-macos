@@ -6,13 +6,27 @@ enum FormatInspectorCategory {
     case audio(format: AudioFormat)
 }
 
+enum VideoKnobTab: String, CaseIterable, Identifiable {
+    case video = "Video Stream"
+    case audio = "Audio Track"
+    
+    var id: String { rawValue }
+    var icon: String {
+        switch self {
+        case .video: return "video.fill"
+        case .audio: return "waveform"
+        }
+    }
+}
+
 struct FormatInspectorView: View {
     let category: FormatInspectorCategory
     @Bindable var settings = AppSettings.shared
     @Environment(\.dismiss) private var dismiss
+    @State private var videoKnobTab: VideoKnobTab = .video
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             // Header
             HStack {
                 Label(headerTitle, systemImage: "slider.horizontal.3")
@@ -33,21 +47,30 @@ struct FormatInspectorView: View {
             Divider().overlay(TossyColor.borderSubtle)
             
             // Content
-            VStack(alignment: .leading, spacing: 12) {
-                switch category {
-                case .image(let format):
-                    imageSettingsContent(for: format)
-                case .video(let format):
-                    videoSettingsContent(for: format)
-                case .audio(let format):
-                    audioSettingsContent(for: format)
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 10) {
+                    switch category {
+                    case .image(let format):
+                        imageSettingsContent(for: format)
+                    case .video(let format):
+                        videoSettingsContent(for: format)
+                    case .audio(let format):
+                        audioSettingsContent(for: format)
+                    }
                 }
+                .padding(.vertical, 2)
+                .padding(.trailing, 4)
             }
-            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .padding(14)
-        .frame(width: 440)
-        .background(TossyColor.pitchBlack)
+        .frame(width: 480, height: 350)
+        .background(
+            AppSettings.shared.appTheme == .titanium ?
+            Color(red: 0.12, green: 0.125, blue: 0.14) :
+            TossyColor.pitchBlack
+        )
+        .brushedTitaniumCard(cornerRadius: 12, isElevated: true)
         .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
     }
     
@@ -258,156 +281,186 @@ struct FormatInspectorView: View {
     @ViewBuilder
     private func videoSettingsContent(for format: VideoFormat) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Rate control
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Rate Control Mode")
-                    .font(.caption)
-                    .foregroundStyle(TossyColor.textSecondary)
-                Picker("", selection: $settings.videoConfig.encodingMode) {
-                    Text("Constant Rate Factor (CRF)").tag("crf")
-                    Text("Target Bitrate").tag("bitrate")
-                    if format.exportPreset != nil {
-                        Text("Hardware Acceleration").tag("hardware")
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-            }
-            
-            if settings.videoConfig.encodingMode == "crf" {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack {
-                        Text("CRF Level: \(settings.videoConfig.crfValue)")
-                            .font(.caption)
-                            .foregroundStyle(TossyColor.textSecondary)
-                        Spacer()
-                        Text(settings.videoConfig.crfValue <= 18 ? "Visually Lossless" : (settings.videoConfig.crfValue <= 23 ? "High Quality" : "Compact Size"))
-                            .font(.caption2)
-                            .foregroundStyle(TossyColor.textTertiary)
-                    }
-                    Slider(value: Binding(
-                        get: { Double(settings.videoConfig.crfValue) },
-                        set: { settings.videoConfig.crfValue = Int($0) }
-                    ), in: 0...51, step: 1)
+            Picker("Stream Section", selection: $videoKnobTab) {
+                ForEach(VideoKnobTab.allCases) { tab in
+                    Label(tab.rawValue, systemImage: tab.icon).tag(tab)
                 }
             }
+            .pickerStyle(.segmented)
             
-            // 2-Column layout for encoding knobs
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Speed Preset (-preset)")
-                        .font(.caption)
-                        .foregroundStyle(TossyColor.textSecondary)
-                    Picker("", selection: $settings.videoConfig.x264Preset) {
-                        Text("ultrafast (fastest)").tag("ultrafast")
-                        Text("superfast").tag("superfast")
-                        Text("veryfast").tag("veryfast")
-                        Text("faster").tag("faster")
-                        Text("fast").tag("fast")
-                        Text("medium (balanced)").tag("medium")
-                        Text("slow (high compression)").tag("slow")
-                        Text("slower").tag("slower")
-                        Text("veryslow (best)").tag("veryslow")
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Pixel Format (-pix_fmt)")
-                        .font(.caption)
-                        .foregroundStyle(TossyColor.textSecondary)
-                    Picker("", selection: $settings.videoConfig.pixelFormat) {
-                        Text("yuv420p (8-bit Standard)").tag("yuv420p")
-                        Text("yuv420p10le (10-bit HDR)").tag("yuv420p10le")
-                        Text("yuv422p (Broadcast 4:2:2)").tag("yuv422p")
-                        Text("yuv444p (Full 4:4:4)").tag("yuv444p")
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            
-            // 2-Column layout for framerate & scaling
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Framerate")
-                        .font(.caption)
-                        .foregroundStyle(TossyColor.textSecondary)
-                    Picker("", selection: $settings.videoConfig.frameRate) {
-                        Text("Keep source").tag("keep")
-                        Text("24 fps (Cinema)").tag("24")
-                        Text("25 fps (PAL)").tag("25")
-                        Text("29.97 fps (NTSC)").tag("29.97")
-                        Text("30 fps").tag("30")
-                        Text("50 fps").tag("50")
-                        Text("60 fps").tag("60")
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Scale Algorithm")
-                        .font(.caption)
-                        .foregroundStyle(TossyColor.textSecondary)
-                    Picker("", selection: $settings.videoConfig.scalingAlgorithm) {
-                        Text("Lanczos (Sharpest)").tag("lanczos")
-                        Text("Bicubic (Standard)").tag("bicubic")
-                        Text("Bilinear (Soft)").tag("bilinear")
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            
-            Divider().overlay(TossyColor.borderSubtle)
-            
-            // Audio in video (2 columns)
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Audio Codec")
-                        .font(.caption)
-                        .foregroundStyle(TossyColor.textSecondary)
-                    Picker("", selection: $settings.videoConfig.audioCodec) {
-                        Text("Auto (Format default)").tag("auto")
-                        Text("AAC (Standard)").tag("aac")
-                        Text("MP3").tag("mp3")
-                        Text("Opus (High quality)").tag("opus")
-                        Text("AC3 (Dolby)").tag("ac3")
-                        Text("Copy stream").tag("copy")
-                        Text("Mute / None").tag("none")
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                if settings.videoConfig.audioCodec != "none" && settings.videoConfig.audioCodec != "copy" {
+            if videoKnobTab == .video {
+                // Video stream encoding controls
+                VStack(alignment: .leading, spacing: 9) {
+                    // Rate control
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Audio Bitrate")
+                        Text("Rate Control Mode")
                             .font(.caption)
                             .foregroundStyle(TossyColor.textSecondary)
-                        Picker("", selection: $settings.videoConfig.audioBitrateKbps) {
-                            Text("96 kbps").tag(96)
-                            Text("128 kbps").tag(128)
-                            Text("192 kbps").tag(192)
-                            Text("256 kbps").tag(256)
-                            Text("320 kbps").tag(320)
+                        Picker("", selection: $settings.videoConfig.encodingMode) {
+                            Text("Constant Rate Factor (CRF)").tag("crf")
+                            Text("Target Bitrate").tag("bitrate")
+                            if format.exportPreset != nil {
+                                Text("Hardware Acceleration").tag("hardware")
+                            }
                         }
                         .labelsHidden()
-                        .pickerStyle(.menu)
+                        .pickerStyle(.segmented)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    if settings.videoConfig.encodingMode == "crf" {
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack {
+                                Text("CRF Level: \(settings.videoConfig.crfValue)")
+                                    .font(.caption)
+                                    .foregroundStyle(TossyColor.textSecondary)
+                                Spacer()
+                                Text(settings.videoConfig.crfValue <= 18 ? "Visually Lossless" : (settings.videoConfig.crfValue <= 23 ? "High Quality" : "Compact Size"))
+                                    .font(.caption2)
+                                    .foregroundStyle(TossyColor.textTertiary)
+                            }
+                            Slider(value: Binding(
+                                get: { Double(settings.videoConfig.crfValue) },
+                                set: { settings.videoConfig.crfValue = Int($0) }
+                            ), in: 0...51, step: 1)
+                        }
+                    } else if settings.videoConfig.encodingMode == "bitrate" {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Target Video Bitrate (Kbps)")
+                                .font(.caption)
+                                .foregroundStyle(TossyColor.textSecondary)
+                            HStack {
+                                TextField("e.g. 5000", value: $settings.videoConfig.targetBitrateKbps, format: .number)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(width: 120)
+                                Text("kbps")
+                                    .font(.caption)
+                                    .foregroundStyle(TossyColor.textTertiary)
+                            }
+                        }
+                    }
+                    
+                    // 2-Column layout for encoding knobs
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Speed Preset (-preset)")
+                                .font(.caption)
+                                .foregroundStyle(TossyColor.textSecondary)
+                            Picker("", selection: $settings.videoConfig.x264Preset) {
+                                Text("ultrafast (fastest)").tag("ultrafast")
+                                Text("superfast").tag("superfast")
+                                Text("veryfast").tag("veryfast")
+                                Text("faster").tag("faster")
+                                Text("fast").tag("fast")
+                                Text("medium (balanced)").tag("medium")
+                                Text("slow (high compression)").tag("slow")
+                                Text("slower").tag("slower")
+                                Text("veryslow (best)").tag("veryslow")
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Pixel Format (-pix_fmt)")
+                                .font(.caption)
+                                .foregroundStyle(TossyColor.textSecondary)
+                            Picker("", selection: $settings.videoConfig.pixelFormat) {
+                                Text("yuv420p (8-bit Standard)").tag("yuv420p")
+                                Text("yuv420p10le (10-bit HDR)").tag("yuv420p10le")
+                                Text("yuv422p (Broadcast 4:2:2)").tag("yuv422p")
+                                Text("yuv444p (Full 4:4:4)").tag("yuv444p")
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    
+                    // 2-Column layout for framerate & scaling
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Framerate")
+                                .font(.caption)
+                                .foregroundStyle(TossyColor.textSecondary)
+                            Picker("", selection: $settings.videoConfig.frameRate) {
+                                Text("Keep source").tag("keep")
+                                Text("24 fps (Cinema)").tag("24")
+                                Text("25 fps (PAL)").tag("25")
+                                Text("29.97 fps (NTSC)").tag("29.97")
+                                Text("30 fps").tag("30")
+                                Text("50 fps").tag("50")
+                                Text("60 fps").tag("60")
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Scale Algorithm")
+                                .font(.caption)
+                                .foregroundStyle(TossyColor.textSecondary)
+                            Picker("", selection: $settings.videoConfig.scalingAlgorithm) {
+                                Text("Lanczos (Sharpest)").tag("lanczos")
+                                Text("Bicubic (Standard)").tag("bicubic")
+                                Text("Bilinear (Soft)").tag("bilinear")
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    
+                    Toggle("Deinterlace Video (Yadif filter)", isOn: $settings.videoConfig.deinterlace)
+                        .toggleStyle(.checkbox)
+                }
+            } else {
+                // Audio track encoding controls
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Audio Codec")
+                                .font(.caption)
+                                .foregroundStyle(TossyColor.textSecondary)
+                            Picker("", selection: $settings.videoConfig.audioCodec) {
+                                Text("Auto (Format default)").tag("auto")
+                                Text("AAC (Standard)").tag("aac")
+                                Text("MP3").tag("mp3")
+                                Text("Opus (High quality)").tag("opus")
+                                Text("AC3 (Dolby)").tag("ac3")
+                                Text("Copy stream").tag("copy")
+                                Text("Mute / None").tag("none")
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        if settings.videoConfig.audioCodec != "none" && settings.videoConfig.audioCodec != "copy" {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Audio Bitrate")
+                                    .font(.caption)
+                                    .foregroundStyle(TossyColor.textSecondary)
+                                Picker("", selection: $settings.videoConfig.audioBitrateKbps) {
+                                    Text("96 kbps").tag(96)
+                                    Text("128 kbps").tag(128)
+                                    Text("192 kbps").tag(192)
+                                    Text("256 kbps").tag(256)
+                                    Text("320 kbps").tag(320)
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    
+                    Text("Audio streams are transcoded in hardware or losslessly copied if 'Copy stream' is selected.")
+                        .font(.caption2)
+                        .foregroundStyle(TossyColor.textTertiary)
                 }
             }
-            
-            Toggle("Deinterlace Video (Yadif filter)", isOn: $settings.videoConfig.deinterlace)
-                .toggleStyle(.checkbox)
         }
     }
     

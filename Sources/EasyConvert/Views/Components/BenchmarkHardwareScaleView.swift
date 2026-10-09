@@ -9,7 +9,7 @@ struct BenchmarkHardwareScaleView: View {
             HStack {
                 Text("Hardware Baseline Comparison")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(TossyColor.textPrimary)
 
                 Spacer()
 
@@ -31,7 +31,7 @@ struct BenchmarkHardwareScaleView: View {
                     // Reference threshold marker at 32,000 pts (M4 Air calibrated baseline)
                     let refPos = width * (32_000.0 / maxPoints)
                     Rectangle()
-                        .fill(Color.white.opacity(0.3))
+                        .fill(TossyColor.accentProminentBg.opacity(0.3))
                         .frame(width: 2, height: 20)
                         .offset(x: refPos - 1)
 
@@ -40,7 +40,7 @@ struct BenchmarkHardwareScaleView: View {
                     RoundedRectangle(cornerRadius: 6)
                         .fill(
                             LinearGradient(
-                                colors: [Color.white.opacity(0.7), Color.white],
+                                colors: [TossyColor.accentProminentBg.opacity(0.7), TossyColor.accentProminentBg],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -49,9 +49,9 @@ struct BenchmarkHardwareScaleView: View {
 
                     // Glowing needle indicator
                     Circle()
-                        .fill(Color.white)
+                        .fill(TossyColor.accentProminentBg)
                         .frame(width: 16, height: 16)
-                        .shadow(color: Color.white.opacity(0.8), radius: 6, x: 0, y: 0)
+                        .shadow(color: TossyColor.accentProminentBg.opacity(0.4), radius: 6, x: 0, y: 0)
                         .offset(x: fillWidth - 8)
                 }
             }
@@ -63,7 +63,7 @@ struct BenchmarkHardwareScaleView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(tier.name)
                             .font(.system(size: 10, weight: tier.isReference ? .bold : .medium))
-                            .foregroundStyle(tier.isReference ? Color.white : TossyColor.textSecondary)
+                            .foregroundStyle(tier.isReference ? TossyColor.textPrimary : TossyColor.textSecondary)
 
                         Text("\(tier.tossyMark)")
                             .font(.system(size: 9, design: .monospaced))

@@ -3,9 +3,16 @@ import PDFKit
 
 struct PDFStudioModalView: View {
     let sourceURLs: [URL]
+    var initialTab: PDFStudioTab = .merge
     @Environment(\.dismiss) private var dismiss
     
-    @State private var selectedTab: PDFStudioTab = .merge
+    @State private var selectedTab: PDFStudioTab
+    
+    init(sourceURLs: [URL], initialTab: PDFStudioTab = .merge) {
+        self.sourceURLs = sourceURLs
+        self.initialTab = initialTab
+        self._selectedTab = State(initialValue: initialTab)
+    }
     @State private var isProcessing = false
     @State private var progress: Double = 0.0
     @State private var statusMessage: String?

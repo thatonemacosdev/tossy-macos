@@ -123,6 +123,11 @@ struct TossyApp: App {
                 }
                 Divider()
             }
+            CommandGroup(replacing: .help) {
+                Button("What's New & Quick Start…") {
+                    NotificationCenter.default.post(name: NSNotification.Name("TossyShowWhatsNew"), object: nil)
+                }
+            }
         }
         
         Settings {

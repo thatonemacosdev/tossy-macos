@@ -42,18 +42,69 @@ final class UpdateManager: NSObject, @unchecked Sendable {
         super.init()
     }
     
-    // MARK: - Version Comparison
+    // MARK: - Semantic Version Comparison
+    
+    struct SemVer: Comparable, Sendable {
+        let major: Int
+        let minor: Int
+        let patch: Int
+        let prerelease: [String]
+        
+        init(_ string: String) {
+            var str = string.trimmingCharacters(in: CharacterSet(charactersIn: "vV \t\r\n"))
+            if let plusIdx = str.firstIndex(of: "+") {
+                str = String(str[..<plusIdx])
+            }
+            
+            let parts = str.split(separator: "-", maxSplits: 1)
+            let numParts = parts[0].split(separator: ".").compactMap { Int($0) }
+            
+            self.major = numParts.count > 0 ? numParts[0] : 0
+            self.minor = numParts.count > 1 ? numParts[1] : 0
+            self.patch = numParts.count > 2 ? numParts[2] : 0
+            
+            if parts.count > 1 {
+                self.prerelease = parts[1].split(separator: ".").map { String($0) }
+            } else {
+                self.prerelease = []
+            }
+        }
+        
+        static func < (lhs: SemVer, rhs: SemVer) -> Bool {
+            if lhs.major != rhs.major { return lhs.major < rhs.major }
+            if lhs.minor != rhs.minor { return lhs.minor < rhs.minor }
+            if lhs.patch != rhs.patch { return lhs.patch < rhs.patch }
+            
+            if !lhs.prerelease.isEmpty && rhs.prerelease.isEmpty {
+                return true
+            }
+            if lhs.prerelease.isEmpty && !rhs.prerelease.isEmpty {
+                return false
+            }
+            if lhs.prerelease.isEmpty && rhs.prerelease.isEmpty {
+                return false
+            }
+            
+            let count = max(lhs.prerelease.count, rhs.prerelease.count)
+            for i in 0..<count {
+                if i >= lhs.prerelease.count { return true }
+                if i >= rhs.prerelease.count { return false }
+                
+                let lSeg = lhs.prerelease[i]
+                let rSeg = rhs.prerelease[i]
+                
+                if let lNum = Int(lSeg), let rNum = Int(rSeg) {
+                    if lNum != rNum { return lNum < rNum }
+                } else {
+                    if lSeg != rSeg { return lSeg < rSeg }
+                }
+            }
+            return false
+        }
+    }
     
     static func isVersion(_ newVer: String, newerThan currentVer: String) -> Bool {
-        let cleanNew = newVer.trimmingCharacters(in: CharacterSet(charactersIn: "vV")).split(separator: ".").compactMap { Int($0) }
-        let cleanCur = currentVer.trimmingCharacters(in: CharacterSet(charactersIn: "vV")).split(separator: ".").compactMap { Int($0) }
-        for i in 0..<max(cleanNew.count, cleanCur.count) {
-            let vNew = i < cleanNew.count ? cleanNew[i] : 0
-            let vCur = i < cleanCur.count ? cleanCur[i] : 0
-            if vNew > vCur { return true }
-            if vNew < vCur { return false }
-        }
-        return false
+        return SemVer(currentVer) < SemVer(newVer)
     }
     
     // MARK: - Check for Updates
@@ -72,95 +123,103 @@ final class UpdateManager: NSObject, @unchecked Sendable {
                 }
             }
             
-            let apiURL = URL(string: "https://api.github.com/repos/thatonemacosdev/tossy-macos/releases/latest")!
-            var request = URLRequest(url: apiURL)
-            request.setValue("application/vnd.github.v3+json", forHTTPHeaderField: "Accept")
-            request.setValue("Tossy-macOS-Updater", forHTTPHeaderField: "User-Agent")
-            request.timeoutInterval = 10.0
+            // Check all releases (including pre-releases) first, falling back to latest release endpoint
+            let releasesURL = URL(string: "https://api.github.com/repos/thatonemacosdev/tossy-macos/releases")!
+            let latestURL = URL(string: "https://api.github.com/repos/thatonemacosdev/tossy-macos/releases/latest")!
+            
+            func makeRequest(for url: URL) -> URLRequest {
+                var req = URLRequest(url: url)
+                req.setValue("application/vnd.github.v3+json", forHTTPHeaderField: "Accept")
+                req.setValue("Tossy-macOS-Updater", forHTTPHeaderField: "User-Agent")
+                req.timeoutInterval = 10.0
+                return req
+            }
+            
+            var releaseDict: [String: Any]? = nil
             
             do {
-                let (data, response) = try await URLSession.shared.data(for: request)
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    if isUserInitiated {
-                        await MainActor.run {
-                            self.errorMessage = "Unable to reach the update server. Please check your internet connection."
-                        }
-                    }
-                    return
-                }
-                
-                guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                      let id = json["id"] as? Int,
-                      let tagName = json["tag_name"] as? String,
-                      let name = json["name"] as? String,
-                      let body = json["body"] as? String,
-                      let publishedAt = json["published_at"] as? String,
-                      let htmlUrlStr = json["html_url"] as? String,
-                      let htmlURL = URL(string: htmlUrlStr) else {
-                    if isUserInitiated {
-                        await MainActor.run {
-                            self.errorMessage = "Received unexpected response format from update server."
-                        }
-                    }
-                    return
-                }
-                
-                var dmgURL: URL?
-                var dmgSize: Int64?
-                var zipURL: URL?
-                var zipSize: Int64?
-                
-                if let assets = json["assets"] as? [[String: Any]] {
-                    for asset in assets {
-                        guard let assetName = asset["name"] as? String,
-                              let downloadUrlStr = asset["browser_download_url"] as? String,
-                              let downloadURL = URL(string: downloadUrlStr) else { continue }
-                        let size = (asset["size"] as? NSNumber)?.int64Value
-                        
-                        if assetName.lowercased().hasSuffix(".dmg") {
-                            dmgURL = downloadURL
-                            dmgSize = size
-                        } else if assetName.lowercased().hasSuffix(".zip") {
-                            zipURL = downloadURL
-                            zipSize = size
-                        }
+                let (data, response) = try await URLSession.shared.data(for: makeRequest(for: releasesURL))
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    if let array = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]] {
+                        releaseDict = array.first(where: { !($0["draft"] as? Bool ?? false) })
                     }
                 }
-                
-                let release = AppReleaseInfo(
-                    id: id,
-                    tagName: tagName,
-                    name: name,
-                    body: body,
-                    publishedAt: publishedAt,
-                    htmlURL: htmlURL,
-                    dmgDownloadURL: dmgURL,
-                    dmgSizeBytes: dmgSize,
-                    zipDownloadURL: zipURL,
-                    zipSizeBytes: zipSize
-                )
-                
-                await MainActor.run {
-                    AppSettings.shared.lastUpdateCheckDate = Date()
-                    let currentVersion = AppVersion.string
-                    
-                    if Self.isVersion(release.versionNumber, newerThan: currentVersion) {
-                        if !isUserInitiated && AppSettings.shared.skippedUpdateVersion == release.tagName {
-                            // User previously skipped this version during background check
-                            return
-                        }
-                        self.availableUpdate = release
-                        self.isShowingUpdateModal = true
-                    } else {
-                        if isUserInitiated {
-                            self.isUpToDateBannerShowing = true
-                        }
+            } catch {}
+            
+            if releaseDict == nil {
+                do {
+                    let (data, response) = try await URLSession.shared.data(for: makeRequest(for: latestURL))
+                    if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                        releaseDict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
                     }
-                }
-            } catch {
+                } catch {}
+            }
+            
+            guard let json = releaseDict,
+                  let id = json["id"] as? Int,
+                  let tagName = json["tag_name"] as? String,
+                  let name = json["name"] as? String,
+                  let body = json["body"] as? String,
+                  let publishedAt = json["published_at"] as? String,
+                  let htmlUrlStr = json["html_url"] as? String,
+                  let htmlURL = URL(string: htmlUrlStr) else {
                 if isUserInitiated {
                     await MainActor.run {
-                        self.errorMessage = "Failed to check for updates: \(error.localizedDescription)"
+                        self.errorMessage = "Unable to check for updates. Please check your internet connection."
+                    }
+                }
+                return
+            }
+            
+            var dmgURL: URL?
+            var dmgSize: Int64?
+            var zipURL: URL?
+            var zipSize: Int64?
+            
+            if let assets = json["assets"] as? [[String: Any]] {
+                for asset in assets {
+                    guard let assetName = asset["name"] as? String,
+                          let downloadUrlStr = asset["browser_download_url"] as? String,
+                          let downloadURL = URL(string: downloadUrlStr) else { continue }
+                    let size = (asset["size"] as? NSNumber)?.int64Value
+                    
+                    if assetName.lowercased().hasSuffix(".dmg") {
+                        dmgURL = downloadURL
+                        dmgSize = size
+                    } else if assetName.lowercased().hasSuffix(".zip") {
+                        zipURL = downloadURL
+                        zipSize = size
+                    }
+                }
+            }
+            
+            let release = AppReleaseInfo(
+                id: id,
+                tagName: tagName,
+                name: name,
+                body: body,
+                publishedAt: publishedAt,
+                htmlURL: htmlURL,
+                dmgDownloadURL: dmgURL,
+                dmgSizeBytes: dmgSize,
+                zipDownloadURL: zipURL,
+                zipSizeBytes: zipSize
+            )
+            
+            await MainActor.run {
+                AppSettings.shared.lastUpdateCheckDate = Date()
+                let currentVersion = AppVersion.string
+                
+                if Self.isVersion(release.versionNumber, newerThan: currentVersion) {
+                    if !isUserInitiated && AppSettings.shared.skippedUpdateVersion == release.tagName {
+                        // User previously skipped this version during background check
+                        return
+                    }
+                    self.availableUpdate = release
+                    self.isShowingUpdateModal = true
+                } else {
+                    if isUserInitiated {
+                        self.isUpToDateBannerShowing = true
                     }
                 }
             }
@@ -276,10 +335,7 @@ extension UpdateManager: URLSessionDownloadDelegate {
                 attachProcess.waitUntilExit()
                 if attachProcess.terminationStatus == 0 {
                     mountedMountPoint = mountPoint
-                    let appInDMG = mountPoint.appendingPathComponent("Tossy.app")
-                    if fileManager.fileExists(atPath: appInDMG.path) {
-                        sourceAppURL = appInDMG
-                    }
+                    sourceAppURL = findAppBundle(in: mountPoint)
                 }
             } catch {}
         } else {
@@ -290,10 +346,7 @@ extension UpdateManager: URLSessionDownloadDelegate {
             do {
                 try unzipProcess.run()
                 unzipProcess.waitUntilExit()
-                let appInZip = stagingDir.appendingPathComponent("Tossy.app")
-                if fileManager.fileExists(atPath: appInZip.path) {
-                    sourceAppURL = appInZip
-                }
+                sourceAppURL = findAppBundle(in: stagingDir)
             } catch {}
         }
         
@@ -326,7 +379,7 @@ extension UpdateManager: URLSessionDownloadDelegate {
             hdiutil detach "\(mountedMountPoint?.path ?? "")" -force 2>/dev/null || true
         fi
         rm -rf "\(stagingDir.path)" 2>/dev/null || true
-        open -n -b com.easyconvert.app
+        open -n "\(currentAppURL.path)" || open -n -b com.easyconvert.app || true
         """
         
         let relaunchHelper = Process()
@@ -348,5 +401,18 @@ extension UpdateManager: URLSessionDownloadDelegate {
                 self.errorMessage = "Failed to launch application replacement: \(error.localizedDescription)"
             }
         }
+    }
+    
+    private func findAppBundle(in directory: URL) -> URL? {
+        let standardApp = directory.appendingPathComponent("Tossy.app")
+        if FileManager.default.fileExists(atPath: standardApp.path) {
+            return standardApp
+        }
+        if let items = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) {
+            if let found = items.first(where: { $0.pathExtension.lowercased() == "app" }) {
+                return found
+            }
+        }
+        return nil
     }
 }

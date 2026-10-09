@@ -82,6 +82,34 @@ struct GeneralSettingsTab: View {
                 .pickerStyle(.segmented)
             }
 
+            Section("Navigation & Layout Style") {
+                Picker("Navigation Layout", selection: $settings.navigationLayoutMode) {
+                    ForEach(NavigationLayoutMode.allCases) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+
+                Text(settings.navigationLayoutMode == .unified
+                     ? "Unified Dropzone mode automatically detects media formats, presents dynamic format chips, and displays the Quick Actions sidebar."
+                     : "Classic Tabbed mode provides dedicated individual conversion views for Images, Video, and Audio.")
+                    .font(.caption)
+                    .foregroundStyle(TossyColor.textSecondary)
+            }
+
+            Section("High-Resolution Recording & UI Scale") {
+                Picker("Scale Mode", selection: $settings.recordingScaleMode) {
+                    ForEach(RecordingScaleMode.allCases) { scale in
+                        Text(scale.rawValue).tag(scale)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+
+                Text("Auto-scale dynamically enlarges drop targets and typography as the window expands. Standard (1.0x), Retina (1.15x), and Cinema 4K (1.30x) provide fixed Retina scaling for high-resolution screen recordings.")
+                    .font(.caption)
+                    .foregroundStyle(TossyColor.textSecondary)
+            }
+
             Section("Output Destination & File Handling") {
                 Picker("Default Output Location", selection: $settings.destinationPolicy) {
                     ForEach(DestinationPolicy.allCases) { policy in
@@ -209,6 +237,12 @@ struct GeneralSettingsTab: View {
                             .foregroundStyle(TossyColor.successGreen)
                     }
                 }
+                
+                Button("View Quick Start & Changelogs…") {
+                    NotificationCenter.default.post(name: NSNotification.Name("TossyShowWhatsNew"), object: nil)
+                }
+                .buttonStyle(.link)
+                .font(.caption)
             }
         }
         .formStyle(.grouped)
@@ -415,7 +449,7 @@ struct ToolsSettingsTab: View {
             HStack {
                 Label(title, systemImage: icon)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(TossyColor.textPrimary)
                 
                 Spacer()
                 

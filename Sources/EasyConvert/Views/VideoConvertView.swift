@@ -263,8 +263,8 @@ struct VideoConvertView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-            .tint(.white)
-            .foregroundStyle(.black)
+            .tint(TossyColor.accentProminentBg)
+            .foregroundStyle(TossyColor.accentProminentFg)
             .controlSize(.regular)
             .disabled(jobs.isEmpty || isConverting)
         }
@@ -301,100 +301,11 @@ struct VideoConvertView: View {
     }
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
-        var collected: [URL] = []
-        let lock = NSLock()
-        let group = DispatchGroup()
-
-        for provider in providers {
-            group.enter()
-
-            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-                provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
-                    var resolvedURL: URL? = nil
-                    if let url = item as? URL {
-                        resolvedURL = url
-                    } else if let nsURL = item as? NSURL {
-                        resolvedURL = nsURL as URL
-                    } else if let data = item as? Data {
-                        resolvedURL = URL(dataRepresentation: data, relativeTo: nil)
-                    }
-
-                    if let resolvedURL {
-                        lock.lock()
-                        collected.append(resolvedURL)
-                        lock.unlock()
-                        group.leave()
-                    } else {
-                        self.extractVideoData(from: provider, lock: lock) { url in
-                            if let url {
-                                lock.lock()
-                                collected.append(url)
-                                lock.unlock()
-                            }
-                            group.leave()
-                        }
-                    }
-                }
-            } else {
-                self.extractVideoData(from: provider, lock: lock) { url in
-                    if let url {
-                        lock.lock()
-                        collected.append(url)
-                        lock.unlock()
-                    }
-                    group.leave()
-                }
-            }
-        }
-
-        group.notify(queue: .main) {
-            addJobs(for: collected)
+        Task { @MainActor in
+            let urls = await FileDropResolver.resolveURLs(from: providers)
+            addJobs(for: urls)
         }
         return true
-    }
-
-    private func extractVideoData(from provider: NSItemProvider, lock: NSLock, completion: @escaping (URL?) -> Void) {
-        if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
-            provider.loadDataRepresentation(forTypeIdentifier: UTType.movie.identifier) { data, _ in
-                if let data, let url = self.writeTempVideo(data: data, ext: "mov") {
-                    completion(url)
-                    return
-                }
-                completion(nil)
-            }
-        } else if provider.hasItemConformingToTypeIdentifier(UTType.video.identifier) {
-            provider.loadDataRepresentation(forTypeIdentifier: UTType.video.identifier) { data, _ in
-                if let data, let url = self.writeTempVideo(data: data, ext: "mp4") {
-                    completion(url)
-                    return
-                }
-                completion(nil)
-            }
-        } else if provider.hasItemConformingToTypeIdentifier(UTType.data.identifier) {
-            provider.loadDataRepresentation(forTypeIdentifier: UTType.data.identifier) { data, _ in
-                if let data, let url = self.writeTempVideo(data: data, ext: "mov") {
-                    completion(url)
-                    return
-                }
-                completion(nil)
-            }
-        } else {
-            completion(nil)
-        }
-    }
-
-    private func writeTempVideo(data: Data, ext: String) -> URL? {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd 'at' HH.mm.ss"
-        let timestamp = formatter.string(from: Date())
-        let filename = "Screen Recording \(timestamp) \(UUID().uuidString.prefix(4)).\(ext)"
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-        do {
-            try data.write(to: tempURL)
-            return tempURL
-        } catch {
-            return nil
-        }
     }
 
     private func convertAll() async {

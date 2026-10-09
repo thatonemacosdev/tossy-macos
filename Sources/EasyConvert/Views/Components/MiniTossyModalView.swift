@@ -54,6 +54,16 @@ struct MiniTossyModalView: View {
                 Spacer()
                 
                 Button {
+                    openFullApp()
+                } label: {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(TossyColor.textSecondary)
+                }
+                .buttonStyle(.plain)
+                .help("Open Full Tossy App")
+                
+                Button {
                     onDismiss()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
@@ -300,6 +310,17 @@ struct MiniTossyModalView: View {
                     NSSound(named: "Glass")?.play()
                 }
             }
+        }
+    }
+    
+    private func openFullApp() {
+        onDismiss()
+        NSApp.activate(ignoringOtherApps: true)
+        if let window = NSApp.windows.first(where: { $0.canBecomeMain && !$0.isMiniaturized }) {
+            window.makeKeyAndOrderFront(nil)
+        } else if let window = NSApp.windows.first {
+            window.deminiaturize(nil)
+            window.makeKeyAndOrderFront(nil)
         }
     }
 }

@@ -46,7 +46,7 @@ struct ArchiveOptionsModalView: View {
             HStack {
                 Image(systemName: "archivebox.fill")
                     .font(.title2)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(TossyColor.textPrimary)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Archive Suite Options")
                         .font(.headline)

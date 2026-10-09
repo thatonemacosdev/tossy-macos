@@ -62,9 +62,9 @@ struct BenchmarkView: View {
                 HStack(spacing: 8) {
                     Text("TossyMark System Benchmark")
                         .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(TossyColor.textPrimary)
 
-                    TossyPill(text: "v1.7.1 Suite", isSubtle: true)
+                    TossyPill(text: "v2.0.0 Suite", isSubtle: true)
                 }
 
                 Text("Standardized compute, GPU acceleration, and transcode benchmark calibrated to Apple Silicon reference standards.")
@@ -112,13 +112,13 @@ struct BenchmarkView: View {
 
                 Image(systemName: "speedometer")
                     .font(.system(size: 40, weight: .light))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(TossyColor.textPrimary)
             }
 
             VStack(spacing: 6) {
                 Text("Comprehensive Benchmark Suite")
                     .font(.headline)
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(TossyColor.textPrimary)
 
                 Text(statusText)
                     .font(.caption)
@@ -136,8 +136,8 @@ struct BenchmarkView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-            .tint(.white)
-            .foregroundStyle(.black)
+            .tint(TossyColor.accentProminentBg)
+            .foregroundStyle(TossyColor.accentProminentFg)
             .controlSize(.large)
 
             Spacer()
@@ -180,7 +180,7 @@ struct BenchmarkView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text("\(score)")
                             .font(.system(size: 42, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(TossyColor.textPrimary)
 
                         Text("pts")
                             .font(.title3.weight(.medium))
@@ -193,28 +193,39 @@ struct BenchmarkView: View {
                 VStack(alignment: .trailing, spacing: 6) {
                     let stability = BenchmarkReferences.overallStabilityIndex(for: displayedResults)
                     HStack(spacing: 6) {
-                        Image(systemName: "waveform.path.ecg")
-                            .font(.caption)
-                            .foregroundStyle(TossyColor.successGreen)
-                        Text(String(format: "Stability: %.1f%%", stability))
-                            .font(.caption.weight(.medium))
+                        Image(systemName: "flame.fill")
+                            .font(.caption2)
+                            .foregroundStyle(stability > 95 ? TossyColor.successGreen : TossyColor.warningAmber)
+
+                        Text("\(String(format: "%.1f", stability))% Thermal Stability")
+                            .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(TossyColor.textSecondary)
                     }
-
-                    Text("Calibrated baseline standard = 10,000 pts (Apple M2)")
-                        .font(.caption2)
-                        .foregroundStyle(TossyColor.textTertiary)
                 }
             }
 
-            Divider().overlay(TossyColor.borderSubtle)
-
-            // Sub-scores
-            HStack(spacing: 10) {
-                subScoreChip(title: "ImageMark", value: BenchmarkReferences.domainScore(for: results, in: .image), icon: "photo.stack")
-                subScoreChip(title: "VideoMark", value: BenchmarkReferences.domainScore(for: results, in: .video), icon: "film")
-                subScoreChip(title: "AudioMark", value: BenchmarkReferences.domainScore(for: results, in: .audio), icon: "waveform")
-                subScoreChip(title: "ConcurrencyMark", value: BenchmarkReferences.domainScore(for: results, in: .concurrency), icon: "cpu")
+            // Domain Sub-Scores
+            HStack(spacing: 8) {
+                subScoreChip(
+                    title: "ImageMark",
+                    value: BenchmarkReferences.domainScore(for: results, in: .image),
+                    icon: "photo"
+                )
+                subScoreChip(
+                    title: "VideoMark",
+                    value: BenchmarkReferences.domainScore(for: results, in: .video),
+                    icon: "film"
+                )
+                subScoreChip(
+                    title: "AudioMark",
+                    value: BenchmarkReferences.domainScore(for: results, in: .audio),
+                    icon: "waveform"
+                )
+                subScoreChip(
+                    title: "ConcurrencyMark",
+                    value: BenchmarkReferences.domainScore(for: results, in: .concurrency),
+                    icon: "cpu"
+                )
             }
         }
         .padding(16)
@@ -234,7 +245,7 @@ struct BenchmarkView: View {
 
                 Text(value > 0 ? "\(value)" : " - ")
                     .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(TossyColor.textPrimary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -261,13 +272,13 @@ struct BenchmarkView: View {
                         if count > 0 {
                             Text("(\(count))")
                                 .font(.system(size: 10, design: .monospaced))
-                                .foregroundStyle(activeDomain == domain ? Color.black.opacity(0.8) : TossyColor.textTertiary)
+                                .foregroundStyle(activeDomain == domain ? TossyColor.accentProminentFg.opacity(0.8) : TossyColor.textTertiary)
                         }
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(activeDomain == domain ? Color.white : TossyColor.surfaceElevated)
-                    .foregroundStyle(activeDomain == domain ? Color.black : Color.white)
+                    .background(activeDomain == domain ? TossyColor.accentProminentBg : TossyColor.surfaceElevated)
+                    .foregroundStyle(activeDomain == domain ? TossyColor.accentProminentFg : TossyColor.textPrimary)
                     .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -300,7 +311,7 @@ struct BenchmarkView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.label)
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(TossyColor.textPrimary)
 
                         if !item.descriptionText.isEmpty {
                             Text(item.descriptionText)
@@ -315,7 +326,7 @@ struct BenchmarkView: View {
                     VStack(alignment: .trailing, spacing: 1) {
                         Text(item.detail)
                             .font(.system(size: 13, weight: .medium, design: .monospaced))
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(TossyColor.textPrimary)
 
                         Text(String(format: "%.2fs median", item.duration))
                             .font(.system(size: 10, design: .monospaced))
@@ -329,7 +340,7 @@ struct BenchmarkView: View {
                             HStack(spacing: 4) {
                                 Text("\(pts)")
                                     .font(.system(size: 13, weight: .bold, design: .rounded))
-                                    .foregroundStyle(Color.white)
+                                    .foregroundStyle(TossyColor.textPrimary)
                                 Text("pts")
                                     .font(.system(size: 10))
                                     .foregroundStyle(TossyColor.textTertiary)
@@ -342,7 +353,7 @@ struct BenchmarkView: View {
                                     RoundedRectangle(cornerRadius: 2)
                                         .fill(TossyColor.surfaceElevated)
                                     RoundedRectangle(cornerRadius: 2)
-                                        .fill(Color.white)
+                                        .fill(TossyColor.accentProminentBg)
                                         .frame(width: g.size.width * fraction)
                                 }
                             }
@@ -383,7 +394,7 @@ struct BenchmarkView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(TossyColor.surfaceElevated)
-                .foregroundStyle(Color.white)
+                .foregroundStyle(TossyColor.textPrimary)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
                 .font(.caption)
 
@@ -399,7 +410,7 @@ struct BenchmarkView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(TossyColor.surfaceElevated)
-                .foregroundStyle(Color.white)
+                .foregroundStyle(TossyColor.textPrimary)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
                 .font(.caption)
 
@@ -415,7 +426,7 @@ struct BenchmarkView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(TossyColor.surfaceElevated)
-                .foregroundStyle(Color.white)
+                .foregroundStyle(TossyColor.textPrimary)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
                 .font(.caption)
             }
@@ -436,8 +447,8 @@ struct BenchmarkView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-            .tint(.white)
-            .foregroundStyle(.black)
+            .tint(TossyColor.accentProminentBg)
+            .foregroundStyle(TossyColor.accentProminentFg)
             .controlSize(.regular)
             .disabled(isRunning)
         }

@@ -52,14 +52,11 @@ struct UpdateModalView: View {
                     .foregroundStyle(TossyColor.textSecondary)
                 
                 ScrollView(.vertical) {
-                    Text(cleanReleaseNotes(release.body))
-                        .font(.system(size: 12, design: .default))
-                        .foregroundStyle(TossyColor.textPrimary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(10)
+                    MarkdownFormattedView(markdown: release.body)
+                        .padding(12)
                         .textSelection(.enabled)
                 }
-                .frame(maxHeight: 180)
+                .frame(maxHeight: 220)
                 .background(TossyColor.surfaceBase)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(

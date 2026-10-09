@@ -47,11 +47,9 @@ final class FinderIntegrationManager: @unchecked Sendable {
                 }
             }
         } else {
-            // No format specified -> Open Mini Tossy Quick Convert window!
+            // No format specified -> Open dedicated Mini Tossy Quick Convert floating window!
             Task { @MainActor in
-                self.quickConvertFiles = urls
-                self.isShowingQuickConvert = true
-                NSApp.activate(ignoringOtherApps: true)
+                MiniTossyWindowController.shared.show(with: urls)
             }
         }
     }

@@ -1,8 +1,9 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 enum AppTab: String, CaseIterable, Identifiable {
-    case canvas = "Canvas"
+    case dropzone = "Dropzone"
     case images = "Images"
     case video = "Video"
     case audio = "Audio"
@@ -12,7 +13,7 @@ enum AppTab: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
-        case .canvas: return "rectangle.stack.fill"
+        case .dropzone: return "arrow.triangle.2.circlepath.circle"
         case .images: return "photo.stack"
         case .video: return "video"
         case .audio: return "waveform"
@@ -22,11 +23,20 @@ enum AppTab: String, CaseIterable, Identifiable {
 }
 
 struct RootView: View {
-    @State private var selectedTab: AppTab = .canvas
+    @State private var selectedTab: AppTab = .dropzone
     @Namespace private var tabNamespace
     @Environment(\.openSettings) private var openSettingsAction
     @Bindable var settings = AppSettings.shared
     @State private var isHeaderTargeted: Bool = false
+    @State private var showWhatsNew: Bool = false
+
+    private var visibleTabs: [AppTab] {
+        if settings.navigationLayoutMode == .classic {
+            return [.dropzone, .images, .video, .audio, .benchmark]
+        } else {
+            return [.dropzone, .benchmark]
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -34,6 +44,8 @@ struct RootView: View {
             if settings.appTheme == .liquidGlass {
                 VisualEffectBackground(material: .hudWindow, blendingMode: .behindWindow)
                 Color.black.opacity(0.28)
+            } else if settings.appTheme == .titanium {
+                BrushedTitaniumBackground()
             } else {
                 TossyColor.pitchBlack
             }
@@ -72,7 +84,7 @@ struct RootView: View {
 
                     // Sliding Capsule Tab Bar
                     HStack(spacing: 4) {
-                        ForEach(AppTab.allCases) { tab in
+                        ForEach(visibleTabs) { tab in
                             SlidingTabButton(
                                 tab: tab,
                                 isSelected: selectedTab == tab,
@@ -102,6 +114,55 @@ struct RootView: View {
                     Spacer()
 
                     HStack(spacing: 8) {
+                        // Quick Layout Switcher (Unified vs Classic Tabs)
+                        Button {
+                            withAnimation(TossyMotion.springSmooth) {
+                                settings.navigationLayoutMode = (settings.navigationLayoutMode == .unified) ? .classic : .unified
+                                if settings.navigationLayoutMode == .unified && selectedTab != .benchmark {
+                                    selectedTab = .dropzone
+                                }
+                            }
+                        } label: {
+                            Image(systemName: settings.navigationLayoutMode == .unified ? "rectangle.split.3x1" : "rectangle.stack")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(TossyColor.textSecondary)
+                                .padding(6)
+                                .background(Circle().fill(TossyColor.surfaceElevated))
+                        }
+                        .buttonStyle(.plain)
+                        .help(settings.navigationLayoutMode == .unified ? "Switch to Classic Tabs Layout" : "Switch to Unified Dropzone Layout")
+
+                        // High-Resolution Recording & UI Scale Switcher
+                        Menu {
+                            ForEach(RecordingScaleMode.allCases) { scaleMode in
+                                Button {
+                                    withAnimation(TossyMotion.springSmooth) {
+                                        settings.recordingScaleMode = scaleMode
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(scaleMode.rawValue)
+                                        if settings.recordingScaleMode == scaleMode {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "viewfinder.circle")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(
+                                    settings.recordingScaleMode != .responsive && settings.recordingScaleMode != .standard ?
+                                    TossyColor.accentProminentBg : TossyColor.textSecondary
+                                )
+                                .padding(6)
+                                .background(Circle().fill(TossyColor.surfaceElevated))
+                        }
+                        .menuStyle(.borderlessButton)
+                        .menuIndicator(.hidden)
+                        .frame(width: 26, height: 26)
+                        .help("Recording & Display Scale (\(settings.recordingScaleMode.rawValue))")
+
                         // Quick Theme Switcher
                         Menu {
                             ForEach(AppTheme.allCases) { theme in
@@ -128,7 +189,7 @@ struct RootView: View {
                         .menuStyle(.borderlessButton)
                         .menuIndicator(.hidden)
                         .frame(width: 26, height: 26)
-                        .help("Change Theme Appearance (Dark / Light / Liquid Glass)")
+                        .help("Change Theme Appearance (Dark / Light / Liquid Glass / Titanium)")
 
                         // Settings Button (⌘,)
                         Button {
@@ -146,7 +207,10 @@ struct RootView: View {
                     .padding(.trailing, 14)
                 }
                 .padding(.vertical, 8)
-                .background(settings.appTheme == .liquidGlass ? Color.black.opacity(0.15) : TossyColor.pitchBlack)
+                .background(
+                    settings.appTheme == .liquidGlass ? Color.black.opacity(0.15) :
+                    (settings.appTheme == .titanium ? Color.black.opacity(0.22) : TossyColor.pitchBlack)
+                )
 
                 Divider()
                     .overlay(TossyColor.borderSubtle)
@@ -154,7 +218,7 @@ struct RootView: View {
                 // Active Tab View
                 Group {
                     switch selectedTab {
-                    case .canvas: UniversalCanvasView()
+                    case .dropzone: UniversalCanvasView()
                     case .images: ContentView()
                     case .video: VideoConvertView()
                     case .audio: AudioConvertView()
@@ -162,7 +226,14 @@ struct RootView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(settings.appTheme == .liquidGlass ? Color.clear : TossyColor.pitchBlack)
+                .scaleEffect(
+                    settings.recordingScaleMode == .responsive ? 1.0 : settings.recordingScaleMode.baseMultiplier,
+                    anchor: .center
+                )
+                .animation(TossyMotion.springSmooth, value: settings.recordingScaleMode)
+                .background(
+                    settings.appTheme == .liquidGlass || settings.appTheme == .titanium ? Color.clear : TossyColor.pitchBlack
+                )
             }
         }
         .preferredColorScheme(settings.appTheme == .light ? .light : .dark)
@@ -178,13 +249,17 @@ struct RootView: View {
                 UpdateModalView(release: release)
             }
         }
-        .sheet(isPresented: Bindable(FinderIntegrationManager.shared).isShowingQuickConvert) {
-            if let files = FinderIntegrationManager.shared.quickConvertFiles {
-                MiniTossyModalView(files: files) {
-                    FinderIntegrationManager.shared.isShowingQuickConvert = false
-                    FinderIntegrationManager.shared.quickConvertFiles = nil
-                }
+        .sheet(isPresented: $showWhatsNew) {
+            WhatsNewModalView()
+        }
+        .onAppear {
+            if AppSettings.shared.lastSeenWhatsNewVersion != AppVersion.string {
+                AppSettings.shared.lastSeenWhatsNewVersion = AppVersion.string
+                showWhatsNew = true
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TossyShowWhatsNew"))) { _ in
+            showWhatsNew = true
         }
     }
 
@@ -193,27 +268,24 @@ struct RootView: View {
     }
     
     private func routeDroppedProviders(_ providers: [NSItemProvider]) {
-        for provider in providers {
-            _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                guard let url else { return }
-                DispatchQueue.main.async {
-                    let ext = url.pathExtension.lowercased()
-                    let imageExts = ["png", "jpg", "jpeg", "heic", "webp", "gif", "svg", "jxl", "avif", "tiff", "bmp", "ico"]
-                    let videoExts = ["mov", "mp4", "m4v", "mkv", "webm", "avi", "flv", "wmv"]
-                    let audioExts = ["mp3", "m4a", "wav", "flac", "aac", "ogg", "aiff", "wma", "opus"]
-                    
-                    withAnimation(TossyMotion.springSmooth) {
-                        if imageExts.contains(ext) {
-                            self.selectedTab = .images
-                        } else if videoExts.contains(ext) {
-                            self.selectedTab = .video
-                        } else if audioExts.contains(ext) {
-                            self.selectedTab = .audio
-                        } else {
-                            self.selectedTab = .canvas
-                        }
-                    }
-                }
+        Task { @MainActor in
+            let collected = await FileDropResolver.resolveURLs(from: providers)
+            guard !collected.isEmpty else { return }
+            withAnimation(TossyMotion.springSmooth) {
+                self.selectedTab = .dropzone
+            }
+            if let first = collected.first, CodeLanguageDetector.codeExtensions.contains(first.pathExtension.lowercased()) {
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("TossyOpenCodeCard"),
+                    object: nil,
+                    userInfo: ["url": first]
+                )
+            } else {
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("TossyDropFiles"),
+                    object: nil,
+                    userInfo: ["urls": collected]
+                )
             }
         }
     }

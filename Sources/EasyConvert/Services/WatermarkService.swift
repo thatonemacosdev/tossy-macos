@@ -330,6 +330,7 @@ final class WatermarkService: Sendable {
         
         let probe = MediaProbe.probe(url: videoURL)
         var arguments = [
+            "-nostdin",
             "-y",
             "-i", videoURL.path,
             "-i", logoURL.path,
@@ -350,6 +351,7 @@ final class WatermarkService: Sendable {
         
         let process = Process()
         process.executableURL = URL(fileURLWithPath: ffmpegPath)
+        process.standardInput = FileHandle.nullDevice
         process.arguments = arguments
         let errPipe = Pipe()
         process.standardError = errPipe

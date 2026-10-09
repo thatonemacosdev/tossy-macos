@@ -22,6 +22,7 @@ enum FileConflictAction: String, CaseIterable, Identifiable {
 enum AppTheme: String, CaseIterable, Identifiable {
     case dark = "Dark"
     case light = "Light"
+    case titanium = "Titanium"
     case liquidGlass = "Liquid Glass"
 
     var id: String { rawValue }
@@ -30,6 +31,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
         switch self {
         case .dark: return "moon.fill"
         case .light: return "sun.max.fill"
+        case .titanium: return "shield.righthalf.filled"
         case .liquidGlass: return "drop.fill"
         }
     }
@@ -44,11 +46,52 @@ enum OutputNamingTemplate: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+enum NavigationLayoutMode: String, CaseIterable, Identifiable {
+    case unified = "Unified Dropzone (Tossy 2)"
+    case classic = "Classic Tabs (Images, Video, Audio)"
+
+    var id: String { rawValue }
+
+    var shortTitle: String {
+        switch self {
+        case .unified: return "Unified Dropzone"
+        case .classic: return "Classic Tabs"
+        }
+    }
+}
+
 enum FinderActionBehavior: String, CaseIterable, Identifiable {
     case silentBackground = "Convert silently in background"
     case openInApp = "Open in Tossy batch queue"
 
     var id: String { rawValue }
+}
+
+enum RecordingScaleMode: String, CaseIterable, Identifiable {
+    case responsive = "Responsive Auto-Scale"
+    case standard = "Standard (1.0x)"
+    case retina1440p = "Retina 1440p (1.15x)"
+    case cinema4K = "Cinema 4K (1.30x)"
+
+    var id: String { rawValue }
+
+    var shortTitle: String {
+        switch self {
+        case .responsive: return "Auto"
+        case .standard: return "1.0x"
+        case .retina1440p: return "1.15x"
+        case .cinema4K: return "1.3x"
+        }
+    }
+    
+    var baseMultiplier: CGFloat {
+        switch self {
+        case .responsive: return 1.0
+        case .standard: return 1.0
+        case .retina1440p: return 1.15
+        case .cinema4K: return 1.30
+        }
+    }
 }
 
 // MARK: - Format Settings Structs
@@ -90,6 +133,7 @@ struct GIFConfig: Codable, Equatable {
 struct VideoConfig: Codable, Equatable {
     var encodingMode: String = "crf" // "crf", "bitrate", "hardware"
     var crfValue: Int = 22 // 0...51 (lower is higher quality)
+    var targetBitrateKbps: Int = 4500 // When encodingMode is "bitrate"
     var x264Preset: String = "medium" // ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
     var x264Tune: String = "none" // none, film, animation, grain, stillimage, fastdecode, zerolatency
     var pixelFormat: String = "yuv420p" // yuv420p, yuv422p, yuv444p, yuv420p10le
@@ -164,6 +208,14 @@ final class AppSettings {
         didSet { UserDefaults.standard.set(appTheme.rawValue, forKey: "appTheme") }
     }
 
+    var navigationLayoutMode: NavigationLayoutMode {
+        didSet { UserDefaults.standard.set(navigationLayoutMode.rawValue, forKey: "navigationLayoutMode") }
+    }
+
+    var recordingScaleMode: RecordingScaleMode {
+        didSet { UserDefaults.standard.set(recordingScaleMode.rawValue, forKey: "recordingScaleMode") }
+    }
+
     var automaticallyCheckForUpdates: Bool {
         didSet { UserDefaults.standard.set(automaticallyCheckForUpdates, forKey: "automaticallyCheckForUpdates") }
     }
@@ -174,6 +226,10 @@ final class AppSettings {
 
     var lastUpdateCheckDate: Date? {
         didSet { UserDefaults.standard.set(lastUpdateCheckDate, forKey: "lastUpdateCheckDate") }
+    }
+
+    var lastSeenWhatsNewVersion: String? {
+        didSet { UserDefaults.standard.set(lastSeenWhatsNewVersion, forKey: "lastSeenWhatsNewVersion") }
     }
 
     var finderActionBehavior: FinderActionBehavior {
@@ -247,9 +303,16 @@ final class AppSettings {
         let themeRaw = defaults.string(forKey: "appTheme") ?? AppTheme.dark.rawValue
         self.appTheme = AppTheme(rawValue: themeRaw) ?? .dark
 
+        let layoutRaw = defaults.string(forKey: "navigationLayoutMode") ?? NavigationLayoutMode.unified.rawValue
+        self.navigationLayoutMode = NavigationLayoutMode(rawValue: layoutRaw) ?? .unified
+
+        let scaleRaw = defaults.string(forKey: "recordingScaleMode") ?? RecordingScaleMode.responsive.rawValue
+        self.recordingScaleMode = RecordingScaleMode(rawValue: scaleRaw) ?? .responsive
+
         self.automaticallyCheckForUpdates = defaults.object(forKey: "automaticallyCheckForUpdates") as? Bool ?? true
         self.skippedUpdateVersion = defaults.string(forKey: "skippedUpdateVersion")
         self.lastUpdateCheckDate = defaults.object(forKey: "lastUpdateCheckDate") as? Date
+        self.lastSeenWhatsNewVersion = defaults.string(forKey: "lastSeenWhatsNewVersion")
 
         let finderBehaviorRaw = defaults.string(forKey: "finderActionBehavior") ?? FinderActionBehavior.silentBackground.rawValue
         self.finderActionBehavior = FinderActionBehavior(rawValue: finderBehaviorRaw) ?? .silentBackground

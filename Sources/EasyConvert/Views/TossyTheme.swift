@@ -10,6 +10,7 @@ enum TossyColor {
         switch theme {
         case .dark: return Color.black
         case .light: return Color(white: 0.96)
+        case .titanium: return Color(red: 0.10, green: 0.105, blue: 0.12)
         case .liquidGlass: return Color.black.opacity(0.35)
         }
     }
@@ -18,6 +19,7 @@ enum TossyColor {
         switch theme {
         case .dark: return Color(white: 0.04)
         case .light: return Color(white: 0.91)
+        case .titanium: return Color(red: 0.13, green: 0.135, blue: 0.155)
         case .liquidGlass: return Color.white.opacity(0.04)
         }
     }
@@ -26,6 +28,7 @@ enum TossyColor {
         switch theme {
         case .dark: return Color(white: 0.07)
         case .light: return Color.white
+        case .titanium: return Color(red: 0.17, green: 0.175, blue: 0.20)
         case .liquidGlass: return Color.white.opacity(0.08)
         }
     }
@@ -34,6 +37,7 @@ enum TossyColor {
         switch theme {
         case .dark: return Color(white: 0.11)
         case .light: return Color(white: 0.94)
+        case .titanium: return Color(red: 0.22, green: 0.225, blue: 0.255)
         case .liquidGlass: return Color.white.opacity(0.14)
         }
     }
@@ -42,6 +46,7 @@ enum TossyColor {
         switch theme {
         case .dark: return Color(white: 0.16)
         case .light: return Color(white: 0.88)
+        case .titanium: return Color(red: 0.28, green: 0.29, blue: 0.33)
         case .liquidGlass: return Color.white.opacity(0.22)
         }
     }
@@ -50,6 +55,7 @@ enum TossyColor {
         switch theme {
         case .dark: return Color(white: 0.22)
         case .light: return Color(white: 0.84)
+        case .titanium: return Color(red: 0.34, green: 0.35, blue: 0.39)
         case .liquidGlass: return Color.white.opacity(0.28)
         }
     }
@@ -58,6 +64,7 @@ enum TossyColor {
         switch theme {
         case .dark: return Color(white: 0.15)
         case .light: return Color(white: 0.84)
+        case .titanium: return Color(red: 0.32, green: 0.33, blue: 0.37).opacity(0.6)
         case .liquidGlass: return Color.white.opacity(0.18)
         }
     }
@@ -66,6 +73,7 @@ enum TossyColor {
         switch theme {
         case .dark: return Color(white: 0.22)
         case .light: return Color(white: 0.74)
+        case .titanium: return Color(red: 0.45, green: 0.46, blue: 0.52).opacity(0.75)
         case .liquidGlass: return Color.white.opacity(0.30)
         }
     }
@@ -74,21 +82,23 @@ enum TossyColor {
         switch theme {
         case .dark: return Color(white: 0.40)
         case .light: return Color(white: 0.58)
+        case .titanium: return Color(red: 0.70, green: 0.72, blue: 0.80).opacity(0.9)
         case .liquidGlass: return Color.white.opacity(0.55)
         }
     }
 
     static var textPrimary: Color {
         switch theme {
-        case .dark, .liquidGlass: return Color.white
-        case .light: return Color(white: 0.10)
+        case .dark, .titanium, .liquidGlass: return Color.white
+        case .light: return Color.black
         }
     }
 
     static var textSecondary: Color {
         switch theme {
         case .dark: return Color(white: 0.65)
-        case .light: return Color(white: 0.40)
+        case .light: return Color(white: 0.32)
+        case .titanium: return Color(white: 0.72)
         case .liquidGlass: return Color.white.opacity(0.75)
         }
     }
@@ -96,7 +106,8 @@ enum TossyColor {
     static var textTertiary: Color {
         switch theme {
         case .dark: return Color(white: 0.40)
-        case .light: return Color(white: 0.55)
+        case .light: return Color(white: 0.50)
+        case .titanium: return Color(white: 0.48)
         case .liquidGlass: return Color.white.opacity(0.50)
         }
     }
@@ -104,21 +115,22 @@ enum TossyColor {
     static var textMuted: Color {
         switch theme {
         case .dark: return Color(white: 0.25)
-        case .light: return Color(white: 0.70)
+        case .light: return Color(white: 0.65)
+        case .titanium: return Color(white: 0.32)
         case .liquidGlass: return Color.white.opacity(0.32)
         }
     }
 
     static var accentProminentBg: Color {
         switch theme {
-        case .dark, .liquidGlass: return Color.white
+        case .dark, .titanium, .liquidGlass: return Color.white
         case .light: return Color.black
         }
     }
 
     static var accentProminentFg: Color {
         switch theme {
-        case .dark, .liquidGlass: return Color.black
+        case .dark, .titanium, .liquidGlass: return Color.black
         case .light: return Color.white
         }
     }

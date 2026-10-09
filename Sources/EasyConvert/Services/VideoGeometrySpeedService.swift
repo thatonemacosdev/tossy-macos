@@ -90,7 +90,7 @@ final class VideoGeometrySpeedService: Sendable {
             videoFilters.append(String(format: "setpts=%.4f*PTS", ptsFactor))
         }
         
-        var arguments = ["-y", "-i", sourceURL.path]
+        var arguments = ["-nostdin", "-y", "-i", sourceURL.path]
         
         if isSpeedChanged && hasAudio {
             var audioFilters: [String] = []
@@ -145,6 +145,7 @@ final class VideoGeometrySpeedService: Sendable {
         
         let process = Process()
         process.executableURL = URL(fileURLWithPath: ffmpegPath)
+        process.standardInput = FileHandle.nullDevice
         process.arguments = arguments
         let errPipe = Pipe()
         process.standardError = errPipe

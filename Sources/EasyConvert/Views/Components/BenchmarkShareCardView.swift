@@ -16,7 +16,7 @@ struct BenchmarkShareCardView: View {
             HStack {
                 Text("TossyMark Score Card")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(TossyColor.textPrimary)
                 Spacer()
                 Button("Done") { dismiss() }
                     .controlSize(.small)
@@ -30,18 +30,18 @@ struct BenchmarkShareCardView: View {
                 .padding(.horizontal, 20)
 
             // Actions
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 Button {
                     copyCardToPasteboard()
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: hasCopied ? "checkmark" : "doc.on.doc")
-                        Text(hasCopied ? "Copied PNG!" : "Copy Image to Clipboard")
+                        Text(hasCopied ? "Copied PNG!" : "Copy Image")
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(.white)
-                .foregroundStyle(.black)
+                .tint(TossyColor.accentProminentBg)
+                .foregroundStyle(TossyColor.accentProminentFg)
                 .controlSize(.regular)
 
                 Button {
@@ -50,6 +50,18 @@ struct BenchmarkShareCardView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "square.and.arrow.down")
                         Text("Save PNG…")
+                    }
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.regular)
+
+                // Native Apple Sharing Button
+                Button {
+                    triggerAppleShare()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("Share…")
                     }
                 }
                 .buttonStyle(.bordered)
@@ -75,7 +87,7 @@ struct BenchmarkShareCardView: View {
                         Text("TossyMark Benchmark")
                             .font(.system(size: 13, weight: .bold))
                             .foregroundStyle(Color.white)
-                        Text("v1.7.1 Suite - Silicon Reference")
+                        Text("v2.0.0 Suite - Silicon Reference")
                             .font(.system(size: 10))
                             .foregroundStyle(TossyColor.textTertiary)
                     }
@@ -109,18 +121,18 @@ struct BenchmarkShareCardView: View {
 
                 Spacer()
 
-                // Baseline Tier Comparison
+                // Current Mac Hardware Info
                 VStack(alignment: .trailing, spacing: 3) {
-                    Text("Baseline Rank")
+                    Text("Tested Device")
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(TossyColor.textTertiary)
 
-                    Text(tierLabel)
+                    Text(chipName)
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(TossyColor.successGreen)
+                        .foregroundStyle(TossyColor.textPrimary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(TossyColor.successGreen.opacity(0.12))
+                        .background(TossyColor.surfaceElevated)
                         .clipShape(Capsule())
                 }
             }
@@ -137,7 +149,7 @@ struct BenchmarkShareCardView: View {
 
             // Card Footer
             HStack {
-                Text("Tested locally on macOS 14+ via Tossy")
+                Text("Tested locally on macOS 14+ via Tossy 2 Beta")
                     .font(.system(size: 10))
                     .foregroundStyle(TossyColor.textTertiary)
 
@@ -158,14 +170,6 @@ struct BenchmarkShareCardView: View {
                 .strokeBorder(TossyColor.borderMedium, lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.6), radius: 20, y: 10)
-    }
-
-    private var tierLabel: String {
-        if score >= 60_000 { return "M4 Max / Ultra Class" }
-        if score >= 40_000 { return "M4 Pro Workstation" }
-        if score >= 28_000 { return "M4 Air Standard" }
-        if score >= 16_000 { return "M2 / M3 Class" }
-        return "M1 / Intel Legacy"
     }
 
     private func scoreForDomain(_ domain: BenchmarkDomain) -> Int {
@@ -195,7 +199,7 @@ struct BenchmarkShareCardView: View {
         }
     }
 
-    // MARK: - Export Logic
+    // MARK: - Export & Native Apple Sharing Logic
 
     @MainActor
     private func renderCardImage() -> NSImage? {
@@ -229,6 +233,24 @@ struct BenchmarkShareCardView: View {
                     try? png.write(to: url)
                 }
             }
+        }
+    }
+
+    @MainActor
+    private func triggerAppleShare() {
+        guard let image = renderCardImage() else { return }
+        
+        // Write temporary file for clean native sharing
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("TossyMark-\(score)pts.png")
+        if let tiff = image.tiffRepresentation,
+           let rep = NSBitmapImageRep(data: tiff),
+           let png = rep.representation(using: .png, properties: [:]) {
+            try? png.write(to: tempURL)
+        }
+        
+        let picker = NSSharingServicePicker(items: [tempURL, "My TossyMark Score: \(score) pts on \(chipName)"])
+        if let window = NSApp.keyWindow, let contentView = window.contentView {
+            picker.show(relativeTo: contentView.bounds, of: contentView, preferredEdge: .minY)
         }
     }
 }

@@ -2,12 +2,20 @@ import SwiftUI
 
 struct MediaStudioModalView: View {
     let sourceURLs: [URL]
+    var initialTab: MediaStudioTab = .trim
     @Environment(\.dismiss) private var dismiss
     
-    @State private var selectedTab: MediaStudioTab = .trim
+    @State private var selectedTab: MediaStudioTab
+    
+    init(sourceURLs: [URL], initialTab: MediaStudioTab = .trim) {
+        self.sourceURLs = sourceURLs
+        self.initialTab = initialTab
+        self._selectedTab = State(initialValue: initialTab)
+    }
     @State private var isProcessing = false
     @State private var statusMessage: String?
     @State private var outputURL: URL?
+    @State private var showingComparison = false
     
     // Trim state
     @State private var trimStartText: String = "0.0"
@@ -127,6 +135,12 @@ struct MediaStudioModalView: View {
                 Spacer()
                 
                 if let outputURL {
+                    Button("Compare Side-by-Side") {
+                        showingComparison = true
+                    }
+                    .buttonStyle(.bordered)
+                    .help("Open interactive side-by-side split comparison")
+
                     Button("Show in Finder") {
                         NSWorkspace.shared.activateFileViewerSelecting([outputURL])
                     }
@@ -142,7 +156,12 @@ struct MediaStudioModalView: View {
             .padding()
             .background(Color(nsColor: .windowBackgroundColor))
         }
-        .frame(minWidth: 660, minHeight: 490)
+        .frame(minWidth: 700, minHeight: 520)
+        .sheet(isPresented: $showingComparison) {
+            if let src = sourceURLs.first, let out = outputURL {
+                BeforeAfterComparisonView(sourceURL: src, outputURL: out)
+            }
+        }
     }
     
     private var actionButtonTitle: String {
@@ -152,7 +171,7 @@ struct MediaStudioModalView: View {
         case .stripAudio: return "Strip Audio (Mute)"
         case .rotateSpeed: return "Apply Transform"
         case .watermark: return "Apply Watermark"
-        case .removeBg: return "Remove Background"
+        case .removeBg: return "Isolate Subject & Remove BG"
         }
     }
     
@@ -273,10 +292,145 @@ struct MediaStudioModalView: View {
     }
     
     private var removeBgView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("On-device Apple Vision subject segmentation removes photo backgrounds cleanly with alpha transparency.")
+        VStack(alignment: .leading, spacing: 14) {
+            Text("On-device Apple Vision subject segmentation isolates foreground subjects cleanly with alpha transparency.")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(TossyColor.textSecondary)
+
+            if let first = sourceURLs.first {
+                if let out = outputURL, let srcImg = NSImage(contentsOf: first), let outImg = NSImage(contentsOf: out) {
+                    // Live Side-by-Side Comparison Container
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Label("Side-by-Side Comparison", systemImage: "rectangle.split.2x1")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(TossyColor.textPrimary)
+                            Spacer()
+                            Button {
+                                showingComparison = true
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "square.split.2x1")
+                                    Text("Open Split Slider")
+                                }
+                                .font(.system(size: 11, weight: .medium))
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                            .help("Launch full interactive split slider and artifact inspector")
+                        }
+
+                        HStack(spacing: 14) {
+                            // Left: Original Image
+                            VStack(spacing: 6) {
+                                HStack {
+                                    Text("Original Photo")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(TossyColor.textSecondary)
+                                    Spacer()
+                                    let sz = (try? first.resourceValues(forKeys: [.fileSizeKey]).fileSize).flatMap { Int64($0) } ?? 0
+                                    Text(ByteSize.displayString(sz))
+                                        .font(.caption2.monospaced())
+                                        .foregroundStyle(TossyColor.textTertiary)
+                                }
+
+                                Image(nsImage: srcImg)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(height: 190)
+                                    .frame(maxWidth: .infinity)
+                                    .background(TossyColor.surfaceElevated)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                            .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                                    )
+                            }
+
+                            // Right: Isolated Subject with Checkerboard Background
+                            VStack(spacing: 6) {
+                                HStack {
+                                    Text("Isolated Subject (Alpha PNG)")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(TossyColor.textSecondary)
+                                    Spacer()
+                                    let sz = (try? out.resourceValues(forKeys: [.fileSizeKey]).fileSize).flatMap { Int64($0) } ?? 0
+                                    Text(ByteSize.displayString(sz))
+                                        .font(.caption2.monospaced())
+                                        .foregroundStyle(TossyColor.textTertiary)
+                                }
+
+                                ZStack {
+                                    CheckerboardPattern()
+
+                                    Image(nsImage: outImg)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                }
+                                .frame(height: 190)
+                                .frame(maxWidth: .infinity)
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                        .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                                )
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .background(TossyColor.surfaceBase)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                    )
+                } else if let srcImg = NSImage(contentsOf: first) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Selected Photo:")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(TossyColor.textSecondary)
+
+                        HStack(spacing: 14) {
+                            Image(nsImage: srcImg)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 140, height: 140)
+                                .background(TossyColor.surfaceElevated)
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                        .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                                )
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(first.lastPathComponent)
+                                    .font(.system(size: 13, weight: .bold))
+                                    .lineLimit(1)
+
+                                Text("Dimensions: \(Int(srcImg.size.width)) × \(Int(srcImg.size.height))")
+                                    .font(.caption)
+                                    .foregroundStyle(TossyColor.textSecondary)
+
+                                Text("Click 'Isolate Subject & Remove BG' below to run on-device Apple Vision segmentation.")
+                                    .font(.caption2)
+                                    .foregroundStyle(TossyColor.textTertiary)
+                            }
+                            Spacer()
+                        }
+                    }
+                    .padding(12)
+                    .background(TossyColor.surfaceBase)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                    )
+                }
+            } else {
+                Text("No image selected. Please drop or queue an image to isolate its subject.")
+                    .font(.caption)
+                    .foregroundStyle(TossyColor.textTertiary)
+            }
         }
     }
     
