@@ -191,7 +191,7 @@ struct RootView: View {
                         .frame(width: 26, height: 26)
                         .help("Change Theme Appearance (Dark / Light / Liquid Glass / Titanium)")
 
-                        // Settings Button (⌘,)
+                        // Settings Button (Cmd+,)
                         Button {
                             openSettings()
                         } label: {
@@ -202,7 +202,7 @@ struct RootView: View {
                                 .background(Circle().fill(TossyColor.surfaceElevated))
                         }
                         .buttonStyle(.plain)
-                        .help("Settings (⌘,)")
+                        .help("Settings (Cmd+,)")
                     }
                     .padding(.trailing, 14)
                 }

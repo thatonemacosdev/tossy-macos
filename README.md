@@ -69,7 +69,7 @@ Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/Pro
 
 ## What's New in v2.0.0
 
-- **Dynamic File-Type Detecting Window**: Dragging and dropping files dynamically morphs the canvas into a specialized tool panel — drop video to open video-only conversion, drop audio for audio-only bitrates & EBU R128 loudness normalization, drop images for quality compression & EXIF tools, or drop PDFs for burst/OCR/compression.
+- **Dynamic File-Type Detecting Window**: Dragging and dropping files dynamically morphs the canvas into a specialized tool panel: drop video to open video-only conversion, drop audio for audio-only bitrates & EBU R128 loudness normalization, drop images for quality compression & EXIF tools, or drop PDFs for burst/OCR/compression.
 - **Instant Code Card Studio Drop**: Dropping any source code or script file (`.swift`, `.py`, `.js`, `.ts`, `.rs`, `.go`, `.json`, etc.) instantly opens the Code Card Studio modal with automatic syntax highlighting and Carbon-style presentation themes.
 - **Launch on Startup**: Easily configure Tossy to launch automatically on macOS login via Settings or the menu bar status icon using native `SMAppService`.
 - **Audio-Only WebM & Codec Fix**: Seamlessly transcode audio-only WebM files (Opus and Vorbis) to MP3, WAV, FLAC, and AAC or video MP4 containers with smart stream detection and automatic FFmpeg fallback, preventing AVFoundation container export errors.

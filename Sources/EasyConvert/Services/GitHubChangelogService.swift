@@ -163,8 +163,8 @@ final class GitHubChangelogService: @unchecked Sendable {
                 point = point
                     .replacingOccurrences(of: "**", with: "")
                     .replacingOccurrences(of: "`", with: "")
-                    .replacingOccurrences(of: "—", with: " - ")
-                    .replacingOccurrences(of: "–", with: " - ")
+                    .replacingOccurrences(of: "\u{2014}", with: " - ")
+                    .replacingOccurrences(of: "\u{2013}", with: " - ")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 
                 if !point.isEmpty && point.count > 8 && !points.contains(point) {
