@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tossy: Fast, Free &amp; Private macOS File Converter</title>
-<meta name="description" content="Toss your files in, toss them out in whatever format you need. Convert HEIC, RAW, MKV, WebM, FLAC, Animated GIFs, and 60+ formats locally on Mac. Free &amp; open source." />
-<meta name="keywords" content="macOS file converter, Mac video converter, HEIC to JPEG Mac, MKV to MP4 Mac, FLAC converter Mac, WebM to MP4, ffmpeg Mac GUI, target size video compression" />
+<title>Tossy: Dynamic macOS File Converter</title>
+<meta name="description" content="Toss your files in, get them converted instantly. Dynamic file-type detection, Universal Canvas, VideoToolbox hardware encoding, Metal GPU filters, PDF OCR, and Code Card Studio. Local, fast, and free on macOS." />
+<meta name="keywords" content="macOS file converter, Mac video converter, HEIC to JPEG Mac, MKV to MP4 Mac, FLAC converter Mac, WebM to MP4, ffmpeg Mac GUI, target size video compression, VideoToolbox, Metal GPU, Code Card Studio" />
 <link rel="canonical" href="https://thatonemacosdev.github.io/tossy-macos/" />
 <link rel="icon" type="image/png" sizes="16x16" href="icons/icon_16.png" />
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon_32.png" />
@@ -15,21 +15,25 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://thatonemacosdev.github.io/tossy-macos/" />
 <meta property="og:site_name" content="Tossy" />
-<meta property="og:title" content="Tossy: Fast, Free &amp; Private macOS File Converter" />
-<meta property="og:description" content="Toss your files in, toss them out in whatever format you need. Convert HEIC, RAW, MKV, WebM, FLAC, Animated GIFs, and 60+ formats locally on Mac." />
+<meta property="og:title" content="Tossy: Dynamic macOS File Converter" />
+<meta property="og:description" content="Toss your files in, get them converted instantly. Dynamic file detection, Universal Canvas, VideoToolbox hardware encoding, and Code Card Studio. 100% local on macOS." />
 <meta property="og:image" content="https://thatonemacosdev.github.io/tossy-macos/icons/icon_512.png" />
 
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Tossy: Fast, Free &amp; Private macOS File Converter" />
-<meta name="twitter:description" content="Toss your files in, toss them out in whatever format you need. Convert HEIC, RAW, MKV, WebM, FLAC, and 60+ formats locally on Mac." />
+<meta name="twitter:title" content="Tossy: Dynamic macOS File Converter" />
+<meta name="twitter:description" content="Dynamic file detection, Universal Canvas, VideoToolbox encoding, and Code Card Studio. 100% local on macOS." />
 <meta name="twitter:image" content="https://thatonemacosdev.github.io/tossy-macos/icons/icon_512.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "Tossy",
-  "description": "A native macOS file transformation utility. Toss your files in, get them out in whatever format you need. GPU-accelerated via Metal and hardware VideoToolbox encoding where Apple's frameworks reach, a bundled ffmpeg for everything else.",
+  "description": "A native macOS file transformation utility with dynamic file-type detection. GPU-accelerated via Metal and hardware VideoToolbox encoding, Apple Vision OCR, bundled standalone ffmpeg, and Code Card Studio.",
   "url": "https://thatonemacosdev.github.io/tossy-macos/",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "macOS 14+",
@@ -51,17 +55,17 @@
   ],
   "featureList": [
     "Dynamic File-Type Detecting Window with specialized panels",
-    "Universal File Canvas with batch token renaming",
-    "Complete PDF Studio with Apple Vision OCR and compression",
-    "Media Studio with lossless video trimmer and watermark overlay",
-    "Carbon-style Code Card PNG exporter with syntax highlighting",
-    "Menu Bar Quick-Toss drag-to-convert status dropzone",
+    "Universal File Canvas with token renaming",
+    "Complete PDF Studio with Apple Vision OCR and Quartz compression",
+    "Media Studio with lossless video trimmer and watermark tool",
+    "Code Card Studio with Dracula syntax highlighting and Retina PNG export",
+    "Menu Bar Quick-Toss drag-to-convert dropzone",
     "Archive Suite with AES-256 encryption and volume splitting",
     "Target megabyte size fitting",
     "Hardware VideoToolbox encoding",
     "GPU Core Image Metal processing",
     "Dedicated macOS Settings window and CLI knobs",
-    "TossyMark system benchmark suite",
+    "TossyMark system throughput benchmark",
     "Standalone bundled ffmpeg binary"
   ],
   "offers": {
@@ -89,7 +93,7 @@
       "name": "Is Tossy free?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. It is free and open source under GPL-3.0. No account, no subscription, no ads."
+        "text": "Yes. It is free and open source under GPL-3.0. No accounts, no subscriptions, and no advertisements."
       }
     },
     {
@@ -97,7 +101,15 @@
       "name": "Does Tossy upload my files anywhere?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. Every conversion runs locally on your Mac, using Apple's own frameworks or the bundled ffmpeg. Nothing is ever sent to a server."
+        "text": "No. Every conversion runs offline on your Mac using native Apple frameworks or bundled binaries. Zero telemetry and zero network transfers."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does the dynamic window detection work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Drop in a video file and Tossy opens the video panel. Drop in audio and it opens the audio panel. Drop in code and it opens Code Card Studio. Drop multiple mixed files and the Universal Canvas handles batch processing."
       }
     },
     {
@@ -105,7 +117,7 @@
       "name": "Do I need to install ffmpeg or Homebrew separately?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "No. ffmpeg and the other tools Tossy needs are bundled inside the app and run standalone."
+        "text": "No. ffmpeg and companion tools are bundled directly inside the application bundle and operate completely standalone."
       }
     },
     {
@@ -113,23 +125,15 @@
       "name": "What macOS version does Tossy need?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "macOS 14 or later, on Apple Silicon or Intel."
+        "text": "macOS 14 or later, running on Apple Silicon or Intel hardware."
       }
     },
     {
       "@type": "Question",
-      "name": "Can Tossy compress a file to an exact size?",
+      "name": "Can Tossy fit a file to an exact target size?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Set a target size like 25MB in the Advanced section and Tossy searches for a quality or bitrate that fits."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "What file formats does Tossy support?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "20 image formats, 28 video formats, and 14 audio formats, including HEIC, RAW camera files, MKV, WebM, and FLAC."
+        "text": "Yes. Specify a target megabyte ceiling such as 25MB and Tossy performs binary search bitrate optimization to fit within the limit."
       }
     }
   ]
@@ -138,65 +142,109 @@
 
 <style>
   :root {
-    --bg-base: #060608;
-    --bg-surface: #111116;
-    --bg-surface-raised: #181820;
-    --border: #22222d;
-    --border-hover: #3a3a4c;
-    --text-primary: #f8f8fc;
-    --text-secondary: #a0a0b2;
-    --text-muted: #6a6a7c;
-    --accent: #ffffff;
-    --accent-bg: #ffffff;
-    --accent-fg: #000000;
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 16px;
-    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
-    --mono: ui-monospace, "SF Mono", "Menlo", monospace;
+    /* Brand Accent */
+    --color-primary: #494fdf;
+    --color-primary-bright: #4f55f1;
+    --color-primary-deep: #3a40c4;
+    --color-on-primary: #ffffff;
+
+    /* Dark Mode Canvas */
+    --color-canvas-dark: #000000;
+    --color-surface-deep: #0a0a0a;
+    --color-surface-elevated: #16181a;
+    --color-hairline-dark: rgba(255, 255, 255, 0.12);
+    --color-divider-soft: rgba(255, 255, 255, 0.06);
+
+    /* Light Mode Canvas */
+    --color-canvas-light: #ffffff;
+    --color-surface-soft: #f4f4f4;
+    --color-surface-card: #ffffff;
+    --color-hairline-light: #e2e2e7;
+    --color-hairline-strong: #191c1f;
+
+    /* Dark Typography */
+    --color-on-dark: #ffffff;
+    --color-on-dark-mute: rgba(255, 255, 255, 0.72);
+    --color-on-dark-subtle: rgba(255, 255, 255, 0.45);
+
+    /* Light Typography */
+    --color-ink: #191c1f;
+    --color-body: #1f2226;
+    --color-charcoal: #3a3d40;
+    --color-mute: #505a63;
+    --color-ash: #5c5e60;
+    --color-stone: #8d969e;
+    --color-faint: #c9c9cd;
+
+    /* Saturated Accents for Mockups and Badges */
+    --color-accent-teal: #00a87e;
+    --color-accent-blue-link: #376cd5;
+    --color-accent-light-blue: #007bc2;
+    --color-accent-light-green: #428619;
+    --color-accent-green-text: #006400;
+    --color-accent-yellow: #b09000;
+    --color-accent-warning: #ec7e00;
+    --color-accent-pink: #e61e49;
+    --color-accent-danger: #e23b4a;
+
+    /* Geometry Tokens */
+    --rounded-sm: 8px;
+    --rounded-md: 12px;
+    --rounded-lg: 20px;
+    --rounded-xl: 28px;
+    --rounded-full: 9999px;
+
+    /* Type Stacks */
+    --font-display: "Aeonik Pro", "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    --font-body: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Menlo", monospace;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
   html {
     scroll-behavior: smooth;
-    background: var(--bg-base);
+    background: var(--color-canvas-dark);
+    color: var(--color-on-dark);
   }
 
   body {
-    margin: 0;
-    background: var(--bg-base);
-    color: var(--text-primary);
-    font-family: var(--sans);
+    background: var(--color-canvas-dark);
+    color: var(--color-on-dark);
+    font-family: var(--font-body);
     font-size: 16px;
-    line-height: 1.6;
+    line-height: 1.5;
+    letter-spacing: 0.24px;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
-    background: #ffffff;
-    color: #000000;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
   }
 
   a { color: inherit; text-decoration: none; }
   a:focus-visible, button:focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--color-primary-bright);
     outline-offset: 2px;
   }
 
-  h1, h2, h3 {
-    font-family: var(--sans);
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    margin: 0;
-  }
-
-  p { margin: 0; }
-
   .container {
-    max-width: 1080px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
+  }
+
+  /* Two-Mode Canvas Bands */
+  .band-dark {
+    background-color: var(--color-canvas-dark);
+    color: var(--color-on-dark);
+  }
+
+  .band-white {
+    background-color: var(--color-canvas-light);
+    color: var(--color-ink);
   }
 
   /* Header Navigation */
@@ -204,431 +252,721 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(6, 6, 8, 0.92);
-    border-bottom: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--color-hairline-dark);
+    height: 64px;
   }
 
   .site-nav .container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 64px;
+    height: 100%;
   }
 
   .brand {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-weight: 600;
     font-size: 18px;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.32px;
   }
 
-  .brand-icon {
+  .brand-glyph {
     width: 28px;
     height: 28px;
-    border-radius: 7px;
-    flex: none;
+    border-radius: var(--rounded-sm);
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-hairline-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .brand-glyph img {
+    width: 24px;
+    height: 24px;
+    display: block;
   }
 
   .nav-links {
     display: flex;
     align-items: center;
     gap: 24px;
+  }
+
+  .nav-link {
     font-size: 14px;
     font-weight: 500;
-  }
-
-  .nav-links a.link {
-    color: var(--text-secondary);
+    color: var(--color-on-dark-mute);
     transition: color 0.15s ease;
   }
-  .nav-links a.link:hover { color: var(--text-primary); }
+  .nav-link:hover { color: var(--color-on-dark); }
 
-  /* Buttons */
+  /* Pill Buttons */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-family: var(--sans);
-    font-size: 14px;
+    font-family: var(--font-body);
+    font-size: 16px;
     font-weight: 600;
-    padding: 10px 20px;
-    border-radius: var(--radius-md);
+    letter-spacing: 0.24px;
+    border-radius: var(--rounded-full);
+    height: 48px;
+    padding: 14px 28px;
     border: 1px solid transparent;
-    transition: all 0.15s ease;
     cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    white-space: nowrap;
   }
 
   .btn-primary {
-    background: var(--accent-bg);
-    color: var(--accent-fg);
+    background-color: var(--color-canvas-light);
+    color: var(--color-canvas-dark);
   }
   .btn-primary:hover {
-    opacity: 0.92;
-    transform: translateY(-1px);
+    background-color: var(--color-faint);
   }
 
-  .btn-secondary {
-    background: var(--bg-surface);
-    border-color: var(--border);
-    color: var(--text-primary);
+  .btn-dark {
+    background-color: var(--color-canvas-dark);
+    color: var(--color-on-dark);
+    border-color: var(--color-hairline-dark);
   }
-  .btn-secondary:hover {
-    border-color: var(--border-hover);
-    background: var(--bg-surface-raised);
-  }
-
-  /* Hero Section with Cinematic Desktop Background */
-  section.hero {
-    position: relative;
-    padding: 110px 0 90px;
-    background-image: 
-      radial-gradient(ellipse at 50% 30%, rgba(10, 10, 10, 0.65) 0%, rgba(10, 10, 10, 0.85) 60%, rgba(10, 10, 10, 0.98) 100%),
-      linear-gradient(180deg, rgba(10, 10, 10, 0.5) 0%, rgba(10, 10, 10, 0.35) 40%, rgba(10, 10, 10, 0.92) 80%, var(--bg-base) 100%),
-      url('screenshots/desktop_hero.jpg');
-    background-size: cover;
-    background-position: center 25%;
-    background-repeat: no-repeat;
-    overflow: hidden;
-    border-bottom: 1px solid var(--border);
+  .btn-dark:hover {
+    background-color: var(--color-surface-elevated);
+    border-color: rgba(255, 255, 255, 0.24);
   }
 
-  .hero .container {
-    position: relative;
-    z-index: 2;
+  .btn-soft {
+    background-color: var(--color-surface-soft);
+    color: var(--color-ink);
+  }
+  .btn-soft:hover {
+    background-color: var(--color-hairline-light);
   }
 
-  .hero-content {
-    max-width: 760px;
+  .btn-cobalt {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .btn-cobalt:hover {
+    background-color: var(--color-primary-bright);
   }
 
-  .hero h1 {
-    font-size: clamp(46px, 7vw, 72px);
-    line-height: 1.05;
-    margin-bottom: 24px;
-    letter-spacing: -0.035em;
-    text-shadow: 0 4px 28px rgba(0, 0, 0, 0.7);
+  .btn-sm {
+    height: 36px;
+    padding: 8px 18px;
+    font-size: 14px;
   }
 
-  .hero-sub {
-    font-size: 20px;
-    color: #d1d1d6;
-    line-height: 1.5;
-    max-width: 58ch;
-    margin-bottom: 36px;
-    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+  /* Hero Section (Dark Canvas) */
+  section.hero-band {
+    padding: 88px 0 64px;
   }
 
-  /* Interactive File Converter Ticker */
-  .ticker-box {
+  .hero-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero-badge {
     display: inline-flex;
     align-items: center;
-    gap: 14px;
-    font-size: 14px;
-    padding: 12px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: var(--radius-md);
-    background: rgba(18, 18, 18, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
-    margin-bottom: 36px;
+    gap: 8px;
+    background-color: var(--color-surface-elevated);
+    border: 1px solid var(--color-hairline-dark);
+    color: var(--color-on-dark-mute);
+    border-radius: var(--rounded-full);
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 24px;
   }
 
-  .ticker-from, .ticker-to {
-    color: var(--text-primary);
+  .hero-badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--color-accent-teal);
+  }
+
+  h1.hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 7vw, 92px);
+    font-weight: 500;
+    line-height: 1.02;
+    letter-spacing: -0.028em;
+    color: var(--color-on-dark);
+    max-width: 14ch;
+    margin-bottom: 24px;
+  }
+
+  p.hero-lead {
+    font-family: var(--font-body);
+    font-size: 18px;
+    line-height: 1.56;
+    letter-spacing: -0.09px;
+    color: var(--color-on-dark-mute);
+    max-width: 58ch;
+    margin-bottom: 32px;
+  }
+
+  /* Interactive Format Ticker */
+  .ticker-capsule {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--color-surface-elevated);
+    border: 1px solid var(--color-hairline-dark);
+    border-radius: var(--rounded-full);
+    padding: 8px 18px;
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+
+  .ticker-token {
+    font-family: var(--font-mono);
     font-weight: 600;
-    transition: opacity 0.25s ease;
+    color: var(--color-on-dark);
+    transition: opacity 0.2s ease;
   }
-  .ticker-arrow { color: var(--text-muted); }
 
-  .ticker-badge {
+  .ticker-arrow {
+    color: var(--color-on-dark-subtle);
+  }
+
+  .ticker-status {
+    padding-left: 12px;
+    border-left: 1px solid var(--color-hairline-dark);
+    color: var(--color-accent-teal);
+    font-weight: 500;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-secondary);
-    padding-left: 14px;
-    border-left: 1px solid rgba(255, 255, 255, 0.12);
-    font-size: 13px;
   }
 
-  .ticker-badge::before {
-    content: "";
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--text-muted);
-    flex: none;
+  .ticker-capsule.fading .ticker-token {
+    opacity: 0.2;
   }
 
-  .ticker-badge.done::before { background: #ffffff; }
-  .ticker-badge.done { color: var(--text-primary); }
-
-  .ticker-box.fading .ticker-from,
-  .ticker-box.fading .ticker-to {
-    opacity: 0;
-  }
-
-  .cta-group {
+  .hero-actions {
     display: flex;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
 
-  .specs-bar {
+  .specs-list {
+    display: flex;
+    align-items: center;
+    gap: 16px;
     font-size: 13px;
-    color: var(--text-muted);
+    color: var(--color-on-dark-subtle);
   }
-  .specs-bar span { color: var(--text-secondary); }
-  .specs-bar .divider { color: var(--border); margin: 0 10px; }
+  .specs-list span.sep { color: var(--color-hairline-dark); }
 
-  /* Horizontal Showcase Carousel Section */
-  section.showcase {
-    padding: 40px 0 80px;
+  /* Product Mockup Container (Zero Drop Shadow, Luminance Shift) */
+  .hero-mockup-frame {
+    margin-top: 64px;
+    width: 100%;
+    background-color: var(--color-surface-elevated);
+    border: 1px solid var(--color-hairline-dark);
+    border-radius: var(--rounded-xl);
+    overflow: hidden;
   }
 
-  .showcase-bar {
+  .mockup-titlebar {
+    height: 44px;
+    background-color: var(--color-surface-deep);
+    border-bottom: 1px solid var(--color-hairline-dark);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
+    padding: 0 16px;
   }
 
-  .showcase-bar h2 {
-    font-size: 28px;
-  }
-
-  .tab-pills {
+  .window-dots {
     display: flex;
     align-items: center;
-    gap: 6px;
-    background: var(--bg-surface);
-    padding: 4px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border);
+    gap: 7px;
   }
 
-  .tab-pill {
-    font-family: var(--sans);
+  .window-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  .window-dot.close { background-color: #ff5f56; }
+  .window-dot.min { background-color: #ffbd2e; }
+  .window-dot.zoom { background-color: #27c93f; }
+
+  .mockup-title {
     font-size: 13px;
-    font-weight: 600;
-    padding: 7px 16px;
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-    background: transparent;
-    border: none;
+    color: var(--color-on-dark-mute);
+    font-weight: 500;
+  }
+
+  .mockup-viewport {
+    position: relative;
+    width: 100%;
+    background-color: #000000;
+  }
+
+  .mockup-viewport img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Showcase Section (Dark Storytelling Canvas) */
+  section.showcase-band {
+    padding: 96px 0 104px;
+    border-top: 1px solid var(--color-divider-soft);
+  }
+
+  .showcase-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .showcase-header h2 {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 4.5vw, 48px);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--color-on-dark);
+    max-width: 18ch;
+  }
+
+  .showcase-header p {
+    font-size: 16px;
+    color: var(--color-on-dark-mute);
+    max-width: 48ch;
+  }
+
+  /* Showcase Sub-nav Pills */
+  .subnav-pills {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .subnav-pill {
+    background-color: var(--color-surface-elevated);
+    color: var(--color-on-dark-mute);
+    border: 1px solid var(--color-hairline-dark);
+    border-radius: var(--rounded-full);
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
   }
 
-  .tab-pill:hover,
-  .tab-pill.active {
-    color: var(--text-primary);
-    background: var(--bg-surface-raised);
+  .subnav-pill:hover {
+    color: var(--color-on-dark);
+    border-color: rgba(255, 255, 255, 0.3);
   }
 
+  .subnav-pill.active {
+    background-color: var(--color-canvas-light);
+    color: var(--color-canvas-dark);
+    border-color: var(--color-canvas-light);
+    font-weight: 600;
+  }
+
+  /* Showcase Scroller */
   .showcase-scroller {
     display: flex;
     gap: 24px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
-    padding-bottom: 16px;
+    padding-bottom: 20px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    scrollbar-color: var(--border-hover) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
   }
 
-  .showcase-scroller::-webkit-scrollbar { height: 6px; }
-  .showcase-scroller::-webkit-scrollbar-thumb {
-    background: var(--border-hover);
-    border-radius: 3px;
-  }
-
-  .window-card {
-    flex: 0 0 640px;
+  .showcase-card {
+    flex: 0 0 clamp(320px, 80vw, 840px);
     scroll-snap-align: start;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    background-color: var(--color-surface-elevated);
+    border: 1px solid var(--color-hairline-dark);
+    border-radius: var(--rounded-lg);
     overflow: hidden;
     transition: border-color 0.2s ease;
   }
-  .window-card:hover { border-color: var(--border-hover); }
 
-  .window-header {
+  .showcase-card:hover {
+    border-color: rgba(255, 255, 255, 0.28);
+  }
+
+  .showcase-window-header {
+    height: 40px;
+    background-color: var(--color-surface-deep);
+    border-bottom: 1px solid var(--color-hairline-dark);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 18px;
-    background: var(--bg-base);
-    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
   }
 
-  .window-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .window-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--border-hover);
-  }
-
-  .window-label {
-    font-size: 12.5px;
-    color: var(--text-secondary);
+  .showcase-label {
+    font-size: 13px;
+    color: var(--color-on-dark-mute);
     font-weight: 500;
   }
 
-  .window-viewport {
+  .showcase-badge-accent {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: var(--rounded-full);
+  }
+
+  .showcase-badge-teal { background: rgba(0, 168, 126, 0.2); color: #00d29d; }
+  .showcase-badge-blue { background: rgba(0, 123, 194, 0.2); color: #38bdf8; }
+  .showcase-badge-pink { background: rgba(230, 30, 73, 0.2); color: #ff6584; }
+  .showcase-badge-orange { background: rgba(236, 126, 0, 0.2); color: #ffa94d; }
+  .showcase-badge-purple { background: rgba(73, 79, 223, 0.25); color: #8f94fb; }
+
+  .showcase-viewport {
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 10;
-    background: #000000;
+    background-color: #000000;
   }
 
-  .window-viewport img {
+  .showcase-viewport img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
   }
 
-  .window-caption {
-    padding: 18px 22px;
-    font-size: 14.5px;
-    color: var(--text-secondary);
-    background: var(--bg-surface-raised);
-    border-top: 1px solid var(--border);
-  }
-  .window-caption strong { color: var(--text-primary); }
-
-  /* Capabilities Grid Section */
-  section.capabilities {
-    padding: 80px 0;
-    border-top: 1px solid var(--border);
+  .showcase-caption {
+    padding: 24px;
+    background-color: var(--color-surface-elevated);
+    border-top: 1px solid var(--color-hairline-dark);
   }
 
-  .section-intro {
-    max-width: 600px;
-    margin-bottom: 48px;
-  }
-
-  .section-intro h2 {
-    font-size: 36px;
-    margin-bottom: 14px;
-  }
-
-  .section-intro p {
+  .showcase-caption h3 {
+    font-family: var(--font-display);
     font-size: 18px;
-    color: var(--text-secondary);
+    font-weight: 500;
+    color: var(--color-on-dark);
+    margin-bottom: 6px;
   }
 
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
+  .showcase-caption p {
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-on-dark-mute);
   }
 
-  .card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 36px;
-    transition: border-color 0.2s ease, transform 0.2s ease;
+  /* Full-Bleed White Catalogue Band */
+  section.catalogue-band {
+    padding: 104px 0 112px;
   }
 
-  .card:hover {
-    border-color: var(--border-hover);
-    transform: translateY(-2px);
+  .catalogue-intro {
+    max-width: 720px;
+    margin-bottom: 64px;
   }
 
-  .card h3 {
-    font-size: 22px;
-    margin-bottom: 12px;
+  .catalogue-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--color-surface-soft);
+    color: var(--color-mute);
+    border-radius: var(--rounded-full);
+    padding: 4px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 16px;
   }
 
-  .card p {
-    color: var(--text-secondary);
-    font-size: 15.5px;
-    line-height: 1.55;
-  }
-
-  /* Offline & Privacy Section */
-  section.offline {
-    padding: 80px 0;
-    border-top: 1px solid var(--border);
-  }
-
-  .offline-panel {
-    background: var(--bg-surface-raised);
-    border: 1px solid var(--border-hover);
-    border-radius: var(--radius-lg);
-    padding: 52px;
-    max-width: 840px;
-  }
-
-  .offline-panel h2 {
-    font-size: 36px;
+  .catalogue-intro h2 {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.024em;
+    color: var(--color-ink);
     margin-bottom: 18px;
   }
 
-  .offline-panel p {
+  .catalogue-intro p {
     font-size: 18px;
-    color: var(--text-secondary);
-    margin-bottom: 28px;
-    line-height: 1.6;
+    line-height: 1.56;
+    color: var(--color-mute);
   }
 
-  .license-meta {
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-
-  /* FAQ Section */
-  section.faq {
-    padding: 80px 0;
-    border-top: 1px solid var(--border);
-  }
-
-  .faq h2 {
-    font-size: 36px;
-    margin-bottom: 48px;
-  }
-
-  .faq-layout {
+  /* Feature Grid (Cards in Light Band) */
+  .features-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 36px;
+    gap: 24px;
+    margin-bottom: 80px;
   }
 
-  .faq-card h3 {
-    font-size: 19px;
+  .feature-card {
+    background-color: var(--color-surface-soft);
+    border: 1px solid var(--color-hairline-light);
+    border-radius: var(--rounded-lg);
+    padding: 32px;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .feature-card:hover {
+    border-color: var(--color-hairline-strong);
+    background-color: #ededed;
+  }
+
+  .feature-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--rounded-full);
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+
+  .badge-teal { background: #e0f6f0; color: #007a5a; }
+  .badge-purple { background: #e9eaff; color: #3a40c4; }
+  .badge-orange { background: #fdf0e2; color: #b85e00; }
+  .badge-green { background: #e4f5de; color: #2e6610; }
+  .badge-blue { background: #e1f2fb; color: #005a8f; }
+  .badge-pink { background: #fde8ed; color: #b81236; }
+
+  .feature-card h3 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+    color: var(--color-ink);
     margin-bottom: 10px;
   }
 
-  .faq-card p {
-    font-size: 15.5px;
-    color: var(--text-secondary);
-    line-height: 1.55;
+  .feature-card p {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--color-mute);
   }
 
-  /* Footer */
-  footer {
-    padding: 48px 0;
-    border-top: 1px solid var(--border);
-    font-size: 13.5px;
-    color: var(--text-muted);
+  /* Plan & Packaging Section */
+  .packaging-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 96px;
+  }
+
+  .plan-card {
+    background-color: var(--color-surface-soft);
+    border: 1px solid var(--color-hairline-light);
+    border-radius: var(--rounded-lg);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .plan-card-featured {
+    background-color: var(--color-primary);
+    border: 1px solid var(--color-primary-bright);
+    color: var(--color-on-primary);
+  }
+
+  .plan-tag {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+
+  .plan-card-featured .plan-tag {
+    color: rgba(255, 255, 255, 0.84);
+  }
+
+  .plan-card h3 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+
+  .plan-card p {
+    font-size: 15px;
+    line-height: 1.55;
+    margin-bottom: 28px;
+  }
+
+  .plan-card-featured p {
+    color: rgba(255, 255, 255, 0.88);
+  }
+
+  .plan-card ul {
+    list-style: none;
+    margin-bottom: 32px;
+  }
+
+  .plan-card li {
+    font-size: 14px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--color-hairline-light);
+  }
+
+  .plan-card-featured li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  }
+
+  /* Comparison Matrix */
+  .comparison-section {
+    margin-bottom: 96px;
+  }
+
+  .comparison-section h2 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--color-ink);
+    margin-bottom: 24px;
+  }
+
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--color-hairline-light);
+    border-radius: var(--rounded-md);
+  }
+
+  table.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+    background: #ffffff;
+  }
+
+  table.comparison-table th, table.comparison-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-hairline-light);
+  }
+
+  table.comparison-table th {
+    background-color: var(--color-surface-soft);
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  table.comparison-table th.col-highlight {
+    background-color: #ededff;
+    color: var(--color-primary-deep);
+  }
+
+  table.comparison-table td.col-highlight {
+    background-color: #fafaff;
+    font-weight: 600;
+    color: var(--color-primary-deep);
+  }
+
+  table.comparison-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* FAQ Accordion / Grid */
+  .faq-section h2 {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--color-ink);
+    margin-bottom: 36px;
+  }
+
+  .faq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+  }
+
+  .faq-item {
+    background: var(--color-surface-soft);
+    border: 1px solid var(--color-hairline-light);
+    border-radius: var(--rounded-lg);
+    padding: 28px;
+  }
+
+  .faq-item h3 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--color-ink);
+    margin-bottom: 10px;
+  }
+
+  .faq-item p {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--color-mute);
+  }
+
+  /* Final CTA Band (Dark Canvas) */
+  section.cta-band {
+    padding: 104px 0 88px;
+    border-top: 1px solid var(--color-hairline-dark);
+  }
+
+  .cta-content {
+    max-width: 680px;
+  }
+
+  .cta-content h2 {
+    font-family: var(--font-display);
+    font-size: clamp(38px, 6vw, 68px);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin-bottom: 20px;
+  }
+
+  .cta-content p {
+    font-size: 18px;
+    line-height: 1.56;
+    color: var(--color-on-dark-mute);
+    margin-bottom: 36px;
+  }
+
+  /* Footer (Dark Canvas) */
+  footer.site-footer {
+    padding: 64px 0 48px;
+    border-top: 1px solid var(--color-divider-soft);
+    font-size: 13px;
+    color: var(--color-on-dark-subtle);
   }
 
   footer .container {
@@ -639,206 +977,512 @@
     gap: 16px;
   }
 
-  footer a.footer-link {
-    color: var(--text-secondary);
+  .footer-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .footer-links a {
+    color: var(--color-on-dark-mute);
     transition: color 0.15s ease;
   }
-  footer a.footer-link:hover { color: var(--text-primary); }
+  .footer-links a:hover { color: var(--color-on-dark); }
 
-  @media (max-width: 640px) {
-    .window-card { flex: 0 0 88vw; }
-    section.hero { padding: 60px 0 36px; }
+  @media (max-width: 768px) {
+    section.hero-band { padding: 64px 0 48px; }
+    h1.hero-title { font-size: 40px; }
+    .hero-mockup-frame { margin-top: 40px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .packaging-grid { grid-template-columns: 1fr; }
+    .faq-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 
 <body>
 
+<!-- Header Navigation -->
 <header class="site-nav" id="navigation">
   <div class="container">
-    <div class="brand">
-      <img class="brand-icon" src="icons/icon_64.png" alt="Tossy icon logo" width="28" height="28" loading="eager" />
-      tossy
-    </div>
+    <a href="#" class="brand" aria-label="Tossy Home">
+      <div class="brand-glyph">
+        <img src="icons/icon_64.png" alt="Tossy icon" width="24" height="24" loading="eager" />
+      </div>
+      <span>Tossy</span>
+    </a>
     <nav class="nav-links">
-      <a class="link" id="linkNavReleases" href="https://github.com/thatonemacosdev/tossy-macos/releases">Releases</a>
-      <a class="link" id="linkNavGithub" href="https://github.com/thatonemacosdev/tossy-macos">GitHub</a>
-      <a class="btn btn-primary" id="btnDownloadNav" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v2.0.0/Tossy-2.0.0-macOS.zip">Download ZIP (v2.0.0)</a>
+      <a class="nav-link" id="linkNavShowcase" href="#showcase">Showcase</a>
+      <a class="nav-link" id="linkNavFeatures" href="#features">Features</a>
+      <a class="nav-link" id="linkNavComparison" href="#comparison">Comparison</a>
+      <a class="nav-link" id="linkNavFaq" href="#faq">FAQ</a>
+      <a class="nav-link" id="linkNavGithub" href="https://github.com/thatonemacosdev/tossy-macos" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn-primary btn-sm" id="btnDownloadNav" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v2.0.0/Tossy-2.0.0-macOS.zip">Download ZIP</a>
     </nav>
   </div>
 </header>
 
 <main id="main-content">
 
-  <section class="hero" id="hero">
+  <!-- Hero Band (Dark Storytelling Canvas) -->
+  <section class="band-dark hero-band" id="hero">
     <div class="container">
-      <div class="hero-content">
-        <h1>Toss your files. Done.</h1>
-        <p class="hero-sub">
-          Tossy is a fast, native macOS utility for converting and transforming your files. Dynamic file detection, universal canvas, PDF studio, lossless video trimmer, code cards, and menu bar Quick-Toss.
+      <div class="hero-wrapper">
+        <div class="hero-badge">
+          <span class="dot"></span>
+          <span>Tossy 2.0.0 Stable Final</span>
+        </div>
+
+        <h1 class="hero-title">Toss your files. Converted instantly.</h1>
+
+        <p class="hero-lead">
+          Dynamic macOS file transformation utility. Window automatically morphs to match whatever you drop: Video, Audio, Images, PDF Studio, or Code Card Studio. Powered by Apple Metal GPU and VideoToolbox. Zero cloud uploads.
         </p>
 
-        <div class="ticker-box" id="tickerBox" aria-hidden="true">
-          <span class="ticker-from" id="tickerFrom">clip.mov</span>
-          <span class="ticker-arrow">→</span>
-          <span class="ticker-to" id="tickerTo">clip.mkv</span>
-          <span class="ticker-badge" id="tickerBadge">converting</span>
+        <!-- Interactive Format Ticker -->
+        <div class="ticker-capsule" id="tickerCapsule" aria-hidden="true">
+          <span class="ticker-token" id="tickerFrom">recording.mov</span>
+          <span class="ticker-arrow">-></span>
+          <span class="ticker-token" id="tickerTo">recording.mp4</span>
+          <span class="ticker-status" id="tickerStatus">Hardware VideoToolbox</span>
         </div>
 
-        <div class="cta-group">
-          <a class="btn btn-primary" id="btnDownloadHero" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v2.0.0/Tossy-2.0.0-macOS.zip">Download v2.0.0 (.zip)</a>
-          <a class="btn btn-secondary" id="btnReleasesHero" href="https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.0.0">Release Notes (v2.0.0)</a>
-          <a class="btn btn-secondary" id="btnGithubHero" href="https://github.com/thatonemacosdev/tossy-macos">GitHub Repository</a>
+        <div class="hero-actions">
+          <a class="btn btn-primary" id="btnDownloadHero" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v2.0.0/Tossy-2.0.0-macOS.zip">
+            Download v2.0.0 (.zip)
+          </a>
+          <a class="btn btn-dark" id="btnReleasesHero" href="https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.0.0" target="_blank" rel="noopener">
+            Release Notes
+          </a>
+          <a class="btn btn-dark" id="btnGithubHero" href="https://github.com/thatonemacosdev/tossy-macos" target="_blank" rel="noopener">
+            GitHub Source
+          </a>
         </div>
 
-        <div class="specs-bar">
-          <span>macOS 14+</span><span class="divider">/</span><span>Apple Silicon &amp; Intel</span><span class="divider">/</span><span>23 MB</span><span class="divider">/</span><span>GPL-3.0</span>
+        <div class="specs-list">
+          <span>macOS 14+ Sonoma &amp; Sequoia</span>
+          <span class="sep">/</span>
+          <span>Apple Silicon &amp; Intel</span>
+          <span class="sep">/</span>
+          <span>23 MB Standalone</span>
+          <span class="sep">/</span>
+          <span>GPL-3.0</span>
         </div>
+
+        <!-- Full-Bleed Product Mockup -->
+        <div class="hero-mockup-frame">
+          <div class="mockup-titlebar">
+            <div class="window-dots">
+              <span class="window-dot close"></span>
+              <span class="window-dot min"></span>
+              <span class="window-dot zoom"></span>
+            </div>
+            <span class="mockup-title">Tossy: Universal Dropzone</span>
+            <div style="width: 48px;"></div>
+          </div>
+          <div class="mockup-viewport">
+            <img src="screenshots/desktop_hero.png" alt="Tossy universal canvas interface dropzone running on macOS" loading="eager" width="2024" height="1380" />
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
 
-  <!-- Top Showcase Scroller Carousel -->
-  <section class="showcase" id="showcase">
+  <!-- Showcase Gallery (Dark Storytelling Canvas) -->
+  <section class="band-dark showcase-band" id="showcase">
     <div class="container">
-      <div class="showcase-bar">
-        <h2>App Showcase</h2>
-        <div class="tab-pills" id="tabPills">
-          <button class="tab-pill active" id="tabPillImages" onclick="activateTab(0)">Images</button>
-          <button class="tab-pill" id="tabPillVideo" onclick="activateTab(1)">Video</button>
-          <button class="tab-pill" id="tabPillAudio" onclick="activateTab(2)">Audio</button>
-          <button class="tab-pill" id="tabPillBenchmark" onclick="activateTab(3)">Benchmark</button>
+      <div class="showcase-header">
+        <div>
+          <h2>Adapts to whatever you drop.</h2>
+        </div>
+        <div>
+          <p>Drop a single file or a mixed directory. Tossy identifies content types and exposes the exact knobs needed for that workload.</p>
         </div>
       </div>
 
+      <!-- Tab Buttons -->
+      <div class="subnav-pills" id="showcasePills">
+        <button class="subnav-pill active" onclick="jumpToShowcase(0)">Video Panel</button>
+        <button class="subnav-pill" onclick="jumpToShowcase(1)">Audio Panel</button>
+        <button class="subnav-pill" onclick="jumpToShowcase(2)">Images Panel</button>
+        <button class="subnav-pill" onclick="jumpToShowcase(3)">PDF Tools</button>
+        <button class="subnav-pill" onclick="jumpToShowcase(4)">Code Card Studio</button>
+        <button class="subnav-pill" onclick="jumpToShowcase(5)">Video Trimmer</button>
+        <button class="subnav-pill" onclick="jumpToShowcase(6)">PDF Studio</button>
+        <button class="subnav-pill" onclick="jumpToShowcase(7)">TossyMark Engine</button>
+      </div>
+
+      <!-- Scroller with Retina Screenshots -->
       <div class="showcase-scroller" id="showcaseScroller">
 
-        <div class="window-card" id="cardImages">
-          <div class="window-header">
-            <div class="window-controls">
-              <span class="window-dot"></span><span class="window-dot"></span><span class="window-dot"></span>
+        <!-- Card 1: Video -->
+        <div class="showcase-card">
+          <div class="showcase-window-header">
+            <div class="window-dots">
+              <span class="window-dot close"></span><span class="window-dot min"></span><span class="window-dot zoom"></span>
             </div>
-            <span class="window-label">Tossy: Images</span>
+            <span class="showcase-label">Tossy: Video Only Panel</span>
+            <span class="showcase-badge-accent showcase-badge-blue">VideoToolbox</span>
           </div>
-          <div class="window-viewport">
-            <img src="screenshots/images.png" alt="Tossy Images tab interface on macOS showing image converter" loading="lazy" />
+          <div class="showcase-viewport">
+            <img src="screenshots/videos.png" alt="Tossy Video tab interface on macOS showing video converter queue" loading="lazy" width="2024" height="1380" />
           </div>
-          <div class="window-caption"><strong>Images</strong>: Toss in HEIC, RAW, JPEG, WebP, AVIF, SVG, or PDF with target-size compression and deep CLI knobs</div>
+          <div class="showcase-caption">
+            <h3>Dedicated Video Conversion Panel</h3>
+            <p>H.264, HEVC, ProRes, MKV, WebM, and Animated GIF. Target size compression, CRF quality sliders, custom dimensions, and Apple Silicon hardware acceleration.</p>
+          </div>
         </div>
 
-        <div class="window-card" id="cardVideo">
-          <div class="window-header">
-            <div class="window-controls">
-              <span class="window-dot"></span><span class="window-dot"></span><span class="window-dot"></span>
+        <!-- Card 2: Audio -->
+        <div class="showcase-card">
+          <div class="showcase-window-header">
+            <div class="window-dots">
+              <span class="window-dot close"></span><span class="window-dot min"></span><span class="window-dot zoom"></span>
             </div>
-            <span class="window-label">Tossy: Video</span>
+            <span class="showcase-label">Tossy: Audio Only Panel</span>
+            <span class="showcase-badge-accent showcase-badge-teal">EBU R128</span>
           </div>
-          <div class="window-viewport">
-            <img src="screenshots/videos.png" alt="Tossy Video tab interface on macOS showing video converter" loading="lazy" />
+          <div class="showcase-viewport">
+            <img src="screenshots/audio.png" alt="Tossy Audio tab interface on macOS showing audio converter" loading="lazy" width="2024" height="1380" />
           </div>
-          <div class="window-caption"><strong>Video</strong>: MP4, MOV, MKV, WebM, Animated GIF, Animated WebP with hardware encoding and CRF controls</div>
+          <div class="showcase-caption">
+            <h3>Studio Audio Transcoding</h3>
+            <p>MP3, AAC, FLAC, ALAC, WAV, OGG, and Opus. Bitrate selection from 64 to 320 kbps, CBR/VBR modes, and broadcast-standard EBU R128 loudness normalization.</p>
+          </div>
         </div>
 
-        <div class="window-card" id="cardAudio">
-          <div class="window-header">
-            <div class="window-controls">
-              <span class="window-dot"></span><span class="window-dot"></span><span class="window-dot"></span>
+        <!-- Card 3: Images -->
+        <div class="showcase-card">
+          <div class="showcase-window-header">
+            <div class="window-dots">
+              <span class="window-dot close"></span><span class="window-dot min"></span><span class="window-dot zoom"></span>
             </div>
-            <span class="window-label">Tossy: Audio</span>
+            <span class="showcase-label">Tossy: Images Panel</span>
+            <span class="showcase-badge-accent showcase-badge-purple">Metal GPU</span>
           </div>
-          <div class="window-viewport">
-            <img src="screenshots/audio.png" alt="Tossy Audio tab interface on macOS showing audio converter" loading="lazy" />
+          <div class="showcase-viewport">
+            <img src="screenshots/images.png" alt="Tossy Images tab interface on macOS showing image converter" loading="lazy" width="2024" height="1380" />
           </div>
-          <div class="window-caption"><strong>Audio</strong>: MP3, AAC, WAV, FLAC, ALAC, OGG, Opus, WMA, AC3 with CBR/VBR and EBU R128 normalization</div>
+          <div class="showcase-caption">
+            <h3>Metal-Powered Image Engine</h3>
+            <p>HEIC, RAW camera files, WebP, AVIF, PNG, and JPEG. Native Vision background removal, quality percentage controls, and target megabyte fitting.</p>
+          </div>
         </div>
 
-        <div class="window-card" id="cardBenchmark">
-          <div class="window-header">
-            <div class="window-controls">
-              <span class="window-dot"></span><span class="window-dot"></span><span class="window-dot"></span>
+        <!-- Card 4: PDF -->
+        <div class="showcase-card">
+          <div class="showcase-window-header">
+            <div class="window-dots">
+              <span class="window-dot close"></span><span class="window-dot min"></span><span class="window-dot zoom"></span>
             </div>
-            <span class="window-label">Tossy: Benchmark</span>
+            <span class="showcase-label">Tossy: PDF Tools</span>
+            <span class="showcase-badge-accent showcase-badge-orange">Apple Vision OCR</span>
           </div>
-          <div class="window-viewport">
-            <img src="screenshots/benchmark.png" alt="Tossy Benchmark tab interface on macOS showing performance score" loading="lazy" />
+          <div class="showcase-viewport">
+            <img src="screenshots/pdf.png" alt="Tossy PDF tools panel interface on macOS showing OCR and compression" loading="lazy" width="2024" height="1380" />
           </div>
-          <div class="window-caption"><strong>Benchmark</strong>: Real-time throughput scoring against calibrated baselines</div>
+          <div class="showcase-caption">
+            <h3>Document OCR and Compression</h3>
+            <p>Burst multi-page documents to single images, split page intervals, perform Quartz filter size reduction, and extract text via Apple Vision OCR.</p>
+          </div>
+        </div>
+
+        <!-- Card 5: Code Card -->
+        <div class="showcase-card">
+          <div class="showcase-window-header">
+            <div class="window-dots">
+              <span class="window-dot close"></span><span class="window-dot min"></span><span class="window-dot zoom"></span>
+            </div>
+            <span class="showcase-label">Tossy: Code Card Studio</span>
+            <span class="showcase-badge-accent showcase-badge-pink">Retina Render</span>
+          </div>
+          <div class="showcase-viewport">
+            <img src="screenshots/code_card.png" alt="Tossy Code Card Studio modal on macOS with Dracula syntax highlighting" loading="lazy" width="1824" height="1300" />
+          </div>
+          <div class="showcase-caption">
+            <h3>Carbon-Style Code Snippet Cards</h3>
+            <p>Drop in Swift, Python, Rust, JavaScript, or JSON. Renders Dracula syntax highlighting with native titlebar chrome and exports to crisp Retina PNG.</p>
+          </div>
+        </div>
+
+        <!-- Card 6: Video Trimmer -->
+        <div class="showcase-card">
+          <div class="showcase-window-header">
+            <div class="window-dots">
+              <span class="window-dot close"></span><span class="window-dot min"></span><span class="window-dot zoom"></span>
+            </div>
+            <span class="showcase-label">Tossy: Media Studio Trimmer</span>
+            <span class="showcase-badge-accent showcase-badge-blue">Stream Copy</span>
+          </div>
+          <div class="showcase-viewport">
+            <img src="screenshots/media_studio.png" alt="Tossy Media Studio Video Trimmer modal on macOS" loading="lazy" width="1824" height="1300" />
+          </div>
+          <div class="showcase-caption">
+            <h3>Lossless Video Trimmer</h3>
+            <p>Scrub video timelines with precision playhead controls. Export trimmed subclips losslessly using stream copy without re-encoding quality degradation.</p>
+          </div>
+        </div>
+
+        <!-- Card 7: PDF Studio -->
+        <div class="showcase-card">
+          <div class="showcase-window-header">
+            <div class="window-dots">
+              <span class="window-dot close"></span><span class="window-dot min"></span><span class="window-dot zoom"></span>
+            </div>
+            <span class="showcase-label">Tossy: PDF Studio Modal</span>
+            <span class="showcase-badge-accent showcase-badge-orange">Quartz Engine</span>
+          </div>
+          <div class="showcase-viewport">
+            <img src="screenshots/pdf_studio.png" alt="Tossy PDF Studio Modal on macOS with Merge, Split, and Burst tabs" loading="lazy" width="1824" height="1300" />
+          </div>
+          <div class="showcase-caption">
+            <h3>PDF Document Assembly</h3>
+            <p>Merge multiple PDF files into unified documents, extract arbitrary page segments, and reorder sheets with fast native Quartz rendering.</p>
+          </div>
+        </div>
+
+        <!-- Card 8: Benchmark -->
+        <div class="showcase-card">
+          <div class="showcase-window-header">
+            <div class="window-dots">
+              <span class="window-dot close"></span><span class="window-dot min"></span><span class="window-dot zoom"></span>
+            </div>
+            <span class="showcase-label">Tossy: TossyMark Engine</span>
+            <span class="showcase-badge-accent showcase-badge-teal">Hardware Benchmark</span>
+          </div>
+          <div class="showcase-viewport">
+            <img src="screenshots/benchmark.png" alt="Tossy TossyMark Benchmark tab interface on macOS with throughput score" loading="lazy" width="2024" height="1380" />
+          </div>
+          <div class="showcase-caption">
+            <h3>TossyMark System Throughput Scoring</h3>
+            <p>Measures raw storage read-write pipelines, Metal GPU shader throughput, and VideoToolbox encoder frames-per-second against calibrated Mac baselines.</p>
+          </div>
         </div>
 
       </div>
     </div>
   </section>
 
-  <!-- Capabilities Section -->
-  <section class="capabilities" id="capabilities">
+  <!-- Full-Bleed White Catalogue Band -->
+  <section class="band-white catalogue-band" id="features">
     <div class="container">
-      <div class="section-intro">
-        <h2>Built for Mac. Designed for speed.</h2>
-        <p>Simple, private, and powerful. Tossy handles images, video, and audio locally without complex terminal flags.</p>
+      <div class="catalogue-intro">
+        <span class="catalogue-tag">Architecture &amp; Features</span>
+        <h2>Engineered for speed, privacy, and precision.</h2>
+        <p>No terminal commands. No cloud uploads. No external dependencies. Tossy bundles hardware pipelines directly into your macOS workflow.</p>
       </div>
 
-      <div class="cards-grid">
-        <div class="card" id="cardDragDrop">
-          <h3>Drag and Drop Simplicity</h3>
-          <p>Toss single files or multi-file batches into Tossy. Pick an output format or quality preset, then let Tossy run.</p>
+      <!-- Feature Grid -->
+      <div class="features-grid">
+
+        <div class="feature-card">
+          <span class="feature-pill-badge badge-teal">Dynamic Detection</span>
+          <h3>Dynamic Window Morphing</h3>
+          <p>Drop files onto Tossy and the application dynamically configures its workspace. Media files open video and audio conversion panels; code snippets trigger Code Card Studio; multi-type drops summon the Universal Canvas.</p>
         </div>
 
-        <div class="card" id="cardMetalVideoToolbox">
-          <h3>Native Metal &amp; VideoToolbox</h3>
-          <p>Uses Metal-backed Core Image processing for images and hardware VideoToolbox encoding for H.264, HEVC, and ProRes clips.</p>
+        <div class="feature-card">
+          <span class="feature-pill-badge badge-purple">Hardware Acceleration</span>
+          <h3>Apple Metal &amp; VideoToolbox</h3>
+          <p>H.264, HEVC, and ProRes encoding runs directly on Apple Silicon media engines. Color adjustments, watermarks, and image scaling execute on Metal shaders for real-time throughput.</p>
         </div>
 
-        <div class="card" id="cardTargetSize">
-          <h3>Fit to Target Size</h3>
-          <p>Specify a size target like 25MB and Tossy dynamically searches quality and bitrate settings to compress your file to fit.</p>
+        <div class="feature-card">
+          <span class="feature-pill-badge badge-green">100% Offline</span>
+          <h3>Zero Network Telemetry</h3>
+          <p>All operations execute locally on your physical machine. Files never travel over the network to third-party servers. Your sensitive videos, invoices, and source code stay private.</p>
         </div>
 
-        <div class="card" id="cardSettingsWindow">
-          <h3>Comprehensive Settings &amp; CLI Knobs</h3>
-          <p>Dedicated macOS Settings window (Cmd+,) and inline format popovers for fine-tuning encoder presets, subsampling, and sample rates.</p>
+        <div class="feature-card">
+          <span class="feature-pill-badge badge-orange">Self-Contained</span>
+          <h3>Bundled Binaries</h3>
+          <p>Zero prerequisite installations. Bundled standalone ffmpeg, libwebp, and libjxl binaries reside inside the application bundle. No Homebrew or command-line setup required.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-pill-badge badge-pink">Size Constraint</span>
+          <h3>Target Megabyte Fitting</h3>
+          <p>Need a video clip under 25MB for Discord or 10MB for email? Tossy analyzes duration and dynamically calculates optimal video bitrates to fit exact file-size caps.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-pill-badge badge-blue">Developer Utility</span>
+          <h3>Code Card Studio</h3>
+          <p>Create presentation-ready code cards with Dracula syntax highlighting, line numbers, custom margins, and native macOS window frames. Export to double-resolution 2x Retina PNGs.</p>
+        </div>
+
+      </div>
+
+      <!-- Packaging and Release Options -->
+      <div class="packaging-grid">
+
+        <div class="plan-card">
+          <div>
+            <div class="plan-tag" style="color: var(--color-mute);">Source Code</div>
+            <h3>Open Source Repository</h3>
+            <p>Inspect the full Swift codebase, build from Xcode, or contribute improvements. Licensed under GPL-3.0 for complete transparency.</p>
+            <ul>
+              <li>Swift 5.10 &amp; SwiftUI native UI</li>
+              <li>AVFoundation &amp; VideoToolbox pipelines</li>
+              <li>Core Image Metal processing</li>
+              <li>Apple Vision framework OCR</li>
+            </ul>
+          </div>
+          <div>
+            <a class="btn btn-soft" id="btnGithubPlan" href="https://github.com/thatonemacosdev/tossy-macos" target="_blank" rel="noopener">View on GitHub</a>
+          </div>
+        </div>
+
+        <div class="plan-card plan-card-featured">
+          <div>
+            <div class="plan-tag">Release Build</div>
+            <h3>Tossy 2.0.0 Standalone ZIP</h3>
+            <p>Precompiled, signed binary archive. Unpack and drag directly into your Applications folder. No installer package or disk image mounting required.</p>
+            <ul>
+              <li>Dynamic file-type detection window</li>
+              <li>Universal Canvas with batch token renaming</li>
+              <li>Lossless video trimmer and stem extraction</li>
+              <li>Bundled standalone ffmpeg utility</li>
+            </ul>
+          </div>
+          <div>
+            <a class="btn btn-primary" id="btnDownloadPlan" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v2.0.0/Tossy-2.0.0-macOS.zip">Download ZIP (23 MB)</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Comparison Matrix -->
+      <div class="comparison-section" id="comparison">
+        <h2>How Tossy compares</h2>
+        <div class="table-responsive">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th class="col-highlight">Tossy 2.0.0</th>
+                <th>Online Converters</th>
+                <th>HandBrake</th>
+                <th>Terminal ffmpeg</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Local Privacy</td>
+                <td class="col-highlight">100% Offline</td>
+                <td>Files Uploaded to Cloud</td>
+                <td>Offline</td>
+                <td>Offline</td>
+              </tr>
+              <tr>
+                <td>Dynamic Window Detection</td>
+                <td class="col-highlight">Auto-morphs per file type</td>
+                <td>Manual upload form</td>
+                <td>Video only</td>
+                <td>Manual CLI flags</td>
+              </tr>
+              <tr>
+                <td>Apple Silicon Acceleration</td>
+                <td class="col-highlight">VideoToolbox &amp; Metal</td>
+                <td>Remote server queues</td>
+                <td>VideoToolbox</td>
+                <td>Manual configuration</td>
+              </tr>
+              <tr>
+                <td>Target MB Size Search</td>
+                <td class="col-highlight">Automatic binary search</td>
+                <td>Rare or paid tier</td>
+                <td>Manual calculation</td>
+                <td>Multi-pass shell script</td>
+              </tr>
+              <tr>
+                <td>Code Card PNG Studio</td>
+                <td class="col-highlight">Built-in Retina exporter</td>
+                <td>Separate web tool</td>
+                <td>Not supported</td>
+                <td>Not supported</td>
+              </tr>
+              <tr>
+                <td>PDF OCR &amp; Assembly</td>
+                <td class="col-highlight">Apple Vision OCR built-in</td>
+                <td>Paid monthly tier</td>
+                <td>Not supported</td>
+                <td>Requires tesseract</td>
+              </tr>
+              <tr>
+                <td>Dependencies</td>
+                <td class="col-highlight">Zero: bundled binaries</td>
+                <td>Web browser</td>
+                <td>Application bundle</td>
+                <td>Homebrew and 40+ libraries</td>
+              </tr>
+              <tr>
+                <td>Pricing &amp; License</td>
+                <td class="col-highlight">Free &amp; GPL-3.0</td>
+                <td>Subscription or paywalls</td>
+                <td>Free &amp; GPL</td>
+                <td>Free &amp; GPL / LGPL</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
+
+      <!-- FAQ Section -->
+      <div class="faq-section" id="faq">
+        <h2>Frequently asked questions</h2>
+        <div class="faq-grid">
+
+          <div class="faq-item">
+            <h3>Is Tossy completely free?</h3>
+            <p>Yes. Tossy is free and open source software under the GNU General Public License v3.0. There are no subscriptions, paywalls, accounts, or tracking scripts.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>Does Tossy send data over the internet?</h3>
+            <p>Never. Every conversion, optical character recognition task, and video trim executes entirely on your local Mac processor, GPU, and media engine.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>How does dynamic window detection work?</h3>
+            <p>When you drag a file into Tossy, the window inspects its MIME type and extension. Dropping a video presents the video panel; dropping audio isolates audio knobs; dropping code triggers Code Card Studio; mixed batches open the Universal Canvas.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>Do I need Homebrew or ffmpeg installed?</h3>
+            <p>No. Tossy bundles dedicated, self-contained binaries for ffmpeg, WebP, and JPEG XL inside its application bundle, running independently without external packages.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>What versions of macOS are supported?</h3>
+            <p>Tossy supports macOS 14 Sonoma and macOS 15 Sequoia on both Apple Silicon (M1, M2, M3, M4) and Intel hardware architectures.</p>
+          </div>
+
+          <div class="faq-item">
+            <h3>Can I compress videos for email or messaging limits?</h3>
+            <p>Yes. In the Advanced controls, enter a target megabyte threshold like 25MB. Tossy runs an iterative search to find the highest bitrate that guarantees the final output fits.</p>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </section>
 
-  <!-- Offline & Privacy Section -->
-  <section class="offline" id="privacy">
+  <!-- Final Dark CTA Band -->
+  <section class="band-dark cta-band" id="download">
     <div class="container">
-      <div class="offline-panel">
-        <h2>Your files stay on your Mac.</h2>
-        <p>
-          Local by default. Private by design. Every conversion runs locally on your machine using Apple's native frameworks and a bundled, self-contained ffmpeg. Nothing is ever uploaded to a server or external service.
-        </p>
-        <div class="license-meta">
-          App source: GPL-3.0. Bundled ffmpeg: GPL (libx264/libx265). WebP &amp; JPEG XL tools: BSD.
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ Section -->
-  <section class="faq" id="faq">
-    <div class="container">
-      <h2>Frequently Asked Questions</h2>
-      <div class="faq-layout">
-        <div class="faq-card" id="faqFree">
-          <h3>Is Tossy free?</h3>
-          <p>Yes. It is free and open source under GPL-3.0. No accounts, no subscriptions, and no ads.</p>
-        </div>
-
-        <div class="faq-card" id="faqPrivacy">
-          <h3>Does Tossy upload my files anywhere?</h3>
-          <p>No. Every operation executes entirely offline on your Mac. No data ever leaves your device.</p>
-        </div>
-
-        <div class="faq-card" id="faqStandalone">
-          <h3>Do I need to install Homebrew or ffmpeg?</h3>
-          <p>No. ffmpeg, WebP, and JPEG XL reference binaries are bundled directly inside Tossy and run standalone.</p>
-        </div>
-
-        <div class="faq-card" id="faqFormats">
-          <h3>What formats are supported?</h3>
-          <p>Over 60 formats across images, video, and audio: HEIC, RAW camera files, MP4, MKV, WebM, FLAC, Animated GIFs, and Animated WebP.</p>
+      <div class="cta-content">
+        <h2>Convert anything. Keep your files private.</h2>
+        <p>Get Tossy 2.0.0 for macOS. Portable standalone distribution with zero dependencies and no installer required.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" id="btnDownloadFooter" href="https://github.com/thatonemacosdev/tossy-macos/releases/download/v2.0.0/Tossy-2.0.0-macOS.zip">
+            Download Standalone ZIP (v2.0.0)
+          </a>
+          <a class="btn btn-dark" id="btnGithubFooter" href="https://github.com/thatonemacosdev/tossy-macos" target="_blank" rel="noopener">
+            View on GitHub
+          </a>
         </div>
       </div>
     </div>
@@ -846,21 +1490,28 @@
 
 </main>
 
-<footer id="footer">
+<!-- Site Footer (Dark Canvas) -->
+<footer class="site-footer" id="footer">
   <div class="container">
-    <span>&copy; 2026 thatonemacosdev</span>
-    <a class="footer-link" id="linkFooterGithub" href="https://github.com/thatonemacosdev/tossy-macos">github.com/thatonemacosdev/tossy-macos</a>
+    <div>
+      <span>Copyright 2026 thatonemacosdev. Released under GNU GPL-3.0.</span>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.0.0" target="_blank" rel="noopener">v2.0.0 Release</a>
+      <a href="https://github.com/thatonemacosdev/tossy-macos/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
+      <a href="https://github.com/thatonemacosdev/tossy-macos" target="_blank" rel="noopener">GitHub</a>
+    </div>
   </div>
 </footer>
 
 <script>
-  function activateTab(index) {
+  function jumpToShowcase(index) {
     var scroller = document.getElementById('showcaseScroller');
-    var cards = scroller ? scroller.getElementsByClassName('window-card') : [];
+    var cards = scroller ? scroller.getElementsByClassName('showcase-card') : [];
     if (cards && cards[index]) {
       cards[index].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
     }
-    var pills = document.querySelectorAll('.tab-pill');
+    var pills = document.querySelectorAll('.subnav-pill');
     pills.forEach(function (pill, idx) {
       if (idx === index) {
         pill.classList.add('active');
@@ -871,47 +1522,35 @@
   }
 
   (function () {
-    var box = document.getElementById('tickerBox');
+    var capsule = document.getElementById('tickerCapsule');
     var fromEl = document.getElementById('tickerFrom');
     var toEl = document.getElementById('tickerTo');
-    var badgeEl = document.getElementById('tickerBadge');
-    if (!box || !fromEl || !toEl || !badgeEl) return;
+    var statusEl = document.getElementById('tickerStatus');
+    if (!capsule || !fromEl || !toEl || !statusEl) return;
 
-    var pairs = [
-      ['clip.mov', 'clip.mkv'],
-      ['photo.heic', 'photo.png'],
-      ['track.wav', 'track.flac'],
-      ['video.avi', 'video.mp4'],
-      ['raw.cr2', 'raw.dng'],
-      ['icon.svg', 'icon.icns']
+    var sequence = [
+      ['recording.mov', 'recording.mp4', 'Hardware VideoToolbox'],
+      ['portrait.heic', 'portrait.png', 'Apple Metal GPU'],
+      ['podcast.wav', 'podcast.flac', 'EBU R128 Normalized'],
+      ['document.pdf', 'document_ocr.txt', 'Apple Vision OCR'],
+      ['main.swift', 'snippet_card.png', 'Dracula Syntax 2x Retina'],
+      ['sample.mkv', 'sample_trimmed.mp4', 'Lossless Stream Copy']
     ];
 
-    var index = 0;
-
-    function markDone() {
-      badgeEl.textContent = 'done';
-      badgeEl.classList.add('done');
-    }
-
-    function markConverting() {
-      badgeEl.textContent = 'converting';
-      badgeEl.classList.remove('done');
-    }
+    var step = 0;
 
     function cycle() {
-      box.classList.add('fading');
+      capsule.classList.add('fading');
       setTimeout(function () {
-        index = (index + 1) % pairs.length;
-        fromEl.textContent = pairs[index][0];
-        toEl.textContent = pairs[index][1];
-        markConverting();
-        box.classList.remove('fading');
-        setTimeout(markDone, 700);
-      }, 250);
+        step = (step + 1) % sequence.length;
+        fromEl.textContent = sequence[step][0];
+        toEl.textContent = sequence[step][1];
+        statusEl.textContent = sequence[step][2];
+        capsule.classList.remove('fading');
+      }, 200);
     }
 
-    setTimeout(markDone, 700);
-    setInterval(cycle, 2600);
+    setInterval(cycle, 2800);
   })();
 </script>
 

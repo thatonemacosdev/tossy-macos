@@ -94,6 +94,20 @@ struct UniversalCanvasView: View {
     @State private var batchSummaryText: String?
     @State private var showOtherStudios = false
     
+    init(initialMode: CanvasContentMode = .all, initialJobs: [ConversionJob] = []) {
+        _activeMode = State(initialValue: initialMode)
+        _jobs = State(initialValue: initialJobs)
+        if case .video = initialMode {
+            _selectedTarget = State(initialValue: .video(.mp4H264))
+        } else if case .audio = initialMode {
+            _selectedTarget = State(initialValue: .audio(.mp3))
+        } else if case .image = initialMode {
+            _selectedTarget = State(initialValue: .image(.webp))
+        } else if case .pdf = initialMode {
+            _selectedTarget = State(initialValue: .image(.png))
+        }
+    }
+    
     // Modal Tool States
     @State private var showPDFStudio = false
     @State private var showMediaStudio = false
