@@ -27,7 +27,7 @@ enum CodeLanguageDetector {
     }
     
     static let codeExtensions = Set([
-        "swift", "py", "ts", "tsx", "js", "jsx", "rs", "go", "json", "html", "css", "scss", "md", "sh", "bash", "zsh", "c", "h", "cpp", "hpp", "java", "kt", "rb", "php", "sql", "yaml", "yml"
+        "swift", "py", "pyw", "ts", "tsx", "js", "mjs", "cjs", "jsx", "rs", "go", "json", "html", "htm", "css", "scss", "sass", "less", "md", "markdown", "sh", "bash", "zsh", "fish", "c", "h", "cpp", "cc", "cxx", "hpp", "java", "kt", "kts", "rb", "php", "sql", "yaml", "yml", "xml", "toml"
     ])
 }
 

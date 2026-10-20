@@ -45,8 +45,40 @@ enum UniversalFormatTarget: Hashable, Identifiable {
     }
 }
 
+enum CanvasContentMode: String, CaseIterable, Identifiable {
+    case all = "All Formats"
+    case video = "Video Only"
+    case audio = "Audio Only"
+    case image = "Images Only"
+    case pdf = "PDF Tools"
+    
+    var id: String { rawValue }
+    
+    var icon: String {
+        switch self {
+        case .all: return "sparkles"
+        case .video: return "film.stack.fill"
+        case .audio: return "waveform"
+        case .image: return "photo.stack.fill"
+        case .pdf: return "doc.richtext.fill"
+        }
+    }
+    
+    var tintColor: Color {
+        switch self {
+        case .all: return TossyColor.accentProminentBg
+        case .video: return Color.blue
+        case .audio: return Color.purple
+        case .image: return Color.cyan
+        case .pdf: return Color.orange
+        }
+    }
+}
+
 struct UniversalCanvasView: View {
+    @Bindable var settings = AppSettings.shared
     @State private var jobs: [ConversionJob] = []
+    @State private var activeMode: CanvasContentMode = .all
     @State private var selectedTarget: UniversalFormatTarget = .image(.webp)
     @State private var quality: Double = 0.85
     @State private var destinationFolder: URL?
@@ -60,6 +92,7 @@ struct UniversalCanvasView: View {
     @State private var preserveMetadata = true
     @State private var ebuR128Normalize = false
     @State private var batchSummaryText: String?
+    @State private var showOtherStudios = false
     
     // Modal Tool States
     @State private var showPDFStudio = false
@@ -156,6 +189,11 @@ struct UniversalCanvasView: View {
                                         onRemove: {
                                             withAnimation(TossyMotion.springSmooth) {
                                                 jobs.removeAll(where: { $0.id == job.id })
+                                                if jobs.isEmpty {
+                                                    activeMode = .all
+                                                } else {
+                                                    activeMode = detectMode(for: jobs.map(\.sourceURL))
+                                                }
                                             }
                                         }
                                     )
@@ -169,13 +207,13 @@ struct UniversalCanvasView: View {
                         bottomBar
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     } else {
-                        // Clean, distraction-free Dropzone (Zero format controls shown until dropped)
+                        // Clean, dynamic detecting Dropzone
                         DropZoneView(
                             isTargeted: isTargeted,
                             icon: "arrow.triangle.2.circlepath.circle",
                             title: "Toss any files here to convert",
-                            subtitle: "Drop files to automatically detect formats, or choose a tool from the sidebar",
-                            formatTags: ["Images", "Video", "Audio", "PDF", "Vision AI", "CLI Knobs"]
+                            subtitle: "Automatically adapts to Video, Audio, Image, Code, or PDF studio",
+                            formatTags: ["Video (MP4/MKV)", "Audio (MP3/FLAC)", "Images (WebP/JXL)", "Code Cards", "PDF Tools"]
                         ) {
                             isShowingImporter = true
                         }
@@ -289,112 +327,355 @@ struct UniversalCanvasView: View {
                 .padding(.horizontal, 4)
                 .padding(.top, 2)
                 
-                // Studio 1: Media Studio
-                studioCard(
-                    title: "Media Studio",
-                    subtitle: "Video, Audio & AI Vision",
-                    icon: "film.stack.fill",
-                    gradient: [Color.cyan, Color.blue],
-                    onOpen: {
-                        mediaStudioInitialTab = .trim
-                        showMediaStudio = true
-                    },
-                    chips: [
-                        ("Trim & Cut", "scissors", {
+                if activeMode == .video {
+                    // Video Studio Focus
+                    studioCard(
+                        title: "Media Studio (Video)",
+                        subtitle: "Lossless Cut, Audio & Speed",
+                        icon: "film.stack.fill",
+                        gradient: [Color.cyan, Color.blue],
+                        onOpen: {
                             mediaStudioInitialTab = .trim
                             showMediaStudio = true
-                        }),
-                        ("Strip Audio", "waveform", {
+                        },
+                        chips: [
+                            ("Trim & Cut", "scissors", {
+                                mediaStudioInitialTab = .trim
+                                showMediaStudio = true
+                            }),
+                            ("Strip Audio", "waveform", {
+                                mediaStudioInitialTab = .extractAudio
+                                showMediaStudio = true
+                            }),
+                            ("Rotate & Speed", "rotate.right", {
+                                mediaStudioInitialTab = .rotateSpeed
+                                showMediaStudio = true
+                            }),
+                            ("Extract MP3", "waveform.badge.plus", {
+                                mediaStudioInitialTab = .extractAudio
+                                showMediaStudio = true
+                            })
+                        ]
+                    )
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Video Utilities")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(TossyColor.textTertiary)
+                            .padding(.horizontal, 4)
+                            .padding(.top, 4)
+                        
+                        utilityRowButton(title: "Batch Token Rename", icon: "pencil.line") {
+                            showRenamer = true
+                        }
+                        utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
+                            showArchiveModal = true
+                        }
+                    }
+                    
+                    collapsibleOtherStudios
+                } else if activeMode == .audio {
+                    // Audio Studio Focus
+                    studioCard(
+                        title: "Audio Studio",
+                        subtitle: "Extraction & Normalization",
+                        icon: "waveform",
+                        gradient: [Color.purple, Color.indigo],
+                        onOpen: {
                             mediaStudioInitialTab = .extractAudio
                             showMediaStudio = true
-                        }),
-                        ("AI Remove BG", "person.crop.circle.badge.checkmark", {
-                            triggerAIRemoveBG()
-                        }),
-                        ("Rotate & Speed", "rotate.right", {
-                            mediaStudioInitialTab = .rotateSpeed
+                        },
+                        chips: [
+                            ("Extract Audio", "waveform.badge.plus", {
+                                mediaStudioInitialTab = .extractAudio
+                                showMediaStudio = true
+                            }),
+                            ("EBU Loudnorm", "waveform.path.ecg", {
+                                settings.audioConfig.normalizeEBUR128.toggle()
+                            }),
+                            ("Silence / Strip", "speaker.slash", {
+                                mediaStudioInitialTab = .extractAudio
+                                showMediaStudio = true
+                            })
+                        ]
+                    )
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Audio Utilities")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(TossyColor.textTertiary)
+                            .padding(.horizontal, 4)
+                            .padding(.top, 4)
+                        
+                        utilityRowButton(title: "Batch Token Rename", icon: "pencil.line") {
+                            showRenamer = true
+                        }
+                        utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
+                            showArchiveModal = true
+                        }
+                    }
+                    
+                    collapsibleOtherStudios
+                } else if activeMode == .image {
+                    // Image Studio Focus
+                    studioCard(
+                        title: "Image Studio & Vision AI",
+                        subtitle: "Background Cutout & Clean",
+                        icon: "photo.stack.fill",
+                        gradient: [Color.mint, Color.teal],
+                        onOpen: {
+                            mediaStudioInitialTab = .removeBg
                             showMediaStudio = true
-                        })
-                    ]
-                )
-                
-                // Studio 2: PDF Studio
-                studioCard(
-                    title: "PDF Studio",
-                    subtitle: "Burst, Vision OCR & Compress",
-                    icon: "doc.richtext.fill",
-                    gradient: [Color.orange, Color.red],
-                    onOpen: {
-                        pdfStudioInitialTab = .merge
-                        showPDFStudio = true
-                    },
-                    chips: [
-                        ("Burst to Images", "doc.on.doc.fill", {
-                            triggerBurstPDF()
-                        }),
-                        ("Vision OCR", "text.viewfinder", {
-                            pdfStudioInitialTab = .ocr
-                            showPDFStudio = true
-                        }),
-                        ("Compress PDF", "arrow.down.right.and.arrow.up.left", {
-                            pdfStudioInitialTab = .compress
-                            showPDFStudio = true
-                        }),
-                        ("Merge & Split", "scissors", {
+                        },
+                        chips: [
+                            ("AI Remove BG", "person.crop.circle.badge.checkmark", {
+                                triggerAIRemoveBG()
+                            }),
+                            ("Quality Compare", "arrow.left.and.right.square.fill", {
+                                openQualityInspector()
+                            }),
+                            ("Strip EXIF", "eye.slash.fill", {
+                                showMetadataSanitizer = true
+                            }),
+                            ("Batch Rename", "pencil.line", {
+                                showRenamer = true
+                            })
+                        ]
+                    )
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Image Utilities")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(TossyColor.textTertiary)
+                            .padding(.horizontal, 4)
+                            .padding(.top, 4)
+                        
+                        utilityRowButton(title: "Strip EXIF Metadata", icon: "eye.slash.fill") {
+                            showMetadataSanitizer = true
+                        }
+                        utilityRowButton(title: "Quality Inspector", icon: "arrow.left.and.right.square.fill") {
+                            openQualityInspector()
+                        }
+                        utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
+                            showArchiveModal = true
+                        }
+                    }
+                    
+                    collapsibleOtherStudios
+                } else if activeMode == .pdf {
+                    // PDF Studio Focus
+                    studioCard(
+                        title: "PDF Studio",
+                        subtitle: "Burst, Vision OCR & Compress",
+                        icon: "doc.richtext.fill",
+                        gradient: [Color.orange, Color.red],
+                        onOpen: {
                             pdfStudioInitialTab = .merge
                             showPDFStudio = true
-                        })
-                    ]
-                )
-                
-                // Studio 3: Code Card Studio
-                studioCard(
-                    title: "Code Card Studio",
-                    subtitle: "VS Code Syntax to Retina PNG",
-                    icon: "curlybraces.square.fill",
-                    gradient: [Color.green, Color.teal],
-                    onOpen: {
-                        showCodeCards = true
-                    },
-                    chips: [
-                        ("New Card", "plus.square.fill", {
-                            codeCardInitialCode = "// Paste or write code here\n"
-                            codeCardInitialFileName = "snippet.swift"
-                            showCodeCards = true
-                        }),
-                        ("From Clipboard", "doc.on.clipboard.fill", {
-                            openCodeCardFromClipboard()
-                        }),
-                        ("18+ Languages", "text.alignleft", {
-                            showCodeCards = true
-                        })
-                    ]
-                )
-                
-                // Auxiliary Utilities Section
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Utilities")
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
-                        .foregroundStyle(TossyColor.textTertiary)
-                        .padding(.horizontal, 4)
-                        .padding(.top, 4)
+                        },
+                        chips: [
+                            ("Burst to Images", "doc.on.doc.fill", {
+                                triggerBurstPDF()
+                            }),
+                            ("Vision OCR", "text.viewfinder", {
+                                pdfStudioInitialTab = .ocr
+                                showPDFStudio = true
+                            }),
+                            ("Compress PDF", "arrow.down.right.and.arrow.up.left", {
+                                pdfStudioInitialTab = .compress
+                                showPDFStudio = true
+                            }),
+                            ("Merge & Split", "scissors", {
+                                pdfStudioInitialTab = .merge
+                                showPDFStudio = true
+                            })
+                        ]
+                    )
                     
-                    utilityRowButton(title: "Strip EXIF Metadata", icon: "eye.slash.fill") {
-                        showMetadataSanitizer = true
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("PDF Utilities")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(TossyColor.textTertiary)
+                            .padding(.horizontal, 4)
+                            .padding(.top, 4)
+                        
+                        utilityRowButton(title: "Batch Token Rename", icon: "pencil.line") {
+                            showRenamer = true
+                        }
+                        utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
+                            showArchiveModal = true
+                        }
                     }
-                    utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
-                        showArchiveModal = true
-                    }
-                    utilityRowButton(title: "Batch Token Rename", icon: "pencil.line") {
-                        showRenamer = true
-                    }
-                    utilityRowButton(title: "Quality Inspector", icon: "arrow.left.and.right.square.fill") {
-                        openQualityInspector()
+                    
+                    collapsibleOtherStudios
+                } else {
+                    // Universal Mode: All 3 Studios
+                    studioCard(
+                        title: "Media Studio",
+                        subtitle: "Video, Audio & AI Vision",
+                        icon: "film.stack.fill",
+                        gradient: [Color.cyan, Color.blue],
+                        onOpen: {
+                            mediaStudioInitialTab = .trim
+                            showMediaStudio = true
+                        },
+                        chips: [
+                            ("Trim & Cut", "scissors", {
+                                mediaStudioInitialTab = .trim
+                                showMediaStudio = true
+                            }),
+                            ("Strip Audio", "waveform", {
+                                mediaStudioInitialTab = .extractAudio
+                                showMediaStudio = true
+                            }),
+                            ("AI Remove BG", "person.crop.circle.badge.checkmark", {
+                                triggerAIRemoveBG()
+                            }),
+                            ("Rotate & Speed", "rotate.right", {
+                                mediaStudioInitialTab = .rotateSpeed
+                                showMediaStudio = true
+                            })
+                        ]
+                    )
+                    
+                    studioCard(
+                        title: "PDF Studio",
+                        subtitle: "Burst, Vision OCR & Compress",
+                        icon: "doc.richtext.fill",
+                        gradient: [Color.orange, Color.red],
+                        onOpen: {
+                            pdfStudioInitialTab = .merge
+                            showPDFStudio = true
+                        },
+                        chips: [
+                            ("Burst to Images", "doc.on.doc.fill", {
+                                triggerBurstPDF()
+                            }),
+                            ("Vision OCR", "text.viewfinder", {
+                                pdfStudioInitialTab = .ocr
+                                showPDFStudio = true
+                            }),
+                            ("Compress PDF", "arrow.down.right.and.arrow.up.left", {
+                                pdfStudioInitialTab = .compress
+                                showPDFStudio = true
+                            }),
+                            ("Merge & Split", "scissors", {
+                                pdfStudioInitialTab = .merge
+                                showPDFStudio = true
+                            })
+                        ]
+                    )
+                    
+                    studioCard(
+                        title: "Code Card Studio",
+                        subtitle: "VS Code Syntax to Retina PNG",
+                        icon: "curlybraces.square.fill",
+                        gradient: [Color.green, Color.teal],
+                        onOpen: {
+                            showCodeCards = true
+                        },
+                        chips: [
+                            ("New Card", "plus.square.fill", {
+                                codeCardInitialCode = "// Paste or write code here\n"
+                                codeCardInitialFileName = "snippet.swift"
+                                showCodeCards = true
+                            }),
+                            ("From Clipboard", "doc.on.clipboard.fill", {
+                                openCodeCardFromClipboard()
+                            }),
+                            ("18+ Languages", "text.alignleft", {
+                                showCodeCards = true
+                            })
+                        ]
+                    )
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Utilities")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(TossyColor.textTertiary)
+                            .padding(.horizontal, 4)
+                            .padding(.top, 4)
+                        
+                        utilityRowButton(title: "Strip EXIF Metadata", icon: "eye.slash.fill") {
+                            showMetadataSanitizer = true
+                        }
+                        utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
+                            showArchiveModal = true
+                        }
+                        utilityRowButton(title: "Batch Token Rename", icon: "pencil.line") {
+                            showRenamer = true
+                        }
+                        utilityRowButton(title: "Quality Inspector", icon: "arrow.left.and.right.square.fill") {
+                            openQualityInspector()
+                        }
                     }
                 }
             }
             .padding(10)
         }
+    }
+    
+    private var collapsibleOtherStudios: some View {
+        DisclosureGroup(isExpanded: $showOtherStudios) {
+            VStack(spacing: 8) {
+                if activeMode != .video && activeMode != .audio {
+                    secondaryStudioRow(title: "Media Studio", icon: "film.stack.fill", gradient: [Color.cyan, Color.blue]) {
+                        mediaStudioInitialTab = .trim
+                        showMediaStudio = true
+                    }
+                }
+                if activeMode != .pdf {
+                    secondaryStudioRow(title: "PDF Studio", icon: "doc.richtext.fill", gradient: [Color.orange, Color.red]) {
+                        pdfStudioInitialTab = .merge
+                        showPDFStudio = true
+                    }
+                }
+                secondaryStudioRow(title: "Code Card Studio", icon: "curlybraces.square.fill", gradient: [Color.green, Color.teal]) {
+                    showCodeCards = true
+                }
+                secondaryStudioRow(title: "Encrypted Archive", icon: "lock.shield.fill", gradient: [Color.gray, Color.secondary]) {
+                    showArchiveModal = true
+                }
+            }
+            .padding(.top, 4)
+        } label: {
+            Text("Other Studios & Tools")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(TossyColor.textTertiary)
+        }
+        .padding(.top, 6)
+    }
+    
+    private func secondaryStudioRow(
+        title: String,
+        icon: String,
+        gradient: [Color],
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 22, height: 22)
+                    Image(systemName: icon)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+                Text(title)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(TossyColor.textPrimary)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 9))
+                    .foregroundStyle(TossyColor.textTertiary)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(TossyColor.surfaceElevated.opacity(0.6))
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
     
     @ViewBuilder
@@ -589,36 +870,126 @@ struct UniversalCanvasView: View {
     
     private var controlBar: some View {
         VStack(alignment: .leading, spacing: 10) {
+            // Dynamic Detection & Mode Header
+            HStack(alignment: .center, spacing: 8) {
+                HStack(spacing: 5) {
+                    Image(systemName: activeMode.icon)
+                        .font(.system(size: 11, weight: .bold))
+                    Text(activeMode.rawValue)
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                }
+                .foregroundStyle(activeMode.tintColor)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 4)
+                .background(activeMode.tintColor.opacity(0.14))
+                .clipShape(Capsule())
+                .overlay(Capsule().strokeBorder(activeMode.tintColor.opacity(0.3), lineWidth: 1))
+                
+                Text("• \(jobs.count) item\(jobs.count == 1 ? "" : "s") queued")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(TossyColor.textSecondary)
+                
+                Spacer()
+                
+                Menu {
+                    ForEach(CanvasContentMode.allCases) { mode in
+                        Button {
+                            withAnimation(TossyMotion.springSmooth) {
+                                activeMode = mode
+                                switch mode {
+                                case .video: selectedTarget = .video(.mp4H264)
+                                case .audio: selectedTarget = .audio(.mp3)
+                                case .image: selectedTarget = .image(.webp)
+                                case .pdf: selectedTarget = .pdfAction("PNG")
+                                case .all: break
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Label(mode.rawValue, systemImage: mode.icon)
+                                if activeMode == mode {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(activeMode == .all ? "View: All Formats" : "Panel: \(activeMode.rawValue)")
+                            .font(.system(size: 10, weight: .semibold))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 8))
+                    }
+                    .foregroundStyle(TossyColor.textSecondary)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 4)
+                    .background(TossyColor.surfaceElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                .buttonStyle(.plain)
+            }
+
             HStack(spacing: 12) {
-                // Universal Target Format Picker
+                // Dynamic Target Format Picker
                 Picker("Convert to", selection: $selectedTarget) {
-                    Section("Image Formats") {
-                        ForEach(ImageFormat.allCases) { fmt in
-                            Text(fmt.displayName).tag(UniversalFormatTarget.image(fmt))
+                    switch activeMode {
+                    case .video:
+                        Section("Video Formats") {
+                            ForEach(VideoFormat.allCases) { fmt in
+                                Text(fmt.displayName).tag(UniversalFormatTarget.video(fmt))
+                            }
                         }
-                    }
-                    
-                    Section("Video Formats") {
-                        ForEach(VideoFormat.allCases) { fmt in
-                            Text(fmt.displayName).tag(UniversalFormatTarget.video(fmt))
+                        Section("Extract Audio") {
+                            Text("Extract MP3 Audio").tag(UniversalFormatTarget.audio(.mp3))
+                            Text("Extract AAC Audio").tag(UniversalFormatTarget.audio(.aac))
+                            Text("Extract WAV Audio").tag(UniversalFormatTarget.audio(.wav))
                         }
-                    }
-                    
-                    Section("Audio Formats") {
-                        ForEach(AudioFormat.allCases) { fmt in
-                            Text(fmt.displayName).tag(UniversalFormatTarget.audio(fmt))
+                    case .audio:
+                        Section("Audio Formats") {
+                            ForEach(AudioFormat.allCases) { fmt in
+                                Text(fmt.displayName).tag(UniversalFormatTarget.audio(fmt))
+                            }
                         }
-                    }
-                    
-                    Section("PDF & Document Tools") {
-                        Text("PDF → PNG Images").tag(UniversalFormatTarget.pdfAction("PNG"))
-                        Text("PDF → JPEG Images").tag(UniversalFormatTarget.pdfAction("JPEG"))
-                        Text("PDF → WebP Images").tag(UniversalFormatTarget.pdfAction("WebP"))
-                        Text("PDF → Compress Document").tag(UniversalFormatTarget.pdfAction("Compress"))
-                        Text("PDF → Vision OCR (TXT)").tag(UniversalFormatTarget.pdfAction("OCR"))
+                    case .image:
+                        Section("Image Formats") {
+                            ForEach(ImageFormat.allCases) { fmt in
+                                Text(fmt.displayName).tag(UniversalFormatTarget.image(fmt))
+                            }
+                        }
+                    case .pdf:
+                        Section("PDF Actions") {
+                            Text("PDF → PNG Images").tag(UniversalFormatTarget.pdfAction("PNG"))
+                            Text("PDF → JPEG Images").tag(UniversalFormatTarget.pdfAction("JPEG"))
+                            Text("PDF → WebP Images").tag(UniversalFormatTarget.pdfAction("WebP"))
+                            Text("PDF → Compress Document").tag(UniversalFormatTarget.pdfAction("Compress"))
+                            Text("PDF → Vision OCR (TXT)").tag(UniversalFormatTarget.pdfAction("OCR"))
+                        }
+                    case .all:
+                        Section("Image Formats") {
+                            ForEach(ImageFormat.allCases) { fmt in
+                                Text(fmt.displayName).tag(UniversalFormatTarget.image(fmt))
+                            }
+                        }
+                        Section("Video Formats") {
+                            ForEach(VideoFormat.allCases) { fmt in
+                                Text(fmt.displayName).tag(UniversalFormatTarget.video(fmt))
+                            }
+                        }
+                        Section("Audio Formats") {
+                            ForEach(AudioFormat.allCases) { fmt in
+                                Text(fmt.displayName).tag(UniversalFormatTarget.audio(fmt))
+                            }
+                        }
+                        Section("PDF & Document Tools") {
+                            Text("PDF → PNG Images").tag(UniversalFormatTarget.pdfAction("PNG"))
+                            Text("PDF → JPEG Images").tag(UniversalFormatTarget.pdfAction("JPEG"))
+                            Text("PDF → WebP Images").tag(UniversalFormatTarget.pdfAction("WebP"))
+                            Text("PDF → Compress Document").tag(UniversalFormatTarget.pdfAction("Compress"))
+                            Text("PDF → Vision OCR (TXT)").tag(UniversalFormatTarget.pdfAction("OCR"))
+                        }
                     }
                 }
-                .frame(width: 230)
+                .frame(width: activeMode == .all ? 220 : 200)
                 
                 // CLI Knobs Popover Button
                 if let cat = selectedTarget.inspectorCategory {
@@ -646,7 +1017,7 @@ struct UniversalCanvasView: View {
                     }
                 }
                 
-                // Quality Slider
+                // Quality Slider for Images
                 if selectedTarget.supportsQuality {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Quality \(Int(quality * 100))%")
@@ -655,9 +1026,31 @@ struct UniversalCanvasView: View {
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
                         Slider(value: $quality, in: 0.1...1.0)
-                            .frame(width: 110)
+                            .frame(width: 100)
                     }
                     .fixedSize(horizontal: true, vertical: false)
+                }
+                
+                // Bitrate selector for Audio
+                if activeMode == .audio || selectedAudioTarget != nil {
+                    Picker("Bitrate", selection: $settings.audioConfig.cbrBitrateKbps) {
+                        Text("320k").tag(320)
+                        Text("256k").tag(256)
+                        Text("192k").tag(192)
+                        Text("128k").tag(128)
+                    }
+                    .frame(width: 105)
+                }
+                
+                // Resolution selector for Video
+                if activeMode == .video || selectedVideoTarget != nil {
+                    Picker("Res", selection: $selectedResolutionPreset) {
+                        Text("Original").tag("Original")
+                        Text("4K").tag("4K")
+                        Text("1080p").tag("1080p")
+                        Text("720p").tag("720p")
+                    }
+                    .frame(width: 110)
                 }
                 
                 Spacer()
@@ -673,19 +1066,10 @@ struct UniversalCanvasView: View {
                         Toggle("Preserve EXIF/GPS/TIFF metadata", isOn: $preserveMetadata)
                             .toggleStyle(.checkbox)
                         
-                        Toggle("EBU R128 Loudness DSP", isOn: $ebuR128Normalize)
+                        Toggle("EBU R128 Loudness DSP", isOn: $settings.audioConfig.normalizeEBUR128)
                             .toggleStyle(.checkbox)
                         
                         TargetSizeField(text: $targetSizeText)
-                        
-                        Picker("Resolution:", selection: $selectedResolutionPreset) {
-                            Text("Original").tag("Original")
-                            Text("4K UHD").tag("4K")
-                            Text("1080p FHD").tag("1080p")
-                            Text("720p HD").tag("720p")
-                            Text("50% Half").tag("50%")
-                        }
-                        .frame(width: 140)
                     }
                 }
                 .padding(.top, 4)
@@ -705,6 +1089,7 @@ struct UniversalCanvasView: View {
                 withAnimation(TossyMotion.springSmooth) {
                     jobs.removeAll()
                     batchSummaryText = nil
+                    activeMode = .all
                 }
             }
             .buttonStyle(.plain)
@@ -816,31 +1201,86 @@ struct UniversalCanvasView: View {
     }
     
     private func addJobs(for urls: [URL]) {
+        // Detect code files first -> opens Code Card Studio automatically
+        let codeFiles = urls.filter { CodeLanguageDetector.codeExtensions.contains($0.pathExtension.lowercased()) }
+        if !codeFiles.isEmpty, let firstCode = codeFiles.first {
+            if let content = try? String(contentsOf: firstCode, encoding: .utf8) {
+                self.codeCardInitialCode = content
+                self.codeCardInitialFileName = firstCode.lastPathComponent
+                self.showCodeCards = true
+                if codeFiles.count == urls.count {
+                    return
+                }
+            }
+        }
+        
         var addedAny = false
         for url in urls {
+            if CodeLanguageDetector.codeExtensions.contains(url.pathExtension.lowercased()) {
+                continue
+            }
             if !jobs.contains(where: { $0.sourceURL == url }) {
                 jobs.append(ConversionJob(sourceURL: url))
                 addedAny = true
             }
         }
         
-        if addedAny, let first = urls.first {
-            // Auto-detect predominant format target based on dropped files
-            let ext = first.pathExtension.lowercased()
-            if ext == "pdf" {
-                selectedTarget = .pdfAction("PNG")
-            } else if videoExtensions.contains(ext) {
-                if let probe = MediaProbe.probe(url: first), !probe.hasVideo && probe.hasAudio {
-                    selectedTarget = .audio(.mp3)
-                } else {
+        if addedAny {
+            let detected = detectMode(for: jobs.map(\.sourceURL))
+            withAnimation(TossyMotion.springSmooth) {
+                self.activeMode = detected
+                switch detected {
+                case .video:
                     selectedTarget = .video(.mp4H264)
+                case .audio:
+                    selectedTarget = .audio(.mp3)
+                case .image:
+                    selectedTarget = .image(.webp)
+                case .pdf:
+                    selectedTarget = .pdfAction("PNG")
+                case .all:
+                    if let first = urls.first {
+                        let cat = categoryTypeFor(first)
+                        if cat == .video { selectedTarget = .video(.mp4H264) }
+                        else if cat == .audio { selectedTarget = .audio(.mp3) }
+                        else if first.pathExtension.lowercased() == "pdf" { selectedTarget = .pdfAction("PNG") }
+                        else { selectedTarget = .image(.webp) }
+                    }
                 }
-            } else if audioExtensions.contains(ext) {
-                selectedTarget = .audio(.mp3)
-            } else if imageExtensions.contains(ext) {
-                selectedTarget = .image(.webp)
             }
         }
+    }
+    
+    private func detectMode(for urls: [URL]) -> CanvasContentMode {
+        guard !urls.isEmpty else { return .all }
+        
+        var hasVideo = false
+        var hasAudio = false
+        var hasImage = false
+        var hasPDF = false
+        
+        for url in urls {
+            let ext = url.pathExtension.lowercased()
+            if ext == "pdf" {
+                hasPDF = true
+                continue
+            }
+            let cat = categoryTypeFor(url)
+            switch cat {
+            case .video: hasVideo = true
+            case .audio: hasAudio = true
+            case .image: hasImage = true
+            }
+        }
+        
+        let count = (hasVideo ? 1 : 0) + (hasAudio ? 1 : 0) + (hasImage ? 1 : 0) + (hasPDF ? 1 : 0)
+        if count == 1 {
+            if hasVideo { return .video }
+            if hasAudio { return .audio }
+            if hasPDF { return .pdf }
+            if hasImage { return .image }
+        }
+        return .all
     }
     
     // MARK: - Conversion Execution Engines

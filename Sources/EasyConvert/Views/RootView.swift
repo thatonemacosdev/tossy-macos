@@ -271,22 +271,40 @@ struct RootView: View {
         Task { @MainActor in
             let collected = await FileDropResolver.resolveURLs(from: providers)
             guard !collected.isEmpty else { return }
-            withAnimation(TossyMotion.springSmooth) {
-                self.selectedTab = .dropzone
-            }
+            
             if let first = collected.first, CodeLanguageDetector.codeExtensions.contains(first.pathExtension.lowercased()) {
+                withAnimation(TossyMotion.springSmooth) {
+                    self.selectedTab = .dropzone
+                }
                 NotificationCenter.default.post(
                     name: NSNotification.Name("TossyOpenCodeCard"),
                     object: nil,
                     userInfo: ["url": first]
                 )
-            } else {
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("TossyDropFiles"),
-                    object: nil,
-                    userInfo: ["urls": collected]
-                )
+                return
             }
+            
+            withAnimation(TossyMotion.springSmooth) {
+                if settings.navigationLayoutMode == .classic, let first = collected.first {
+                    let ext = first.pathExtension.lowercased()
+                    if ["mov", "mp4", "m4v", "mkv", "webm", "avi", "flv", "wmv", "ts"].contains(ext) {
+                        self.selectedTab = .video
+                    } else if ["mp3", "m4a", "wav", "flac", "aac", "ogg", "aiff", "wma", "opus", "alac", "weba"].contains(ext) {
+                        self.selectedTab = .audio
+                    } else if ["png", "jpg", "jpeg", "heic", "webp", "gif", "svg", "jxl", "avif", "tiff"].contains(ext) {
+                        self.selectedTab = .images
+                    } else {
+                        self.selectedTab = .dropzone
+                    }
+                } else {
+                    self.selectedTab = .dropzone
+                }
+            }
+            NotificationCenter.default.post(
+                name: NSNotification.Name("TossyDropFiles"),
+                object: nil,
+                userInfo: ["urls": collected]
+            )
         }
     }
 }
