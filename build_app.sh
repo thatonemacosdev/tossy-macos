@@ -1,6 +1,6 @@
 #!/bin/bash
-# Builds Tossy in release mode and packages it as a double-clickable .app bundle,
-# compressed .dmg installer (with /Applications symlink), and clean .zip archive.
+# Builds Tossy in release mode and packages it as a double-clickable .app bundle
+# and a clean, signed .zip distribution archive.
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -14,10 +14,10 @@ if [ -z "${SDKROOT:-}" ] && [ -d "/Library/Developer/CommandLineTools/SDKs/MacOS
     export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk"
 fi
 
-echo "Building ${APP_NAME} (${CONFIG})…"
+echo "Building ${APP_NAME} (${CONFIG})..."
 swift build -c "${CONFIG}"
 
-echo "Packaging ${APP_BUNDLE}…"
+echo "Packaging ${APP_BUNDLE}..."
 rm -rf "${APP_BUNDLE}"
 mkdir -p "${APP_BUNDLE}/Contents/MacOS"
 mkdir -p "${APP_BUNDLE}/Contents/Resources"

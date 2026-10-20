@@ -1,25 +1,24 @@
 #!/bin/bash
-# Builds Tossy v2.0 Beta in Release Mode and installs to /Applications as Tossy-2-beta.app
+# Builds Tossy v2.0.0 in Release Mode and installs to /Applications as Tossy.app
 set -euo pipefail
 
 cd "$(dirname "$0")"
 
 CONFIG="release"
 APP_NAME="Tossy"
-INSTALL_NAME="Tossy-2-beta"
+INSTALL_NAME="Tossy"
 TARGET_APP="/Applications/${INSTALL_NAME}.app"
 USER_APP="${HOME}/Applications/${INSTALL_NAME}.app"
 BUILD_DIR=".build/${CONFIG}"
 STAGING_DIR="./dist/${INSTALL_NAME}.app"
-ZIP_OUTPUT="./dist/Tossy-2-beta-macOS.zip"
+ZIP_OUTPUT="./dist/Tossy-2.0.0-macOS.zip"
 
 echo "================================================================"
-echo "          BUILDING AND INSTALLING TOSSY V2.0 BETA               "
+echo "          BUILDING AND INSTALLING TOSSY V2.0.0                  "
 echo "================================================================"
 
 echo "0/7 Terminating any running Tossy instances..."
 killall Tossy 2>/dev/null || true
-pkill -f "Tossy-2-beta" 2>/dev/null || true
 sleep 0.5
 
 if [ -z "${SDKROOT:-}" ] && [ -d "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk" ]; then
@@ -74,19 +73,19 @@ echo "Packaged full release archive ($(du -sh "${ZIP_OUTPUT}" | cut -f1))"
 
 echo "7/7 Installing to /Applications..."
 if rm -rf "${TARGET_APP}" 2>/dev/null && cp -R "${STAGING_DIR}" "${TARGET_APP}" 2>/dev/null; then
-    echo "Successfully installed Tossy 2 Beta to: ${TARGET_APP}"
+    echo "Successfully installed Tossy to: ${TARGET_APP}"
 else
     echo "Installing to user application directory: ${USER_APP}"
     mkdir -p "${HOME}/Applications"
     rm -rf "${USER_APP}"
     cp -R "${STAGING_DIR}" "${USER_APP}"
-    echo "Successfully installed Tossy 2 Beta to: ${USER_APP}"
+    echo "Successfully installed Tossy to: ${USER_APP}"
 fi
 
-echo "Launching Tossy 2 Beta..."
+echo "Launching Tossy..."
 open "${TARGET_APP}" 2>/dev/null || open "${USER_APP}" 2>/dev/null || true
 
 echo ""
 echo "================================================================"
-echo "          INSTALLATION COMPLETE: Tossy-2-beta.app               "
+echo "          INSTALLATION COMPLETE: Tossy.app                      "
 echo "================================================================"

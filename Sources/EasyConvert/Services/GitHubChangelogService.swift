@@ -209,7 +209,9 @@ final class GitHubChangelogService: @unchecked Sendable {
         let fallbackTags: [(tag: String, date: String, items: [String])] = [
             ("v2.0.0", "October 2026", [
                 "Official 2.0.0 Stable Release: robust, battle-tested media powerhouse.",
-                "New Launch on Startup option in Settings and macOS Menu Bar.",
+                "Dynamic File-Type Detecting Window: canvas morphs into specialized panels for Video, Audio, Images, or PDF based on dropped files.",
+                "Instant Code Card Studio: dropping code files instantly opens Code Card Studio with syntax highlighting.",
+                "Launch on Startup option in Settings and macOS Menu Bar via SMAppService.",
                 "Full support for audio-only WebM files (Opus & Vorbis) with automatic format routing and FFmpeg fallback.",
                 "Universal File Canvas with multi-selection and batch token renaming.",
                 "Complete PDF Studio: merge, split ranges, burst, compress, and Apple Vision OCR.",
@@ -217,8 +219,7 @@ final class GitHubChangelogService: @unchecked Sendable {
                 "Menu Bar Quick-Toss drag-to-open and drop handling.",
                 "Carbon-style Code Card PNG exporter with syntax highlighting.",
                 "Archive Suite with AES-256 password encryption and volume splitting.",
-                "Smart kernel Watch Folders engine for automated background directory monitoring.",
-                "Side-by-Side Quality Inspector with synchronized real-time video playback."
+                "Smart kernel Watch Folders engine for automated background directory monitoring."
             ]),
             ("v2.0.0-beta", "October 2026", [
                 "Universal File Canvas with multi-selection and batch token renaming.",

@@ -204,8 +204,8 @@ graph TD
 
 ## 5. Milestone Breakdown for v2.0.0
 
-- **v2.0.0-alpha.1**: PDF Studio Integration (Merge, Split, Target Size Compress, Vision OCR).
-- **v2.0.0-alpha.2**: Studio Media Tools (Lossless Trimming, Audio Extraction, Video Rotate/Speed, EXIF Sanitizer).
-- **v2.0.0-beta.1**: Smart Watch Folders, Global Floating HUD, and Shortcuts AppIntents.
-- **v2.0.0-rc.1**: Universal Adaptive Canvas UI, Token Renamer, and Performance Calibration.
-- **v2.0.0-final**: Full Marketing Launch on Product Hunt, Hacker News, Reddit, and GitHub Releases.
+- **v2.0.0-alpha.1**: PDF Studio Integration (Merge, Split, Target Size Compress, Vision OCR) [Completed]
+- **v2.0.0-alpha.2**: Studio Media Tools (Lossless Trimming, Audio Extraction, Video Rotate/Speed, EXIF Sanitizer) [Completed]
+- **v2.0.0-beta.1**: Smart Watch Folders, Global Floating HUD, and Shortcuts AppIntents [Completed]
+- **v2.0.0-rc.1**: Universal Adaptive Canvas UI, Token Renamer, and Performance Calibration [Completed]
+- **v2.0.0-final**: Official 2.0.0 Stable Release and Distribution [Shipped]

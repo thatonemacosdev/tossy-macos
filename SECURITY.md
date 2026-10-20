@@ -7,9 +7,8 @@ something with a long-term support matrix.
 
 | Version        | Supported |
 | -------------- | --------- |
-| 2.0.0-beta     | Yes       |
-| 1.7.1          | Yes       |
-| < 1.7.1        | No        |
+| 2.0.0          | Yes       |
+| < 2.0.0        | No        |
 
 ## Reporting a vulnerability
 
