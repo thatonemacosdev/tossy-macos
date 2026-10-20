@@ -391,6 +391,11 @@ final class MenuBarManager: NSObject, ObservableObject, NSPopoverDelegate {
         settingsItem.target = self
         menu.addItem(settingsItem)
 
+        let launchOnStartupItem = NSMenuItem(title: "Launch on Startup", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
+        launchOnStartupItem.target = self
+        launchOnStartupItem.state = AppSettings.shared.launchAtLogin ? .on : .off
+        menu.addItem(launchOnStartupItem)
+
         menu.addItem(NSMenuItem.separator())
 
         let quitItem = NSMenuItem(title: "Quit Tossy", action: #selector(quitApp), keyEquivalent: "q")
@@ -415,6 +420,10 @@ final class MenuBarManager: NSObject, ObservableObject, NSPopoverDelegate {
     @objc func openSettingsWindow() {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+    }
+
+    @objc func toggleLaunchAtLogin() {
+        AppSettings.shared.launchAtLogin.toggle()
     }
 
     @objc func quitApp() {

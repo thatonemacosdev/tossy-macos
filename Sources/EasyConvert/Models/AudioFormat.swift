@@ -87,7 +87,7 @@ enum AudioFormat: String, CaseIterable, Identifiable {
 
     static let readableExtensions: Set<String> = [
         "mp3", "aac", "m4a", "wav", "wave", "flac", "aif", "aiff", "alac",
-        "ogg", "opus", "wma", "ac3", "eac3", "amr", "caf"
+        "ogg", "opus", "wma", "ac3", "eac3", "amr", "caf", "webm", "weba"
     ]
 
     /// Maps a source file's extension back to one of our writable formats  -  used by

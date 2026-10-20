@@ -149,7 +149,7 @@ struct BenchmarkShareCardView: View {
 
             // Card Footer
             HStack {
-                Text("Tested locally on macOS 14+ via Tossy 2 Beta")
+                Text("Tested locally on macOS 14+ via Tossy 2.0")
                     .font(.system(size: 10))
                     .foregroundStyle(TossyColor.textTertiary)
 

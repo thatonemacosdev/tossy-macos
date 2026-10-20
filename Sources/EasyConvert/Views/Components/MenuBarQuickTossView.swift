@@ -315,7 +315,11 @@ struct MenuBarQuickTossView: View {
             if let first = urls.first {
                 let ext = first.pathExtension.lowercased()
                 if VideoFormat.readableExtensions.contains(ext) {
-                    self.selectedCategory = .video
+                    if let probe = MediaProbe.probe(url: first), !probe.hasVideo && probe.hasAudio {
+                        self.selectedCategory = .audio
+                    } else {
+                        self.selectedCategory = .video
+                    }
                 } else if AudioFormat.readableExtensions.contains(ext) {
                     self.selectedCategory = .audio
                 } else {

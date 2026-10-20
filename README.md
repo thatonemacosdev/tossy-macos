@@ -1,6 +1,6 @@
 # Tossy
 
-[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.0.0-beta)
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.0.0)
 [![License](https://img.shields.io/github/license/thatonemacosdev/tossy-macos)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/tossy-macos)](https://github.com/thatonemacosdev/tossy-macos/releases)
 
@@ -9,7 +9,7 @@
 A free, native macOS utility for converting images, video, and audio without Terminal, without uploading files anywhere, and without installing Homebrew or ffmpeg yourself. Toss files in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera files, MKV, WebM, FLAC, animated GIFs, animated WebP, and dozens more.
 
 Website: [thatonemacosdev.github.io/tossy-macos](https://thatonemacosdev.github.io/tossy-macos/)  
-Download: [v2.0.0-beta release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.0.0-beta)
+Download: [v2.0.0 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.0.0)
 
 ### Opening on macOS (Gatekeeper Notice)
 
@@ -67,9 +67,11 @@ open ./Tossy.app
 
 Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/ProRes. But they do not touch MKV, WebM, most legacy codecs, or most audio formats. For those, this app shells out to a bundled, self-contained copy of `ffmpeg` (and the WebP and JPEG XL reference tools, since this particular ffmpeg build was not compiled with encoders for those). Everything under `Vendor/` was relinked with `dylibbundler` so it runs standalone, with no Homebrew or system `ffmpeg` install required on the machine running the app.
 
-## What's New in v2.0 Beta
+## What's New in v2.0.0
 
-- **Universal File Canvas**: Seamlessly combine images, videos, audio, PDFs, archives, and code files on a single unified canvas with multi-selection, batch token renaming (`{name}_{date}_{res}`), and batch export.
+- **Launch on Startup**: Easily configure Tossy to launch automatically on macOS login via Settings or the menu bar status icon.
+- **Audio-Only WebM & Codec Handling**: Seamlessly transcode audio-only WebM files (Opus and Vorbis) to MP3, WAV, FLAC, and AAC or video MP4 containers with smart stream detection and automatic FFmpeg fallback.
+- **Universal File Canvas**: Combine images, videos, audio, PDFs, archives, and code files on a single unified canvas with multi-selection, batch token renaming (`{name}_{date}_{res}`), and batch export.
 - **Complete PDF Studio**: Merge multiple PDFs, split custom page ranges, burst pages into single files, optimize file size with Quartz compression, and extract text using on-device Apple Vision OCR.
 - **Media Studio Suite**: Frame-accurate lossless video trimmer (zero re-encode when boundaries align), audio track extraction, text and watermark overlay rendering, and video playback speed adjuster.
 - **Menu Bar Quick-Toss**: Status bar dropzone that opens automatically when dragging items from Finder, supporting direct drop and background conversion.

@@ -109,11 +109,26 @@ struct UniversalCanvasView: View {
         "mov", "mp4", "m4v", "mkv", "webm", "avi", "flv", "wmv", "ts", "mts", "m2ts"
     ]
     private let audioExtensions: Set<String> = [
-        "mp3", "m4a", "wav", "flac", "aac", "ogg", "aiff", "wma", "opus", "alac", "caf"
+        "mp3", "m4a", "wav", "flac", "aac", "ogg", "aiff", "wma", "opus", "alac", "caf", "weba"
     ]
     
     private var sourceURLs: [URL] {
         jobs.map(\.sourceURL)
+    }
+
+    private var selectedAudioTarget: AudioFormat? {
+        if case .audio(let f) = selectedTarget { return f }
+        return nil
+    }
+
+    private var selectedVideoTarget: VideoFormat? {
+        if case .video(let f) = selectedTarget { return f }
+        return nil
+    }
+
+    private var selectedImageTarget: ImageFormat? {
+        if case .image(let f) = selectedTarget { return f }
+        return nil
     }
     
     var body: some View {
@@ -767,6 +782,13 @@ struct UniversalCanvasView: View {
     
     private func categoryTypeFor(_ url: URL) -> JobCategoryType {
         let ext = url.pathExtension.lowercased()
+        if ext == "webm" || ext == "mkv" || ext == "mp4" || ext == "m4a" || ext == "mov" {
+            if let probe = MediaProbe.probe(url: url) {
+                if !probe.hasVideo && probe.hasAudio {
+                    return .audio
+                }
+            }
+        }
         if videoExtensions.contains(ext) { return .video }
         if audioExtensions.contains(ext) { return .audio }
         return .image
@@ -808,7 +830,11 @@ struct UniversalCanvasView: View {
             if ext == "pdf" {
                 selectedTarget = .pdfAction("PNG")
             } else if videoExtensions.contains(ext) {
-                selectedTarget = .video(.mp4H264)
+                if let probe = MediaProbe.probe(url: first), !probe.hasVideo && probe.hasAudio {
+                    selectedTarget = .audio(.mp3)
+                } else {
+                    selectedTarget = .video(.mp4H264)
+                }
             } else if audioExtensions.contains(ext) {
                 selectedTarget = .audio(.mp3)
             } else if imageExtensions.contains(ext) {
@@ -899,19 +925,51 @@ struct UniversalCanvasView: View {
                         job.status = .failed("No pages extracted")
                     }
                 }
-            } else if videoExtensions.contains(ext) {
-                let targetFmt: VideoFormat
-                if let ovr = job.overrideVideoFormat {
-                    targetFmt = ovr
-                } else if case .video(let f) = selectedTarget {
-                    targetFmt = f
-                } else {
-                    targetFmt = .mp4H264
-                }
-                
+            } else if let audioTarget = job.overrideAudioFormat ?? selectedAudioTarget {
+                let res = try await aud.convert(
+                    sourceURL: url,
+                    to: audioTarget,
+                    destinationFolder: dest,
+                    targetSizeBytes: targetBytes,
+                    preserveMetadata: preserveMetadata,
+                    onProgress: { p in
+                        DispatchQueue.main.async { job.updateProgress(p) }
+                    }
+                )
+                job.status = .done(outputURL: res.outputURL)
+            } else if let videoTarget = job.overrideVideoFormat ?? selectedVideoTarget {
                 let res = try await vid.convert(
                     sourceURL: url,
-                    to: targetFmt,
+                    to: videoTarget,
+                    destinationFolder: dest,
+                    targetSizeBytes: targetBytes,
+                    targetWidth: targetWidth,
+                    preserveMetadata: preserveMetadata,
+                    onProgress: { p in
+                        DispatchQueue.main.async { job.updateProgress(p) }
+                    }
+                )
+                job.status = .done(outputURL: res.outputURL)
+            } else if let imageTarget = job.overrideImageFormat ?? selectedImageTarget {
+                let q = job.overrideQuality ?? quality
+                let res = try await img.convert(
+                    sourceURL: url,
+                    to: imageTarget,
+                    quality: q,
+                    destinationFolder: dest,
+                    targetSizeBytes: targetBytes,
+                    targetWidth: targetWidth,
+                    preserveMetadata: preserveMetadata
+                )
+                if let first = res.outputURLs.first {
+                    job.status = .done(outputURL: first)
+                } else {
+                    job.status = .failed("No output generated")
+                }
+            } else if videoExtensions.contains(ext) {
+                let res = try await vid.convert(
+                    sourceURL: url,
+                    to: .mp4H264,
                     destinationFolder: dest,
                     targetSizeBytes: targetBytes,
                     targetWidth: targetWidth,
@@ -922,18 +980,9 @@ struct UniversalCanvasView: View {
                 )
                 job.status = .done(outputURL: res.outputURL)
             } else if audioExtensions.contains(ext) {
-                let targetFmt: AudioFormat
-                if let ovr = job.overrideAudioFormat {
-                    targetFmt = ovr
-                } else if case .audio(let f) = selectedTarget {
-                    targetFmt = f
-                } else {
-                    targetFmt = .mp3
-                }
-                
                 let res = try await aud.convert(
                     sourceURL: url,
-                    to: targetFmt,
+                    to: .mp3,
                     destinationFolder: dest,
                     targetSizeBytes: targetBytes,
                     preserveMetadata: preserveMetadata,
@@ -943,20 +992,10 @@ struct UniversalCanvasView: View {
                 )
                 job.status = .done(outputURL: res.outputURL)
             } else {
-                // Image conversion
-                let targetFmt: ImageFormat
-                if let ovr = job.overrideImageFormat {
-                    targetFmt = ovr
-                } else if case .image(let f) = selectedTarget {
-                    targetFmt = f
-                } else {
-                    targetFmt = .webp
-                }
-                
                 let q = job.overrideQuality ?? quality
                 let res = try await img.convert(
                     sourceURL: url,
-                    to: targetFmt,
+                    to: .webp,
                     quality: q,
                     destinationFolder: dest,
                     targetSizeBytes: targetBytes,

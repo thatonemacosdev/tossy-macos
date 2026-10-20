@@ -65,6 +65,7 @@ final class FFmpegService {
         guard let ffmpegPath = FFmpegLocator.ffmpegPath else { throw FFmpegError.notAvailable }
 
         let process = Process()
+        process.standardInput = FileHandle.nullDevice
         process.executableURL = URL(fileURLWithPath: ffmpegPath)
         process.arguments = arguments
 
@@ -119,6 +120,7 @@ final class FFmpegService {
     /// one-shot capability queries like `-encoders`, not for actual conversions).
     static func runCapturingOutput(executablePath: String, arguments: [String]) -> String {
         let process = Process()
+        process.standardInput = FileHandle.nullDevice
         process.executableURL = URL(fileURLWithPath: executablePath)
         process.arguments = arguments
         let pipe = Pipe()

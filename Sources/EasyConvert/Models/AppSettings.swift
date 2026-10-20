@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import ServiceManagement
 
 // MARK: - Enums for App Settings
 
@@ -200,6 +201,27 @@ final class AppSettings {
         didSet { UserDefaults.standard.set(showMenuBarDropzone, forKey: "showMenuBarDropzone") }
     }
 
+    var launchAtLogin: Bool {
+        didSet {
+            UserDefaults.standard.set(launchAtLogin, forKey: "launchAtLogin")
+            if #available(macOS 13.0, *) {
+                do {
+                    if launchAtLogin {
+                        if SMAppService.mainApp.status != .enabled {
+                            try SMAppService.mainApp.register()
+                        }
+                    } else {
+                        if SMAppService.mainApp.status == .enabled {
+                            try SMAppService.mainApp.unregister()
+                        }
+                    }
+                } catch {
+                    // Registration may fail outside an installed .app bundle
+                }
+            }
+        }
+    }
+
     var namingTemplate: OutputNamingTemplate {
         didSet { UserDefaults.standard.set(namingTemplate.rawValue, forKey: "namingTemplate") }
     }
@@ -296,6 +318,19 @@ final class AppSettings {
         self.autoRevealInFinder = defaults.object(forKey: "autoRevealInFinder") as? Bool ?? false
         self.deleteSourceAfterConversion = defaults.object(forKey: "deleteSourceAfterConversion") as? Bool ?? false
         self.showMenuBarDropzone = defaults.object(forKey: "showMenuBarDropzone") as? Bool ?? false
+
+        if #available(macOS 13.0, *) {
+            let status = SMAppService.mainApp.status
+            if status == .enabled {
+                self.launchAtLogin = true
+            } else if status == .notRegistered {
+                self.launchAtLogin = false
+            } else {
+                self.launchAtLogin = defaults.bool(forKey: "launchAtLogin")
+            }
+        } else {
+            self.launchAtLogin = defaults.bool(forKey: "launchAtLogin")
+        }
 
         let templateRaw = defaults.string(forKey: "namingTemplate") ?? OutputNamingTemplate.standard.rawValue
         self.namingTemplate = OutputNamingTemplate(rawValue: templateRaw) ?? .standard

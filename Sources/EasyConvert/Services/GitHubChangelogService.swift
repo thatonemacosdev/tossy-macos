@@ -207,7 +207,10 @@ final class GitHubChangelogService: @unchecked Sendable {
     
     private func loadFallbackReleases() {
         let fallbackTags: [(tag: String, date: String, items: [String])] = [
-            ("v2.0.0-beta", "October 2026", [
+            ("v2.0.0", "October 2026", [
+                "Official 2.0.0 Stable Release: robust, battle-tested media powerhouse.",
+                "New Launch on Startup option in Settings and macOS Menu Bar.",
+                "Full support for audio-only WebM files (Opus & Vorbis) with automatic format routing and FFmpeg fallback.",
                 "Universal File Canvas with multi-selection and batch token renaming.",
                 "Complete PDF Studio: merge, split ranges, burst, compress, and Apple Vision OCR.",
                 "Lossless Video Trimmer, audio extraction, watermarking, and speed controls.",
@@ -217,15 +220,11 @@ final class GitHubChangelogService: @unchecked Sendable {
                 "Smart kernel Watch Folders engine for automated background directory monitoring.",
                 "Side-by-Side Quality Inspector with synchronized real-time video playback."
             ]),
-            ("v2.0.0", "October 2026", [
+            ("v2.0.0-beta", "October 2026", [
                 "Universal File Canvas with multi-selection and batch token renaming.",
                 "Complete PDF Studio: merge, split ranges, burst, compress, and Apple Vision OCR.",
                 "Lossless Video Trimmer, audio extraction, watermarking, and speed controls.",
-                "Menu Bar Quick-Toss drag-to-open and drop handling.",
-                "Carbon-style Code Card PNG exporter with syntax highlighting.",
-                "Archive Suite with AES-256 password encryption and volume splitting.",
-                "Smart kernel Watch Folders engine for automated background directory monitoring.",
-                "Side-by-Side Quality Inspector with synchronized real-time video playback."
+                "Menu Bar Quick-Toss drag-to-open and drop handling."
             ]),
             ("v1.7.1", "August 2026", [
                 "Zero-overwrite policy: automatic numeric suffixes prevent file collisions.",

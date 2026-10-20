@@ -30,6 +30,7 @@ final class AudioExtractorService: Sendable {
         let safeDestination = OutputNaming.uniqueDestinationURL(desiredURL: destinationURL)
         
         var arguments = [
+            "-nostdin",
             "-y",
             "-i", videoURL.path,
             "-vn" // No video stream
@@ -56,6 +57,7 @@ final class AudioExtractorService: Sendable {
         
         let process = Process()
         process.executableURL = URL(fileURLWithPath: ffmpegPath)
+        process.standardInput = FileHandle.nullDevice
         process.arguments = arguments
         let errPipe = Pipe()
         process.standardError = errPipe
@@ -89,6 +91,7 @@ final class AudioExtractorService: Sendable {
         let safeDestination = OutputNaming.uniqueDestinationURL(desiredURL: destinationURL)
         
         let arguments = [
+            "-nostdin",
             "-y",
             "-i", videoURL.path,
             "-an",
@@ -98,6 +101,7 @@ final class AudioExtractorService: Sendable {
         
         let process = Process()
         process.executableURL = URL(fileURLWithPath: ffmpegPath)
+        process.standardInput = FileHandle.nullDevice
         process.arguments = arguments
         let errPipe = Pipe()
         process.standardError = errPipe

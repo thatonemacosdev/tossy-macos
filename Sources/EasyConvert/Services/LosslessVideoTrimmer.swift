@@ -56,6 +56,7 @@ final class LosslessVideoTrimmer: Sendable {
         let durationStr = String(format: "%.3f", endTimeSeconds - startTimeSeconds)
         
         let arguments = [
+            "-nostdin",
             "-y",
             "-ss", startStr,
             "-i", sourceURL.path,
@@ -67,6 +68,7 @@ final class LosslessVideoTrimmer: Sendable {
         
         let process = Process()
         process.executableURL = URL(fileURLWithPath: ffmpegPath)
+        process.standardInput = FileHandle.nullDevice
         process.arguments = arguments
         let errPipe = Pipe()
         process.standardError = errPipe

@@ -51,6 +51,7 @@ final class ArchiveService: Sendable {
             // Use ditto for clean macOS metadata and resource fork preservation
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
+            process.standardInput = FileHandle.nullDevice
             process.arguments = ["-x", "-k", archiveURL.path, safeFolder.path]
             let errPipe = Pipe()
             process.standardError = errPipe
@@ -62,6 +63,7 @@ final class ArchiveService: Sendable {
                 // Try fallback with /usr/bin/unzip if encrypted with password
                 let unzipProcess = Process()
                 unzipProcess.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
+                unzipProcess.standardInput = FileHandle.nullDevice
                 var unzipArgs = ["-q", "-o"]
                 if let password, !password.isEmpty {
                     unzipArgs += ["-P", password]
@@ -82,6 +84,7 @@ final class ArchiveService: Sendable {
         } else if ["tar", "gz", "tgz", "bz2", "tbz2", "xz", "txz"].contains(ext) {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+            process.standardInput = FileHandle.nullDevice
             process.arguments = ["-xf", archiveURL.path, "-C", safeFolder.path]
             let errPipe = Pipe()
             process.standardError = errPipe
@@ -98,6 +101,7 @@ final class ArchiveService: Sendable {
             // General 7z / fallback
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+            process.standardInput = FileHandle.nullDevice
             process.arguments = ["-xf", archiveURL.path, "-C", safeFolder.path]
             let errPipe = Pipe()
             process.standardError = errPipe
@@ -136,6 +140,7 @@ final class ArchiveService: Sendable {
             let parentFolder = sourceURLs[0].deletingLastPathComponent()
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/zip")
+            process.standardInput = FileHandle.nullDevice
             process.currentDirectoryURL = parentFolder
             
             var args = ["-q", "-r", "-P", password, safeDestination.path]
@@ -159,6 +164,7 @@ final class ArchiveService: Sendable {
             if sourceURLs.count == 1 {
                 let process = Process()
                 process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
+                process.standardInput = FileHandle.nullDevice
                 process.arguments = ["-c", "-k", "--keepParent", sourceURLs[0].path, safeDestination.path]
                 try process.run()
                 process.waitUntilExit()
@@ -169,6 +175,7 @@ final class ArchiveService: Sendable {
                 let parentFolder = sourceURLs[0].deletingLastPathComponent()
                 let process = Process()
                 process.executableURL = URL(fileURLWithPath: "/usr/bin/zip")
+                process.standardInput = FileHandle.nullDevice
                 process.currentDirectoryURL = parentFolder
                 var args = ["-q", "-r", safeDestination.path]
                 for url in sourceURLs {
@@ -185,6 +192,7 @@ final class ArchiveService: Sendable {
             let parentFolder = sourceURLs[0].deletingLastPathComponent()
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+            process.standardInput = FileHandle.nullDevice
             process.currentDirectoryURL = parentFolder
             var args = ["-czf", safeDestination.path]
             for url in sourceURLs {
@@ -201,6 +209,7 @@ final class ArchiveService: Sendable {
             let parentFolder = sourceURLs[0].deletingLastPathComponent()
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
+            process.standardInput = FileHandle.nullDevice
             process.currentDirectoryURL = parentFolder
             var args = ["-cf", safeDestination.path]
             for url in sourceURLs {
@@ -236,6 +245,7 @@ final class ArchiveService: Sendable {
         
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/split")
+        process.standardInput = FileHandle.nullDevice
         let baseName = archiveURL.lastPathComponent
         let prefix = safeFolder.appendingPathComponent("\(baseName).part_").path
         

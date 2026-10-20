@@ -41,6 +41,22 @@ enum MediaProbe {
                 } else if type == "audio", audioCodec == nil {
                     audioCodec = stream["codec_name"] as? String
                 }
+
+                if duration == nil {
+                    if let durStr = stream["duration"] as? String, let d = Double(durStr), d > 0 {
+                        duration = d
+                    } else if let tags = stream["tags"] as? [String: Any],
+                              let tagDur = (tags["DURATION"] ?? tags["duration"]) as? String {
+                        // Duration formatted like HH:MM:SS.mmmmmm
+                        let parts = tagDur.components(separatedBy: ":")
+                        if parts.count == 3,
+                           let h = Double(parts[0]),
+                           let m = Double(parts[1]),
+                           let s = Double(parts[2]) {
+                            duration = h * 3600 + m * 60 + s
+                        }
+                    }
+                }
             }
         }
 

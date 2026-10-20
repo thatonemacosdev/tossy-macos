@@ -256,7 +256,11 @@ struct MiniTossyModalView: View {
         let ext = first.pathExtension.lowercased()
         
         if VideoFormat.readableExtensions.contains(ext) {
-            selectedCategory = .video
+            if let probe = MediaProbe.probe(url: first), !probe.hasVideo && probe.hasAudio {
+                selectedCategory = .audio
+            } else {
+                selectedCategory = .video
+            }
         } else if AudioFormat.readableExtensions.contains(ext) {
             selectedCategory = .audio
         } else {
@@ -266,6 +270,11 @@ struct MiniTossyModalView: View {
     
     private func iconForURL(_ url: URL) -> String {
         let ext = url.pathExtension.lowercased()
+        if ext == "webm" || ext == "mkv" || ext == "mp4" || ext == "mov" {
+            if let probe = MediaProbe.probe(url: url), !probe.hasVideo && probe.hasAudio {
+                return "waveform"
+            }
+        }
         if VideoFormat.readableExtensions.contains(ext) { return "film" }
         if AudioFormat.readableExtensions.contains(ext) { return "waveform" }
         return "photo"

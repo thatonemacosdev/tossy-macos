@@ -174,6 +174,9 @@ struct GeneralSettingsTab: View {
             }
             
             Section("Workflow & System Integration") {
+                Toggle("Launch Tossy automatically on startup", isOn: $settings.launchAtLogin)
+                    .toggleStyle(.checkbox)
+
                 Toggle("Show Quick-Toss icon in macOS Menu Bar", isOn: Binding(
                     get: { settings.showMenuBarDropzone },
                     set: {

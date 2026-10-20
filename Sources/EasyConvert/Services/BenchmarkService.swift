@@ -906,6 +906,7 @@ final class BenchmarkService {
         }
 
         let args = [
+            "-nostdin",
             "-y",
             "-f", "lavfi",
             "-i", "testsrc=duration=\(duration):size=\(Int(size.width))x\(Int(size.height)):rate=\(fps)",
@@ -920,6 +921,7 @@ final class BenchmarkService {
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: ffmpegPath)
+        process.standardInput = FileHandle.nullDevice
         process.arguments = args
         try process.run()
         process.waitUntilExit()

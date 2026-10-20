@@ -56,44 +56,54 @@ final class VideoConverter {
 
         switch format.backend {
         case .avFoundation:
-            if targetSizeBytes != nil || targetWidth != nil {
-                // Route through ffmpeg to enable precise bitrate targeting and custom resolution scaling
-                let (vCodec, aCodec, extra): (String, String?, [String])
-                switch format {
-                case .mp4H264, .movH264:
-                    vCodec = "libx264"
-                    aCodec = "aac"
-                    extra = []
-                case .mp4Hevc, .movHevc:
-                    vCodec = "libx265"
-                    aCodec = "aac"
-                    extra = []
-                case .movProRes422:
-                    vCodec = "prores_ks"
-                    aCodec = "pcm_s16le"
-                    extra = ["-profile:v", "2"]
-                default:
-                    vCodec = "libx264"
-                    aCodec = "aac"
-                    extra = []
+            let ext = sourceURL.pathExtension.lowercased()
+            let appleNativeExtensions: Set<String> = ["mp4", "mov", "m4v"]
+            let canAttemptAVFoundation = appleNativeExtensions.contains(ext) && targetSizeBytes == nil && targetWidth == nil
+            
+            if canAttemptAVFoundation {
+                do {
+                    let outputURL = try await convertViaAVFoundation(sourceURL: sourceURL, format: format, destinationFolder: destinationFolder, customBaseName: customBaseName, onProgress: onProgress)
+                    return VideoConversionResult(outputURL: outputURL, note: nil)
+                } catch {
+                    // Fall back to FFmpeg if AVFoundation encounters an error
                 }
-                return try await convertViaFFmpeg(
-                    sourceURL: sourceURL,
-                    outputExtension: format.fileExtension,
-                    muxer: nil,
-                    videoCodec: vCodec,
-                    audioCodec: aCodec,
-                    extraArgs: extra,
-                    destinationFolder: destinationFolder,
-                    targetSizeBytes: targetSizeBytes,
-                    targetWidth: targetWidth,
-                    customBaseName: customBaseName,
-                    preserveMetadata: preserveMetadata,
-                    onProgress: onProgress
-                )
             }
-            let outputURL = try await convertViaAVFoundation(sourceURL: sourceURL, format: format, destinationFolder: destinationFolder, customBaseName: customBaseName, onProgress: onProgress)
-            return VideoConversionResult(outputURL: outputURL, note: nil)
+
+            // Route through ffmpeg to enable precise bitrate targeting, custom resolution scaling,
+            // or to transcode non-Apple formats (WebM, MKV, AVI, etc.) and audio-only inputs
+            let (vCodec, aCodec, extra): (String, String?, [String])
+            switch format {
+            case .mp4H264, .movH264:
+                vCodec = "libx264"
+                aCodec = "aac"
+                extra = []
+            case .mp4Hevc, .movHevc:
+                vCodec = "libx265"
+                aCodec = "aac"
+                extra = []
+            case .movProRes422:
+                vCodec = "prores_ks"
+                aCodec = "pcm_s16le"
+                extra = ["-profile:v", "2"]
+            default:
+                vCodec = "libx264"
+                aCodec = "aac"
+                extra = []
+            }
+            return try await convertViaFFmpeg(
+                sourceURL: sourceURL,
+                outputExtension: format.fileExtension,
+                muxer: nil,
+                videoCodec: vCodec,
+                audioCodec: aCodec,
+                extraArgs: extra,
+                destinationFolder: destinationFolder,
+                targetSizeBytes: targetSizeBytes,
+                targetWidth: targetWidth,
+                customBaseName: customBaseName,
+                preserveMetadata: preserveMetadata,
+                onProgress: onProgress
+            )
 
         case .ffmpeg(let muxer, let videoCodec, let audioCodec, let extraArgs):
             return try await convertViaFFmpeg(
@@ -210,7 +220,9 @@ final class VideoConverter {
             baseNameOverride: customBaseName
         )
 
-        let duration = MediaProbe.probe(url: sourceURL)?.durationSeconds
+        let probe = MediaProbe.probe(url: sourceURL)
+        let hasVideo = probe?.hasVideo ?? true
+        let duration = probe?.durationSeconds
 
         var arguments = ["-y", "-i", sourceURL.path]
 
@@ -218,43 +230,58 @@ final class VideoConverter {
             arguments += ["-map_metadata", "-1"]
         }
 
-        arguments += ["-c:v", videoCodec]
-
         let videoCfg = AppSettings.shared.videoConfig
 
-        // Presets & Tuning for supported encoders
-        if videoCodec.contains("libx264") || videoCodec.contains("libx265") {
-            arguments += ["-preset", videoCfg.x264Preset]
-            if videoCfg.x264Tune != "none" {
-                arguments += ["-tune", videoCfg.x264Tune]
+        if hasVideo {
+            arguments += ["-c:v", videoCodec]
+
+            // Presets & Tuning for supported encoders
+            if videoCodec.contains("libx264") || videoCodec.contains("libx265") {
+                arguments += ["-preset", videoCfg.x264Preset]
+                if videoCfg.x264Tune != "none" {
+                    arguments += ["-tune", videoCfg.x264Tune]
+                }
             }
-        }
-        
-        // Pixel format (if not forced by format extraArgs)
-        if !extraArgs.contains("-pix_fmt") {
-            arguments += ["-pix_fmt", videoCfg.pixelFormat]
+            
+            // Pixel format (if not forced by format extraArgs)
+            if !extraArgs.contains("-pix_fmt") {
+                arguments += ["-pix_fmt", videoCfg.pixelFormat]
+            }
+        } else {
+            // Audio-only input: disable video processing
+            arguments += ["-vn"]
         }
 
         var note: String?
         if let targetSizeBytes {
             guard let duration, duration > 0 else { throw VideoConversionError.durationUnknown }
-            let bitrates = Self.computeBitrates(targetSizeBytes: targetSizeBytes, durationSeconds: duration, hasAudio: audioCodec != nil)
-            // Strip any codec-default bitrate args (e.g. DNxHD's fixed -b:v)  -  ours takes priority.
-            arguments += Self.stripBitrateArgs(extraArgs)
-            arguments += ["-b:v", "\(bitrates.videoBps)", "-maxrate", "\(Int(Double(bitrates.videoBps) * 1.45))", "-bufsize", "\(bitrates.videoBps * 2)"]
-            if let audioCodec {
-                arguments += ["-c:a", audioCodec, "-b:a", "\(bitrates.audioBps)"]
+            if hasVideo {
+                let bitrates = Self.computeBitrates(targetSizeBytes: targetSizeBytes, durationSeconds: duration, hasAudio: audioCodec != nil)
+                // Strip any codec-default bitrate args (e.g. DNxHD's fixed -b:v)  -  ours takes priority.
+                arguments += Self.stripBitrateArgs(extraArgs)
+                arguments += ["-b:v", "\(bitrates.videoBps)", "-maxrate", "\(Int(Double(bitrates.videoBps) * 1.45))", "-bufsize", "\(bitrates.videoBps * 2)"]
+                if let audioCodec {
+                    arguments += ["-c:a", audioCodec, "-b:a", "\(bitrates.audioBps)"]
+                } else {
+                    arguments += ["-an"]
+                }
             } else {
-                arguments += ["-an"]
+                let totalBits = Double(targetSizeBytes) * 8 * 0.95
+                let totalBps = Int(max(totalBits / duration, 32_000))
+                if let audioCodec {
+                    arguments += ["-c:a", audioCodec, "-b:a", "\(totalBps)"]
+                }
             }
             note = "Targeted \(ByteSize.displayString(targetSizeBytes)) via estimated bitrate (single-pass, not exact)"
         } else {
-            if videoCfg.encodingMode == "crf" && (videoCodec.contains("libx264") || videoCodec.contains("libx265") || videoCodec.contains("libsvtav1") || videoCodec.contains("libvpx")) {
-                arguments += ["-crf", "\(videoCfg.crfValue)"]
-            } else if videoCfg.encodingMode == "bitrate" && videoCfg.targetBitrateKbps > 0 {
-                arguments += ["-b:v", "\(videoCfg.targetBitrateKbps)k"]
+            if hasVideo {
+                if videoCfg.encodingMode == "crf" && (videoCodec.contains("libx264") || videoCodec.contains("libx265") || videoCodec.contains("libsvtav1") || videoCodec.contains("libvpx")) {
+                    arguments += ["-crf", "\(videoCfg.crfValue)"]
+                } else if videoCfg.encodingMode == "bitrate" && videoCfg.targetBitrateKbps > 0 {
+                    arguments += ["-b:v", "\(videoCfg.targetBitrateKbps)k"]
+                }
+                arguments += extraArgs
             }
-            arguments += extraArgs
             
             // Audio track selection
             if videoCfg.audioCodec == "none" {
@@ -300,37 +327,39 @@ final class VideoConverter {
             }
         }
 
-        // Framerate
-        if videoCfg.frameRate != "keep" && !extraArgs.contains("-r") {
-            arguments += ["-r", videoCfg.frameRate]
-        }
+        if hasVideo {
+            // Framerate
+            if videoCfg.frameRate != "keep" && !extraArgs.contains("-r") {
+                arguments += ["-r", videoCfg.frameRate]
+            }
 
-        // Filters: Scaling & Deinterlacing
-        var videoFilters: [String] = []
-        if videoCfg.deinterlace {
-            videoFilters.append("yadif")
-        }
+            // Filters: Scaling & Deinterlacing
+            var videoFilters: [String] = []
+            if videoCfg.deinterlace {
+                videoFilters.append("yadif")
+            }
 
-        if let vfIndex = arguments.firstIndex(of: "-vf"), vfIndex + 1 < arguments.count {
-            var existingVF = arguments[vfIndex + 1]
-            if let targetWidth, targetWidth > 0 {
-                if existingVF.contains("scale=480:-1") {
-                    existingVF = existingVF.replacingOccurrences(of: "scale=480:-1", with: "scale=\(targetWidth):-2")
+            if let vfIndex = arguments.firstIndex(of: "-vf"), vfIndex + 1 < arguments.count {
+                var existingVF = arguments[vfIndex + 1]
+                if let targetWidth, targetWidth > 0 {
+                    if existingVF.contains("scale=480:-1") {
+                        existingVF = existingVF.replacingOccurrences(of: "scale=480:-1", with: "scale=\(targetWidth):-2")
+                    } else {
+                        videoFilters.append("scale=\(targetWidth):-2:flags=\(videoCfg.scalingAlgorithm)")
+                    }
+                }
+                if !videoFilters.isEmpty {
+                    arguments[vfIndex + 1] = videoFilters.joined(separator: ",") + "," + existingVF
                 } else {
+                    arguments[vfIndex + 1] = existingVF
+                }
+            } else {
+                if let targetWidth, targetWidth > 0 {
                     videoFilters.append("scale=\(targetWidth):-2:flags=\(videoCfg.scalingAlgorithm)")
                 }
-            }
-            if !videoFilters.isEmpty {
-                arguments[vfIndex + 1] = videoFilters.joined(separator: ",") + "," + existingVF
-            } else {
-                arguments[vfIndex + 1] = existingVF
-            }
-        } else {
-            if let targetWidth, targetWidth > 0 {
-                videoFilters.append("scale=\(targetWidth):-2:flags=\(videoCfg.scalingAlgorithm)")
-            }
-            if !videoFilters.isEmpty {
-                arguments += ["-vf", videoFilters.joined(separator: ",")]
+                if !videoFilters.isEmpty {
+                    arguments += ["-vf", videoFilters.joined(separator: ",")]
+                }
             }
         }
 
