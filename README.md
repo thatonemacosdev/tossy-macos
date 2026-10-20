@@ -69,15 +69,16 @@ Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/Pro
 
 ## What's New in v2.0.0
 
-- **Launch on Startup**: Easily configure Tossy to launch automatically on macOS login via Settings or the menu bar status icon.
-- **Audio-Only WebM & Codec Handling**: Seamlessly transcode audio-only WebM files (Opus and Vorbis) to MP3, WAV, FLAC, and AAC or video MP4 containers with smart stream detection and automatic FFmpeg fallback.
+- **Dynamic File-Type Detecting Window**: Dragging and dropping files dynamically morphs the canvas into a specialized tool panel — drop video to open video-only conversion, drop audio for audio-only bitrates & EBU R128 loudness normalization, drop images for quality compression & EXIF tools, or drop PDFs for burst/OCR/compression.
+- **Instant Code Card Studio Drop**: Dropping any source code or script file (`.swift`, `.py`, `.js`, `.ts`, `.rs`, `.go`, `.json`, etc.) instantly opens the Code Card Studio modal with automatic syntax highlighting and Carbon-style presentation themes.
+- **Launch on Startup**: Easily configure Tossy to launch automatically on macOS login via Settings or the menu bar status icon using native `SMAppService`.
+- **Audio-Only WebM & Codec Fix**: Seamlessly transcode audio-only WebM files (Opus and Vorbis) to MP3, WAV, FLAC, and AAC or video MP4 containers with smart stream detection and automatic FFmpeg fallback, preventing AVFoundation container export errors.
 - **Universal File Canvas**: Combine images, videos, audio, PDFs, archives, and code files on a single unified canvas with multi-selection, batch token renaming (`{name}_{date}_{res}`), and batch export.
 - **Complete PDF Studio**: Merge multiple PDFs, split custom page ranges, burst pages into single files, optimize file size with Quartz compression, and extract text using on-device Apple Vision OCR.
 - **Media Studio Suite**: Frame-accurate lossless video trimmer (zero re-encode when boundaries align), audio track extraction, text and watermark overlay rendering, and video playback speed adjuster.
 - **Menu Bar Quick-Toss**: Status bar dropzone that opens automatically when dragging items from Finder, supporting direct drop and background conversion.
-- **Code Card Exporter**: Export code files into beautiful Carbon-style presentation cards with language syntax highlighting and themes.
 - **Archive Suite**: Compress to ZIP/TAR/GZ with optional AES-256 password protection and multi-part volume splitting.
-- **Enhanced In-Place Auto-Updater**: Upgraded semantic versioning engine with full pre-release support and robust background installation.
+- **Lightweight Distribution**: Streamlined ZIP distribution with inside-out recursive code signing and zero external dependencies.
 
 ## What's New in v1.7.1
 
