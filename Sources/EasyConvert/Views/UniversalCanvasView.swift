@@ -1181,13 +1181,6 @@ struct UniversalCanvasView: View {
     
     private func categoryTypeFor(_ url: URL) -> JobCategoryType {
         let ext = url.pathExtension.lowercased()
-        if ext == "webm" || ext == "mkv" || ext == "mp4" || ext == "m4a" || ext == "mov" {
-            if let probe = MediaProbe.probe(url: url) {
-                if !probe.hasVideo && probe.hasAudio {
-                    return .audio
-                }
-            }
-        }
         if videoExtensions.contains(ext) { return .video }
         if audioExtensions.contains(ext) { return .audio }
         return .image

@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 import SwiftUI
 
-// Window Frame Wrapper for realistic macOS screenshots
+// Window Frame Wrapper for authentic macOS screenshots
 struct MacOSWindowFrame<Content: View>: View {
     let title: String
     let content: Content
@@ -22,7 +22,7 @@ struct MacOSWindowFrame<Content: View>: View {
                     Circle().fill(Color(red: 1.0, green: 0.76, blue: 0.25)).frame(width: 12, height: 12)
                     Circle().fill(Color(red: 0.35, green: 0.85, blue: 0.38)).frame(width: 12, height: 12)
                 }
-                .padding(.leading, 12)
+                .padding(.leading, 14)
 
                 Spacer()
 
@@ -32,7 +32,6 @@ struct MacOSWindowFrame<Content: View>: View {
 
                 Spacer()
 
-                // Balancing spacer
                 Color.clear.frame(width: 60, height: 1)
             }
             .frame(height: 38)
@@ -63,6 +62,10 @@ struct MacOSWindowFrame<Content: View>: View {
 struct GenerateScreenshots {
     @MainActor
     static func main() {
+        print("Initializing Tossy Screenshot Engine...")
+        let app = NSApplication.shared
+        app.setActivationPolicy(.regular)
+
         let outputDir = URL(fileURLWithPath: "docs/screenshots")
         try? FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
 
@@ -72,7 +75,7 @@ struct GenerateScreenshots {
             try? FileManager.default.removeItem(at: tempDir)
         }
 
-        print("Preparing mock sample files...")
+        print("Preparing sample assets...")
         func makeFile(_ name: String, bytes: Int) -> URL {
             let u = tempDir.appendingPathComponent(name)
             let data = Data(count: bytes)
@@ -88,32 +91,48 @@ struct GenerateScreenshots {
         let pngURL = makeFile("Product_Mockup_Export.png", bytes: 8 * 1024 * 1024)
         let pdfURL = makeFile("Quarterly_Report_2026.pdf", bytes: 14 * 1024 * 1024)
 
-        // Ensure settings are clean dark mode
         AppSettings.shared.appTheme = .dark
         AppSettings.shared.navigationLayoutMode = .unified
 
-        func renderAndSave<V: View>(view: V, width: CGFloat, height: CGFloat, filename: String) {
+        func renderWindowAndSave<V: View>(view: V, width: CGFloat, height: CGFloat, filename: String) {
+            let frameHeight = height + 38
+            let window = NSWindow(
+                contentRect: NSRect(x: 100, y: 100, width: width, height: frameHeight),
+                styleMask: [.titled, .closable, .miniaturizable],
+                backing: .buffered,
+                defer: false
+            )
+            window.isOpaque = false
+            window.backgroundColor = .clear
+
             let wrapped = MacOSWindowFrame(title: "Tossy") {
                 view
                     .frame(width: width, height: height)
                     .background(Color.black)
             }
-            .frame(width: width, height: height + 38)
-            .padding(16)
-            .background(Color.clear)
 
-            let renderer = ImageRenderer(content: wrapped)
-            renderer.scale = 2.0
-            guard let cgImg = renderer.cgImage else {
-                print("Failed to get cgImage for \(filename)")
-                return
+            let hosting = NSHostingView(rootView: wrapped.frame(width: width, height: frameHeight))
+            hosting.frame = NSRect(x: 0, y: 0, width: width, height: frameHeight)
+            window.contentView = hosting
+            window.makeKeyAndOrderFront(nil)
+
+            let targetDate = Date().addingTimeInterval(0.65)
+            while Date() < targetDate {
+                RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.05))
             }
 
-            let rep = NSBitmapImageRep(cgImage: cgImg)
+            let bounds = hosting.bounds
+            guard let rep = hosting.bitmapImageRepForCachingDisplay(in: bounds) else {
+                print("Failed to get bitmapImageRep for \(filename)")
+                window.orderOut(nil)
+                return
+            }
+            hosting.cacheDisplay(in: bounds, to: rep)
+
             let destPNG = outputDir.appendingPathComponent("\(filename).png")
             if let pngData = rep.representation(using: .png, properties: [:]) {
                 try? pngData.write(to: destPNG)
-                print("Saved \(destPNG.lastPathComponent) (\(cgImg.width)x\(cgImg.height), \(pngData.count) bytes)")
+                print("Saved \(destPNG.lastPathComponent) (\(rep.pixelsWide)x\(rep.pixelsHigh), \(pngData.count) bytes)")
             }
 
             if filename == "desktop_hero" {
@@ -123,11 +142,19 @@ struct GenerateScreenshots {
                     print("Saved \(destJPG.lastPathComponent) (\(jpgData.count) bytes)")
                 }
             }
+            window.orderOut(nil)
         }
 
-        print("\n--- 1. Rendering Desktop Hero (Empty Universal Canvas) ---")
-        let heroView = UniversalCanvasView(initialMode: .all)
-        renderAndSave(view: heroView, width: 980, height: 620, filename: "desktop_hero")
+        print("\n--- 1. Rendering Desktop Hero (Universal Canvas with Batch Queue) ---")
+        let heroVid = ConversionJob(sourceURL: movURL)
+        heroVid.status = .converting(progress: 0.65, etaText: "4s left")
+        let heroAud = ConversionJob(sourceURL: wavURL)
+        heroAud.status = .done(outputURL: tempDir.appendingPathComponent("Podcast_Master_Track.mp3"), note: "320 kbps (12.4 MB)")
+        let heroImg = ConversionJob(sourceURL: cr3URL)
+        heroImg.status = .done(outputURL: tempDir.appendingPathComponent("Studio_Portrait_RAW.webp"), note: "-88% saved (3.8 MB)")
+
+        let heroView = UniversalCanvasView(initialMode: .all, initialJobs: [heroVid, heroAud, heroImg])
+        renderWindowAndSave(view: heroView, width: 1012, height: 652, filename: "desktop_hero")
 
         print("\n--- 2. Rendering Video Only Panel ---")
         let jobVid1 = ConversionJob(sourceURL: movURL)
@@ -135,8 +162,8 @@ struct GenerateScreenshots {
         let jobVid2 = ConversionJob(sourceURL: webmVidURL)
         jobVid2.status = .done(outputURL: tempDir.appendingPathComponent("Screen_Recording_HDR.mp4"), note: "-62% saved (6.8 MB)")
         let videoView = UniversalCanvasView(initialMode: .video, initialJobs: [jobVid1, jobVid2])
-        renderAndSave(view: videoView, width: 980, height: 620, filename: "videos")
-        renderAndSave(view: videoView, width: 980, height: 620, filename: "video")
+        renderWindowAndSave(view: videoView, width: 1012, height: 652, filename: "videos")
+        renderWindowAndSave(view: videoView, width: 1012, height: 652, filename: "video")
 
         print("\n--- 3. Rendering Audio Only Panel ---")
         let jobAud1 = ConversionJob(sourceURL: wavURL)
@@ -144,7 +171,7 @@ struct GenerateScreenshots {
         let jobAud2 = ConversionJob(sourceURL: webmAudURL)
         jobAud2.status = .converting(progress: 0.88, etaText: "1s left")
         let audioView = UniversalCanvasView(initialMode: .audio, initialJobs: [jobAud1, jobAud2])
-        renderAndSave(view: audioView, width: 980, height: 620, filename: "audio")
+        renderWindowAndSave(view: audioView, width: 1012, height: 652, filename: "audio")
 
         print("\n--- 4. Rendering Images Only Panel ---")
         let jobImg1 = ConversionJob(sourceURL: cr3URL)
@@ -152,18 +179,47 @@ struct GenerateScreenshots {
         let jobImg2 = ConversionJob(sourceURL: pngURL)
         jobImg2.status = .pending
         let imagesView = UniversalCanvasView(initialMode: .image, initialJobs: [jobImg1, jobImg2])
-        renderAndSave(view: imagesView, width: 980, height: 620, filename: "images")
-        renderAndSave(view: imagesView, width: 980, height: 620, filename: "image")
+        renderWindowAndSave(view: imagesView, width: 1012, height: 652, filename: "images")
+        renderWindowAndSave(view: imagesView, width: 1012, height: 652, filename: "image")
 
         print("\n--- 5. Rendering PDF Tools Panel ---")
         let jobPdf = ConversionJob(sourceURL: pdfURL)
         jobPdf.status = .done(outputURL: tempDir.appendingPathComponent("Quarterly_Report_2026_Burst"), note: "18 pages burst, OCR extracted")
         let pdfView = UniversalCanvasView(initialMode: .pdf, initialJobs: [jobPdf])
-        renderAndSave(view: pdfView, width: 980, height: 620, filename: "pdf")
+        renderWindowAndSave(view: pdfView, width: 1012, height: 652, filename: "pdf")
 
         print("\n--- 6. Rendering TossyMark Benchmark Tab ---")
+        let benchmarkResults: [BenchmarkResult] = [
+            BenchmarkResult(domain: .image, label: "Metal 4K JPEG to WebP Transcode", duration: 0.042, throughput: 238.1, unit: .megapixelsPerSecond, points: 12450, baselinePoints: 10000, jitterPercentage: 0.8, detail: "CoreImage Metal pipeline (sRGB)", scoreGroup: "Image Mark"),
+            BenchmarkResult(domain: .image, label: "CoreImage HDR Tone Map to AVIF", duration: 0.089, throughput: 112.4, unit: .megapixelsPerSecond, points: 10890, baselinePoints: 10000, jitterPercentage: 1.2, detail: "10-bit P3 wide-gamut Metal render", scoreGroup: "Image Mark"),
+            BenchmarkResult(domain: .video, label: "ProRes 422 HQ to HEVC 10-bit", duration: 1.12, throughput: 89.3, unit: .framesPerSecond, points: 14200, baselinePoints: 10000, jitterPercentage: 0.5, detail: "Hardware VideoToolbox encoder", scoreGroup: "Video Mark"),
+            BenchmarkResult(domain: .video, label: "H.264 1080p to AV1 (svt-av1)", duration: 2.45, throughput: 40.8, unit: .framesPerSecond, points: 9850, baselinePoints: 10000, jitterPercentage: 1.1, detail: "NEON SIMD-accelerated 14-core encode", scoreGroup: "Video Mark"),
+            BenchmarkResult(domain: .audio, label: "FLAC 96kHz/24-bit to Opus 160k", duration: 0.031, throughput: 322.5, unit: .realtimeMultiplier, points: 13100, baselinePoints: 10000, jitterPercentage: 0.4, detail: "Accelerate vDSP FFT filter + libopus", scoreGroup: "Audio Mark"),
+            BenchmarkResult(domain: .audio, label: "EBU R128 Dual-Pass Loudness Normalization", duration: 0.058, throughput: 172.4, unit: .realtimeMultiplier, points: 11800, baselinePoints: 10000, jitterPercentage: 0.7, detail: "Integrated -14 LUFS, true peak -1.0 dBFS", scoreGroup: "Audio Mark"),
+            BenchmarkResult(domain: .concurrency, label: "Multi-Core Thread Pool Saturation (16 Jobs)", duration: 0.38, throughput: 42.1, unit: .tasksPerSecond, points: 15400, baselinePoints: 10000, jitterPercentage: 0.3, detail: "TaskGroup dynamic queue saturation", scoreGroup: "Concurrency Mark")
+        ]
+
+        let mockReport = BenchmarkRunReport(
+            timestamp: Date(),
+            deviceModel: "Mac16,13",
+            chipDescription: "Apple Silicon Pro / Max",
+            coreCount: 14,
+            thermalState: "Nominal",
+            overallTossyMark: 32450,
+            imageMark: 11670,
+            videoMark: 12025,
+            audioMark: 12450,
+            concurrencyMark: 15400,
+            stabilityIndex: 99.2,
+            results: benchmarkResults
+        )
+
+        if let reportData = try? JSONEncoder().encode([mockReport]) {
+            UserDefaults.standard.set(reportData, forKey: "tossy_benchmark_history")
+        }
+
         let benchmarkView = BenchmarkView()
-        renderAndSave(view: benchmarkView, width: 980, height: 620, filename: "benchmark")
+        renderWindowAndSave(view: benchmarkView, width: 1012, height: 652, filename: "benchmark")
 
         print("\n--- 7. Rendering Code Card Studio Modal ---")
         let swiftSnippet = """
@@ -184,24 +240,24 @@ struct GenerateScreenshots {
             initialFileName: "TossyTransformEngine.swift",
             initialLanguage: "Swift"
         )
-        renderAndSave(view: codeCardView, width: 880, height: 580, filename: "code_card")
+        renderWindowAndSave(view: codeCardView, width: 912, height: 612, filename: "code_card")
 
         print("\n--- 8. Rendering PDF Studio Modal ---")
         let pdfModalView = PDFStudioModalView(
             sourceURLs: [pdfURL],
             initialTab: .merge
         )
-        renderAndSave(view: pdfModalView, width: 880, height: 580, filename: "pdf_studio")
+        renderWindowAndSave(view: pdfModalView, width: 912, height: 612, filename: "pdf_studio")
 
         print("\n--- 9. Rendering Media Studio (Video Trimmer) Modal ---")
         let mediaModalView = MediaStudioModalView(
             sourceURLs: [movURL],
             initialTab: .trim
         )
-        renderAndSave(view: mediaModalView, width: 880, height: 580, filename: "media_studio")
+        renderWindowAndSave(view: mediaModalView, width: 912, height: 612, filename: "media_studio")
 
         print("\n================================================================")
-        print("All screenshots generated successfully at 2x Retina resolution!")
+        print("All 9 screenshots generated successfully at 2x Retina resolution!")
         print("================================================================")
     }
 }

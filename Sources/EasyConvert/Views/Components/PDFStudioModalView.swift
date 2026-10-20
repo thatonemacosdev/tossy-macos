@@ -12,6 +12,7 @@ struct PDFStudioModalView: View {
         self.sourceURLs = sourceURLs
         self.initialTab = initialTab
         self._selectedTab = State(initialValue: initialTab)
+        self._selectedDocuments = State(initialValue: sourceURLs)
     }
     @State private var isProcessing = false
     @State private var progress: Double = 0.0
