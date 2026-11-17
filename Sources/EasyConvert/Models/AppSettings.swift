@@ -25,8 +25,25 @@ enum AppTheme: String, CaseIterable, Identifiable {
     case light = "Light"
     case titanium = "Titanium"
     case liquidGlass = "Liquid Glass"
+    case midnightCobalt = "Midnight Cobalt"
+    case emerald = "Emerald Matrix"
+    case solarAmber = "Solar Amber"
+    case hyperViolet = "Neon Violet"
 
     var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .dark: return "Monochrome Black"
+        case .light: return "Monochrome White"
+        case .titanium: return "Brushed Titanium"
+        case .liquidGlass: return "Liquid Glass"
+        case .midnightCobalt: return "Midnight Cobalt"
+        case .emerald: return "Terminal Emerald"
+        case .solarAmber: return "Solar Amber"
+        case .hyperViolet: return "Neon Violet"
+        }
+    }
 
     var icon: String {
         switch self {
@@ -34,6 +51,10 @@ enum AppTheme: String, CaseIterable, Identifiable {
         case .light: return "sun.max.fill"
         case .titanium: return "shield.righthalf.filled"
         case .liquidGlass: return "drop.fill"
+        case .midnightCobalt: return "water.waves"
+        case .emerald: return "terminal.fill"
+        case .solarAmber: return "flame.fill"
+        case .hyperViolet: return "sparkles"
         }
     }
 }

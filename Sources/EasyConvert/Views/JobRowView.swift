@@ -36,6 +36,8 @@ struct JobRowView: View {
                         Text("(\(job.sourceFileSizeFormatted))")
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(TossyColor.textTertiary)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
 
                     // Format Override Tag if set
@@ -127,12 +129,14 @@ struct JobRowView: View {
                 Text("Ready")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(TossyColor.textPrimary)
+                    .fixedSize(horizontal: true, vertical: false)
 
                 if let note {
                     Text("· \(note)")
                         .font(.caption)
                         .foregroundStyle(TossyColor.textSecondary)
                         .lineLimit(1)
+                        .truncationMode(.tail)
                 }
             }
 
@@ -146,6 +150,7 @@ struct JobRowView: View {
                     .font(.caption)
                     .foregroundStyle(TossyColor.errorRed)
                     .lineLimit(1)
+                    .truncationMode(.tail)
             }
         }
     }

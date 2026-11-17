@@ -24,35 +24,47 @@ struct MenuBarQuickTossView: View {
         case audio = "Audio"
         
         var id: String { rawValue }
+        
+        var icon: String {
+            switch self {
+            case .image: return "photo"
+            case .video: return "film"
+            case .audio: return "waveform"
+            }
+        }
     }
     
     var body: some View {
         VStack(spacing: 0) {
-            // Popover Header
+            // MARK: - Header
             HStack(spacing: 8) {
-                Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(TossyColor.accentProminentFg)
-                
-                Text("Quick-Toss")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundStyle(TossyColor.textPrimary)
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(TossyColor.accentProminentBg)
+                    
+                    Text("Quick-Toss")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .foregroundStyle(TossyColor.textPrimary)
+                        .fixedSize(horizontal: true, vertical: false)
+                    
+                    Text("v2.1")
+                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(TossyColor.surfaceElevated)
+                        .clipShape(Capsule())
+                        .foregroundStyle(TossyColor.textTertiary)
+                        .fixedSize(horizontal: true, vertical: false)
+                }
                 
                 Spacer()
-                
-                Picker("", selection: $selectedCategory) {
-                    ForEach(QuickCategory.allCases) { cat in
-                        Text(cat.rawValue).tag(cat)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 150)
                 
                 Button {
                     MenuBarManager.shared.togglePopover()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 13))
+                        .font(.system(size: 14))
                         .foregroundStyle(TossyColor.textTertiary)
                 }
                 .buttonStyle(.plain)
@@ -64,28 +76,87 @@ struct MenuBarQuickTossView: View {
             
             Divider().overlay(TossyColor.borderSubtle)
             
-            // Main Drop Area / Active Conversion
+            // MARK: - Dedicated Full-Width Category Selector
+            HStack(spacing: 4) {
+                ForEach(QuickCategory.allCases) { cat in
+                    Button {
+                        withAnimation(TossyMotion.springSnappy) {
+                            selectedCategory = cat
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: cat.icon)
+                                .font(.system(size: 11, weight: .semibold))
+                            Text(cat.rawValue)
+                                .font(.system(size: 11, weight: selectedCategory == cat ? .bold : .medium))
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .background(
+                            selectedCategory == cat ?
+                            TossyColor.surfaceHighlight :
+                            Color.clear
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .strokeBorder(selectedCategory == cat ? TossyColor.borderMedium : Color.clear, lineWidth: 1)
+                        )
+                        .foregroundStyle(
+                            selectedCategory == cat ?
+                            TossyColor.textPrimary :
+                            TossyColor.textSecondary
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(4)
+            .background(TossyColor.surfaceBase)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+            )
+            .padding(.horizontal, 14)
+            .padding(.top, 10)
+            
+            // MARK: - Main Drop Area / Active Conversion
             VStack(spacing: 10) {
                 if !completedOutputs.isEmpty {
                     // Success View
-                    VStack(spacing: 10) {
+                    VStack(spacing: 12) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 32))
+                            .font(.system(size: 34))
                             .foregroundStyle(TossyColor.successGreen)
                         
-                        Text("Converted \(completedOutputs.count) file(s)!")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(TossyColor.textPrimary)
+                        VStack(spacing: 3) {
+                            Text("Converted \(completedOutputs.count) file(s)!")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(TossyColor.textPrimary)
+                            Text("Saved to default destination")
+                                .font(.system(size: 11))
+                                .foregroundStyle(TossyColor.textSecondary)
+                        }
                         
                         HStack(spacing: 8) {
-                            Button("Show in Finder") {
+                            Button {
                                 NSWorkspace.shared.activateFileViewerSelecting(completedOutputs)
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "folder")
+                                    Text("Show in Finder")
+                                        .fixedSize(horizontal: true, vertical: false)
+                                }
                             }
                             .buttonStyle(.borderedProminent)
+                            .tint(TossyColor.accentProminentBg)
+                            .foregroundStyle(TossyColor.accentProminentFg)
                             .controlSize(.small)
                             
                             Button("Convert More") {
-                                withAnimation {
+                                withAnimation(TossyMotion.springSmooth) {
                                     droppedURLs.removeAll()
                                     completedOutputs.removeAll()
                                 }
@@ -94,130 +165,196 @@ struct MenuBarQuickTossView: View {
                             .controlSize(.small)
                         }
                     }
-                    .padding(.vertical, 20)
+                    .padding(.vertical, 22)
                 } else if isConverting {
                     // Progress View
                     VStack(spacing: 10) {
                         ProgressView(value: conversionProgress, total: 1.0)
                             .progressViewStyle(.linear)
-                            .frame(width: 220)
+                            .frame(width: 240)
                         
                         Text("Converting… \(Int(conversionProgress * 100))%")
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(TossyColor.textSecondary)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
-                    .padding(.vertical, 26)
+                    .padding(.vertical, 28)
                 } else if droppedURLs.isEmpty {
                     // Empty Drop Target
                     VStack(spacing: 8) {
                         Image(systemName: isTargeted ? "arrow.down.circle.fill" : "plus.rectangle.on.rectangle")
                             .font(.system(size: 28))
-                            .foregroundStyle(isTargeted ? TossyColor.accentProminentFg : TossyColor.textTertiary)
+                            .foregroundStyle(isTargeted ? TossyColor.accentProminentBg : TossyColor.textTertiary)
+                            .scaleEffect(isTargeted ? 1.15 : 1.0)
+                            .animation(TossyMotion.springBouncy, value: isTargeted)
                         
-                        Text("Drop files here to convert")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(TossyColor.textSecondary)
+                        VStack(spacing: 2) {
+                            Text(isTargeted ? "Release to convert" : "Drop files here to convert")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(TossyColor.textPrimary)
+                                .fixedSize(horizontal: true, vertical: false)
+                            
+                            Text("Auto-detects format • PDF & Code open Studios")
+                                .font(.system(size: 10))
+                                .foregroundStyle(TossyColor.textTertiary)
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
+                    .padding(.vertical, 22)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .strokeBorder(isTargeted ? TossyColor.accentProminentBg : TossyColor.borderSubtle, style: StrokeStyle(lineWidth: 1.5, dash: [5]))
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(isTargeted ? TossyColor.surfaceHighlight : TossyColor.surfaceElevated.opacity(0.4))
                     )
-                    .padding(.horizontal, 12)
-                    .padding(.top, 10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .strokeBorder(
+                                isTargeted ? TossyColor.accentProminentBg : TossyColor.borderSubtle,
+                                style: StrokeStyle(lineWidth: 1.5, dash: [5])
+                            )
+                    )
+                    .padding(.horizontal, 14)
+                    .padding(.top, 8)
                 } else {
                     // Queued Files List
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
-                            Text("\(droppedURLs.count) file(s) queued")
-                                .font(.caption.bold())
+                            Text("\(droppedURLs.count) file\(droppedURLs.count == 1 ? "" : "s") queued")
+                                .font(.system(size: 11, weight: .bold))
                                 .foregroundStyle(TossyColor.textSecondary)
+                                .fixedSize(horizontal: true, vertical: false)
                             Spacer()
-                            Button("Clear") {
-                                droppedURLs.removeAll()
+                            Button("Clear All") {
+                                withAnimation(TossyMotion.springSnappy) {
+                                    droppedURLs.removeAll()
+                                }
                             }
                             .buttonStyle(.plain)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(TossyColor.textTertiary)
                         }
                         
-                        ForEach(droppedURLs.prefix(3), id: \.self) { url in
+                        ForEach(droppedURLs.prefix(4), id: \.self) { url in
                             HStack(spacing: 6) {
-                                Image(systemName: "doc.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(TossyColor.accentProminentFg)
+                                Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 16, height: 16)
+                                
                                 Text(url.lastPathComponent)
-                                    .font(.system(size: 11))
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(TossyColor.textPrimary)
                                     .lineLimit(1)
-                                Spacer()
+                                    .truncationMode(.middle)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                
+                                Button {
+                                    withAnimation(TossyMotion.springSnappy) {
+                                        droppedURLs.removeAll(where: { $0 == url })
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark.circle")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(TossyColor.textTertiary)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .padding(4)
-                            .background(RoundedRectangle(cornerRadius: 4).fill(TossyColor.surfaceElevated))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(TossyColor.surfaceElevated)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .strokeBorder(TossyColor.borderSubtle, lineWidth: 0.5)
+                            )
                         }
-                        if droppedURLs.count > 3 {
-                            Text("+\(droppedURLs.count - 3) more")
-                                .font(.caption2)
+                        
+                        if droppedURLs.count > 4 {
+                            Text("+\(droppedURLs.count - 4) more files")
+                                .font(.system(size: 10, design: .monospaced))
                                 .foregroundStyle(TossyColor.textTertiary)
+                                .padding(.horizontal, 4)
                         }
                     }
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, 14)
                     .padding(.top, 6)
                 }
                 
-                // Format Selector Chips
+                // Format Selector Chips & Actions
                 if !isConverting && completedOutputs.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Convert to:")
+                        Text("Target Format:")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(TossyColor.textTertiary)
-                            .padding(.horizontal, 12)
+                            .padding(.horizontal, 14)
                         
-                        switch selectedCategory {
-                        case .image:
-                            HStack(spacing: 6) {
+                        HStack(spacing: 6) {
+                            switch selectedCategory {
+                            case .image:
                                 formatChip("WebP", isSelected: selectedImageFormat == .webp) { selectedImageFormat = .webp }
                                 formatChip("PNG", isSelected: selectedImageFormat == .png) { selectedImageFormat = .png }
                                 formatChip("JPEG", isSelected: selectedImageFormat == .jpeg) { selectedImageFormat = .jpeg }
                                 formatChip("JXL", isSelected: selectedImageFormat == .jxl) { selectedImageFormat = .jxl }
-                            }
-                            .padding(.horizontal, 12)
-                        case .video:
-                            HStack(spacing: 6) {
+                            case .video:
                                 formatChip("MP4", isSelected: selectedVideoFormat == .mp4H264) { selectedVideoFormat = .mp4H264 }
                                 formatChip("WebM", isSelected: selectedVideoFormat == .webm) { selectedVideoFormat = .webm }
                                 formatChip("GIF", isSelected: selectedVideoFormat == .animatedGif) { selectedVideoFormat = .animatedGif }
                                 formatChip("MKV", isSelected: selectedVideoFormat == .mkv) { selectedVideoFormat = .mkv }
-                            }
-                            .padding(.horizontal, 12)
-                        case .audio:
-                            HStack(spacing: 6) {
+                            case .audio:
                                 formatChip("MP3", isSelected: selectedAudioFormat == .mp3) { selectedAudioFormat = .mp3 }
                                 formatChip("AAC", isSelected: selectedAudioFormat == .aac) { selectedAudioFormat = .aac }
                                 formatChip("FLAC", isSelected: selectedAudioFormat == .flac) { selectedAudioFormat = .flac }
                                 formatChip("WAV", isSelected: selectedAudioFormat == .wav) { selectedAudioFormat = .wav }
                             }
-                            .padding(.horizontal, 12)
                         }
+                        .padding(.horizontal, 14)
                         
                         if !droppedURLs.isEmpty {
-                            Button {
-                                startConversion()
-                            } label: {
-                                Text("Convert Now")
-                                    .font(.system(size: 12, weight: .bold))
+                            HStack(spacing: 8) {
+                                // Option to bounce to full Studio if media file dropped
+                                if selectedCategory == .video || selectedCategory == .image {
+                                    Button {
+                                        openInStudio()
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: selectedCategory == .image ? "photo.stack" : "film.stack")
+                                            Text("Open Studio")
+                                                .fixedSize(horizontal: true, vertical: false)
+                                        }
+                                        .font(.system(size: 11, weight: .medium))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 6)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                                }
+                                
+                                Button {
+                                    startConversion()
+                                } label: {
+                                    HStack(spacing: 5) {
+                                        Image(systemName: "arrow.triangle.2.circlepath")
+                                        Text("Convert Now (\(droppedURLs.count))")
+                                            .font(.system(size: 11, weight: .bold))
+                                            .fixedSize(horizontal: true, vertical: false)
+                                    }
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 6)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(TossyColor.accentProminentBg)
+                                .foregroundStyle(TossyColor.accentProminentFg)
+                                .controlSize(.small)
                             }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.small)
-                            .padding(.horizontal, 12)
+                            .padding(.horizontal, 14)
                             .padding(.top, 4)
                         }
                     }
                 }
             }
-            .padding(.bottom, 10)
+            .padding(.bottom, 12)
             .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
                 handleDrop(providers)
                 return true
@@ -225,10 +362,17 @@ struct MenuBarQuickTossView: View {
             
             Divider().overlay(TossyColor.borderSubtle)
             
-            // Popover Footer Actions
+            // MARK: - Footer Actions
             HStack {
-                Button("Open App") {
+                Button {
                     onOpenFullApp()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "macwindow")
+                            .font(.system(size: 10))
+                        Text("Open Full App")
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
                 }
                 .buttonStyle(.plain)
                 .font(.system(size: 11, weight: .medium))
@@ -242,6 +386,7 @@ struct MenuBarQuickTossView: View {
                 .buttonStyle(.plain)
                 .font(.system(size: 11))
                 .foregroundStyle(TossyColor.textTertiary)
+                .fixedSize(horizontal: true, vertical: false)
                 
                 Spacer()
                 
@@ -251,12 +396,13 @@ struct MenuBarQuickTossView: View {
                 .buttonStyle(.plain)
                 .font(.system(size: 11))
                 .foregroundStyle(TossyColor.textTertiary)
+                .fixedSize(horizontal: true, vertical: false)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background(TossyColor.surfaceDeep)
         }
-        .frame(width: 320)
+        .frame(width: 340)
         .background(TossyColor.pitchBlack)
         .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
         .onHover { isHovering in
@@ -266,42 +412,36 @@ struct MenuBarQuickTossView: View {
                 MenuBarManager.shared.scheduleClose(delay: 0.35)
             }
         }
-        .onChange(of: isTargeted) { targeted in
+        .onChange(of: isTargeted) { _, targeted in
             if targeted {
                 MenuBarManager.shared.cancelCloseTimer()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TossyMenuBarAddFiles"))) { notif in
             if let urls = notif.userInfo?["urls"] as? [URL], !urls.isEmpty {
-                if !completedOutputs.isEmpty {
-                    completedOutputs.removeAll()
-                }
-                for u in urls where !droppedURLs.contains(u) {
-                    droppedURLs.append(u)
-                }
-                if let first = urls.first {
-                    let ext = first.pathExtension.lowercased()
-                    if VideoFormat.readableExtensions.contains(ext) {
-                        self.selectedCategory = .video
-                    } else if AudioFormat.readableExtensions.contains(ext) {
-                        self.selectedCategory = .audio
-                    } else {
-                        self.selectedCategory = .image
-                    }
-                }
+                routeIncomingURLs(urls)
             }
         }
     }
     
     private func formatChip(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button {
+            TossyHaptic.performFeedback(.generic)
+            action()
+        } label: {
             Text(title)
                 .font(.system(size: 11, weight: isSelected ? .bold : .medium))
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .foregroundStyle(isSelected ? TossyColor.accentProminentFg : TossyColor.textPrimary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 5)
                 .background(isSelected ? TossyColor.accentProminentBg : TossyColor.surfaceElevated)
                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .strokeBorder(isSelected ? TossyColor.accentProminentBg : TossyColor.borderSubtle, lineWidth: 1)
+                )
         }
         .buttonStyle(.plain)
     }
@@ -309,30 +449,85 @@ struct MenuBarQuickTossView: View {
     private func handleDrop(_ providers: [NSItemProvider]) {
         Task { @MainActor in
             let urls = await FileDropResolver.resolveURLs(from: providers)
-            for url in urls where !self.droppedURLs.contains(url) {
-                self.droppedURLs.append(url)
-            }
-            if let first = urls.first {
-                let ext = first.pathExtension.lowercased()
-                if VideoFormat.readableExtensions.contains(ext) {
-                    if let probe = MediaProbe.probe(url: first), !probe.hasVideo && probe.hasAudio {
-                        self.selectedCategory = .audio
-                    } else {
-                        self.selectedCategory = .video
-                    }
-                } else if AudioFormat.readableExtensions.contains(ext) {
+            routeIncomingURLs(urls)
+        }
+    }
+    
+    private func routeIncomingURLs(_ urls: [URL]) {
+        guard !urls.isEmpty else { return }
+        if !completedOutputs.isEmpty {
+            completedOutputs.removeAll()
+        }
+        
+        // If code file dropped: auto-open Code Studio in app
+        let codeFiles = urls.filter { CodeLanguageDetector.codeExtensions.contains($0.pathExtension.lowercased()) }
+        if !codeFiles.isEmpty, let firstCode = codeFiles.first {
+            TossyHaptic.performFeedback(.alignment)
+            TossySound.playStudioOpen()
+            onOpenFullApp()
+            NotificationCenter.default.post(
+                name: NSNotification.Name("TossyOpenCodeCard"),
+                object: nil,
+                userInfo: ["url": firstCode]
+            )
+            return
+        }
+        
+        // If PDF dropped: auto-open PDF Studio in app
+        let pdfFiles = urls.filter { $0.pathExtension.lowercased() == "pdf" }
+        if !pdfFiles.isEmpty {
+            TossyHaptic.performFeedback(.alignment)
+            TossySound.playStudioOpen()
+            onOpenFullApp()
+            NotificationCenter.default.post(
+                name: NSNotification.Name("TossyDropFiles"),
+                object: nil,
+                userInfo: ["urls": pdfFiles]
+            )
+            return
+        }
+        
+        // Image & Video: queue and play sound/haptic
+        for url in urls where !self.droppedURLs.contains(url) {
+            self.droppedURLs.append(url)
+        }
+        TossyHaptic.performFeedback(.generic)
+        TossySound.playToss()
+        
+        if let first = urls.first {
+            let ext = first.pathExtension.lowercased()
+            if VideoFormat.readableExtensions.contains(ext) {
+                if let probe = MediaProbe.probe(url: first), !probe.hasVideo && probe.hasAudio {
                     self.selectedCategory = .audio
                 } else {
-                    self.selectedCategory = .image
+                    self.selectedCategory = .video
                 }
+            } else if AudioFormat.readableExtensions.contains(ext) {
+                self.selectedCategory = .audio
+            } else {
+                self.selectedCategory = .image
             }
         }
+    }
+    
+    private func openInStudio() {
+        guard !droppedURLs.isEmpty else { return }
+        TossyHaptic.performFeedback(.alignment)
+        TossySound.playStudioOpen()
+        let urls = droppedURLs
+        onOpenFullApp()
+        NotificationCenter.default.post(
+            name: NSNotification.Name("TossyDropFiles"),
+            object: nil,
+            userInfo: ["urls": urls]
+        )
     }
     
     private func startConversion() {
         guard !droppedURLs.isEmpty else { return }
         isConverting = true
         conversionProgress = 0.1
+        TossyHaptic.performFeedback(.generic)
         
         Task {
             let settings = AppSettings.shared
@@ -362,9 +557,8 @@ struct MenuBarQuickTossView: View {
             await MainActor.run {
                 self.completedOutputs = outputs
                 self.isConverting = false
-                if settings.playCompletionSound {
-                    NSSound(named: "Glass")?.play()
-                }
+                TossyHaptic.performFeedback(.alignment)
+                TossySound.playCompletion()
             }
         }
     }

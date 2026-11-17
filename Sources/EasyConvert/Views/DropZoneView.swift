@@ -95,12 +95,16 @@ struct DropZoneView: View {
                         .frame(maxWidth: subtitleMaxWidth)
                 }
 
-                Button(action: browseAction) {
+                Button(action: {
+                    TossyHaptic.performFeedback(.generic)
+                    browseAction()
+                }) {
                     HStack(spacing: 6) {
                         Image(systemName: "folder.badge.plus")
                             .font(.system(size: round(13 * scaleMultiplier), weight: .medium))
                         Text("Browse Files…")
                             .font(.system(size: round(13 * scaleMultiplier), weight: .semibold))
+                            .fixedSize(horizontal: true, vertical: false)
                     }
                     .padding(.horizontal, round(16 * scaleMultiplier))
                     .padding(.vertical, round(8 * scaleMultiplier))
@@ -115,23 +119,17 @@ struct DropZoneView: View {
                     y: 2
                 )
 
-                // Format pills
+                // Format pills with guaranteed horizontal layout (no vertical character wrapping)
                 if !formatTags.isEmpty {
-                    HStack(spacing: round(6 * scaleMultiplier)) {
-                        ForEach(formatTags, id: \.self) { tag in
-                            Text(tag)
-                                .font(.system(size: round(11 * scaleMultiplier), weight: .medium, design: .monospaced))
-                                .foregroundStyle(TossyColor.textSecondary)
-                                .padding(.horizontal, round(8 * scaleMultiplier))
-                                .padding(.vertical, round(3 * scaleMultiplier))
-                                .background(TossyColor.surfaceElevated.opacity(0.85))
-                                .clipShape(Capsule())
-                                .overlay(
-                                    Capsule()
-                                        .strokeBorder(TossyColor.borderSubtle.opacity(0.5), lineWidth: 0.5)
-                                )
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: round(6 * scaleMultiplier)) {
+                            ForEach(formatTags, id: \.self) { tag in
+                                tagPill(tag, scale: scaleMultiplier)
+                            }
                         }
+                        .padding(.horizontal, 4)
                     }
+                    .frame(maxWidth: max(280, subtitleMaxWidth + 60))
                     .padding(.top, round(4 * scaleMultiplier))
                 }
                 
@@ -171,5 +169,24 @@ struct DropZoneView: View {
                 }
             }
         }
+    }
+
+    private func tagPill(_ tag: String, scale: CGFloat) -> some View {
+        let fontSize: CGFloat = round(11 * scale)
+        let padH: CGFloat = round(8 * scale)
+        let padV: CGFloat = round(4 * scale)
+        return Text(tag)
+            .font(.system(size: fontSize, weight: .medium, design: .monospaced))
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+            .foregroundStyle(TossyColor.textSecondary)
+            .padding(.horizontal, padH)
+            .padding(.vertical, padV)
+            .background(TossyColor.surfaceElevated.opacity(0.85))
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .strokeBorder(TossyColor.borderSubtle.opacity(0.5), lineWidth: 0.5)
+            )
     }
 }

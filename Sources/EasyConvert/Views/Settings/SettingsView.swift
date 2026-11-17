@@ -76,10 +76,10 @@ struct GeneralSettingsTab: View {
             Section("Appearance & Theme") {
                 Picker("Theme Mode", selection: $settings.appTheme) {
                     ForEach(AppTheme.allCases) { theme in
-                        Label(theme.rawValue, systemImage: theme.icon).tag(theme)
+                        Label(theme.displayName, systemImage: theme.icon).tag(theme)
                     }
                 }
-                .pickerStyle(.segmented)
+                .pickerStyle(.menu)
             }
 
             Section("Navigation & Layout Style") {

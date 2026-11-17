@@ -13,10 +13,13 @@ struct DestinationButton: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: 160, alignment: .leading)
                     .help(destinationFolder.path)
             }
             Button(destinationFolder == nil ? "Choose Destination…" : "Change…") { action() }
                 .buttonStyle(.bordered)
+                .fixedSize(horizontal: true, vertical: false)
         }
     }
 }

@@ -172,7 +172,7 @@ struct RootView: View {
                                     }
                                 } label: {
                                     HStack {
-                                        Label(theme.rawValue, systemImage: theme.icon)
+                                        Label(theme.displayName, systemImage: theme.icon)
                                         if settings.appTheme == theme {
                                             Image(systemName: "checkmark")
                                         }
@@ -189,7 +189,7 @@ struct RootView: View {
                         .menuStyle(.borderlessButton)
                         .menuIndicator(.hidden)
                         .frame(width: 26, height: 26)
-                        .help("Change Theme Appearance (Dark / Light / Liquid Glass / Titanium)")
+                        .help("Change Theme Appearance (Monochrome Black, Monochrome White, or Creative Themes)")
 
                         // Settings Button (Cmd+,)
                         Button {
@@ -280,6 +280,18 @@ struct RootView: View {
                     name: NSNotification.Name("TossyOpenCodeCard"),
                     object: nil,
                     userInfo: ["url": first]
+                )
+                return
+            }
+            
+            if let first = collected.first, first.pathExtension.lowercased() == "pdf" {
+                withAnimation(TossyMotion.springSmooth) {
+                    self.selectedTab = .dropzone
+                }
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("TossyDropFiles"),
+                    object: nil,
+                    userInfo: ["urls": collected]
                 )
                 return
             }

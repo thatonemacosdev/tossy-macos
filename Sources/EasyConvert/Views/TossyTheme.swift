@@ -9,129 +9,191 @@ enum TossyColor {
     static var pitchBlack: Color {
         switch theme {
         case .dark: return Color.black
-        case .light: return Color(white: 0.96)
+        case .light: return Color.white
         case .titanium: return Color(red: 0.10, green: 0.105, blue: 0.12)
         case .liquidGlass: return Color.black.opacity(0.35)
+        case .midnightCobalt: return Color(red: 0.03, green: 0.05, blue: 0.09)
+        case .emerald: return Color(red: 0.02, green: 0.05, blue: 0.03)
+        case .solarAmber: return Color(red: 0.06, green: 0.04, blue: 0.03)
+        case .hyperViolet: return Color(red: 0.05, green: 0.03, blue: 0.09)
         }
     }
 
     static var surfaceDeep: Color {
         switch theme {
         case .dark: return Color(white: 0.04)
-        case .light: return Color(white: 0.91)
+        case .light: return Color(white: 0.95)
         case .titanium: return Color(red: 0.13, green: 0.135, blue: 0.155)
         case .liquidGlass: return Color.white.opacity(0.04)
+        case .midnightCobalt: return Color(red: 0.05, green: 0.08, blue: 0.14)
+        case .emerald: return Color(red: 0.03, green: 0.08, blue: 0.05)
+        case .solarAmber: return Color(red: 0.09, green: 0.06, blue: 0.04)
+        case .hyperViolet: return Color(red: 0.08, green: 0.05, blue: 0.14)
         }
     }
 
     static var surfaceBase: Color {
         switch theme {
         case .dark: return Color(white: 0.07)
-        case .light: return Color.white
+        case .light: return Color(white: 0.98)
         case .titanium: return Color(red: 0.17, green: 0.175, blue: 0.20)
         case .liquidGlass: return Color.white.opacity(0.08)
+        case .midnightCobalt: return Color(red: 0.07, green: 0.11, blue: 0.18)
+        case .emerald: return Color(red: 0.05, green: 0.11, blue: 0.07)
+        case .solarAmber: return Color(red: 0.12, green: 0.09, blue: 0.06)
+        case .hyperViolet: return Color(red: 0.11, green: 0.07, blue: 0.18)
         }
     }
 
     static var surfaceElevated: Color {
         switch theme {
         case .dark: return Color(white: 0.11)
-        case .light: return Color(white: 0.94)
+        case .light: return Color(white: 0.92)
         case .titanium: return Color(red: 0.22, green: 0.225, blue: 0.255)
         case .liquidGlass: return Color.white.opacity(0.14)
+        case .midnightCobalt: return Color(red: 0.10, green: 0.15, blue: 0.24)
+        case .emerald: return Color(red: 0.07, green: 0.15, blue: 0.10)
+        case .solarAmber: return Color(red: 0.17, green: 0.12, blue: 0.09)
+        case .hyperViolet: return Color(red: 0.15, green: 0.10, blue: 0.24)
         }
     }
 
     static var surfaceHighlight: Color {
         switch theme {
         case .dark: return Color(white: 0.16)
-        case .light: return Color(white: 0.88)
+        case .light: return Color(white: 0.86)
         case .titanium: return Color(red: 0.28, green: 0.29, blue: 0.33)
         case .liquidGlass: return Color.white.opacity(0.22)
+        case .midnightCobalt: return Color(red: 0.14, green: 0.21, blue: 0.33)
+        case .emerald: return Color(red: 0.10, green: 0.22, blue: 0.14)
+        case .solarAmber: return Color(red: 0.24, green: 0.18, blue: 0.13)
+        case .hyperViolet: return Color(red: 0.22, green: 0.15, blue: 0.33)
         }
     }
 
     static var surfaceHover: Color {
         switch theme {
         case .dark: return Color(white: 0.22)
-        case .light: return Color(white: 0.84)
+        case .light: return Color(white: 0.80)
         case .titanium: return Color(red: 0.34, green: 0.35, blue: 0.39)
         case .liquidGlass: return Color.white.opacity(0.28)
+        case .midnightCobalt: return Color(red: 0.18, green: 0.27, blue: 0.42)
+        case .emerald: return Color(red: 0.13, green: 0.28, blue: 0.18)
+        case .solarAmber: return Color(red: 0.30, green: 0.22, blue: 0.16)
+        case .hyperViolet: return Color(red: 0.28, green: 0.20, blue: 0.42)
         }
     }
 
     static var borderSubtle: Color {
         switch theme {
-        case .dark: return Color(white: 0.15)
-        case .light: return Color(white: 0.84)
+        case .dark: return Color(white: 0.16)
+        case .light: return Color(white: 0.88)
         case .titanium: return Color(red: 0.32, green: 0.33, blue: 0.37).opacity(0.6)
         case .liquidGlass: return Color.white.opacity(0.18)
+        case .midnightCobalt: return Color(red: 0.14, green: 0.22, blue: 0.35)
+        case .emerald: return Color(red: 0.10, green: 0.26, blue: 0.15)
+        case .solarAmber: return Color(red: 0.26, green: 0.18, blue: 0.12)
+        case .hyperViolet: return Color(red: 0.25, green: 0.16, blue: 0.38)
         }
     }
 
     static var borderMedium: Color {
         switch theme {
-        case .dark: return Color(white: 0.22)
+        case .dark: return Color(white: 0.26)
         case .light: return Color(white: 0.74)
         case .titanium: return Color(red: 0.45, green: 0.46, blue: 0.52).opacity(0.75)
         case .liquidGlass: return Color.white.opacity(0.30)
+        case .midnightCobalt: return Color(red: 0.20, green: 0.32, blue: 0.50)
+        case .emerald: return Color(red: 0.14, green: 0.38, blue: 0.22)
+        case .solarAmber: return Color(red: 0.38, green: 0.26, blue: 0.16)
+        case .hyperViolet: return Color(red: 0.36, green: 0.24, blue: 0.55)
         }
     }
 
     static var borderBright: Color {
         switch theme {
-        case .dark: return Color(white: 0.40)
-        case .light: return Color(white: 0.58)
+        case .dark: return Color(white: 0.45)
+        case .light: return Color(white: 0.40)
         case .titanium: return Color(red: 0.70, green: 0.72, blue: 0.80).opacity(0.9)
         case .liquidGlass: return Color.white.opacity(0.55)
+        case .midnightCobalt: return Color(red: 0.30, green: 0.52, blue: 0.85)
+        case .emerald: return Color(red: 0.20, green: 0.70, blue: 0.38)
+        case .solarAmber: return Color(red: 0.75, green: 0.48, blue: 0.20)
+        case .hyperViolet: return Color(red: 0.65, green: 0.40, blue: 0.90)
         }
     }
 
     static var textPrimary: Color {
         switch theme {
-        case .dark, .titanium, .liquidGlass: return Color.white
-        case .light: return Color.black
+        case .dark, .titanium, .liquidGlass, .midnightCobalt, .emerald, .solarAmber, .hyperViolet:
+            return Color.white
+        case .light:
+            return Color.black
         }
     }
 
     static var textSecondary: Color {
         switch theme {
-        case .dark: return Color(white: 0.65)
+        case .dark: return Color(white: 0.70)
         case .light: return Color(white: 0.32)
         case .titanium: return Color(white: 0.72)
         case .liquidGlass: return Color.white.opacity(0.75)
+        case .midnightCobalt: return Color(red: 0.65, green: 0.75, blue: 0.88)
+        case .emerald: return Color(red: 0.62, green: 0.82, blue: 0.68)
+        case .solarAmber: return Color(red: 0.84, green: 0.72, blue: 0.62)
+        case .hyperViolet: return Color(red: 0.80, green: 0.70, blue: 0.92)
         }
     }
 
     static var textTertiary: Color {
         switch theme {
-        case .dark: return Color(white: 0.40)
-        case .light: return Color(white: 0.50)
+        case .dark: return Color(white: 0.45)
+        case .light: return Color(white: 0.52)
         case .titanium: return Color(white: 0.48)
         case .liquidGlass: return Color.white.opacity(0.50)
+        case .midnightCobalt: return Color(red: 0.42, green: 0.52, blue: 0.66)
+        case .emerald: return Color(red: 0.38, green: 0.55, blue: 0.42)
+        case .solarAmber: return Color(red: 0.58, green: 0.46, blue: 0.38)
+        case .hyperViolet: return Color(red: 0.55, green: 0.44, blue: 0.68)
         }
     }
 
     static var textMuted: Color {
         switch theme {
-        case .dark: return Color(white: 0.25)
-        case .light: return Color(white: 0.65)
+        case .dark: return Color(white: 0.28)
+        case .light: return Color(white: 0.68)
         case .titanium: return Color(white: 0.32)
         case .liquidGlass: return Color.white.opacity(0.32)
+        case .midnightCobalt: return Color(red: 0.26, green: 0.34, blue: 0.45)
+        case .emerald: return Color(red: 0.22, green: 0.35, blue: 0.25)
+        case .solarAmber: return Color(red: 0.38, green: 0.28, blue: 0.22)
+        case .hyperViolet: return Color(red: 0.35, green: 0.26, blue: 0.45)
         }
     }
 
     static var accentProminentBg: Color {
         switch theme {
-        case .dark, .titanium, .liquidGlass: return Color.white
+        case .dark: return Color.white
         case .light: return Color.black
+        case .titanium: return Color.white
+        case .liquidGlass: return Color.white
+        case .midnightCobalt: return Color(red: 0.22, green: 0.55, blue: 0.98)
+        case .emerald: return Color(red: 0.08, green: 0.85, blue: 0.45)
+        case .solarAmber: return Color(red: 0.96, green: 0.62, blue: 0.12)
+        case .hyperViolet: return Color(red: 0.72, green: 0.35, blue: 0.98)
         }
     }
 
     static var accentProminentFg: Color {
         switch theme {
-        case .dark, .titanium, .liquidGlass: return Color.black
+        case .dark: return Color.black
         case .light: return Color.white
+        case .titanium: return Color.black
+        case .liquidGlass: return Color.black
+        case .midnightCobalt: return Color.white
+        case .emerald: return Color(red: 0.02, green: 0.15, blue: 0.06)
+        case .solarAmber: return Color(red: 0.15, green: 0.08, blue: 0.02)
+        case .hyperViolet: return Color.white
         }
     }
 
@@ -174,7 +236,13 @@ enum TossyMotion {
     static let easeOut = Animation.easeOut(duration: 0.22)
 }
 
-// MARK: - Audio Feedback
+// MARK: - Audio & Haptic Feedback
+
+enum TossyHaptic {
+    static func performFeedback(_ pattern: NSHapticFeedbackManager.FeedbackPattern = .generic) {
+        NSHapticFeedbackManager.defaultPerformer.perform(pattern, performanceTime: .now)
+    }
+}
 
 enum TossySound {
     static func playCompletion() {
@@ -185,6 +253,11 @@ enum TossySound {
     static func playToss() {
         guard AppSettings.shared.playCompletionSound else { return }
         NSSound(named: "Pop")?.play()
+    }
+
+    static func playStudioOpen() {
+        guard AppSettings.shared.playCompletionSound else { return }
+        NSSound(named: "Tink")?.play()
     }
 }
 
@@ -299,6 +372,8 @@ struct TossyPill: View {
             }
             Text(text)
                 .font(.system(size: 11, weight: .medium, design: .rounded))
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 3)

@@ -179,75 +179,63 @@ struct UniversalCanvasView: View {
     }
     
     var body: some View {
-        GeometryReader { geo in
-            let sidebarWidth = max(255, min(330, geo.size.width * 0.28))
-            HStack(spacing: 0) {
-                // Main Conversion Workspace
-                VStack(spacing: 0) {
-                    if !jobs.isEmpty {
-                        // Control Bar only appears AFTER files are dropped
-                        controlBar
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                        
-                        Divider().overlay(TossyColor.borderSubtle)
-                        
-                        ScrollView {
-                            LazyVStack(spacing: 6) {
-                                ForEach(jobs) { job in
-                                    JobRowView(
-                                        job: job,
-                                        categoryType: categoryTypeFor(job.sourceURL),
-                                        onRetry: {
-                                            Task { await convertSingleJob(job) }
-                                        },
-                                        onRemove: {
-                                            withAnimation(TossyMotion.springSmooth) {
-                                                jobs.removeAll(where: { $0.id == job.id })
-                                                if jobs.isEmpty {
-                                                    activeMode = .all
-                                                } else {
-                                                    activeMode = detectMode(for: jobs.map(\.sourceURL))
-                                                }
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                            .padding(12)
-                        }
-                        
-                        Divider().overlay(TossyColor.borderSubtle)
-                        
-                        bottomBar
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    } else {
-                        // Clean, dynamic detecting Dropzone
-                        DropZoneView(
-                            isTargeted: isTargeted,
-                            icon: "arrow.triangle.2.circlepath.circle",
-                            title: "Toss any files here to convert",
-                            subtitle: "Automatically adapts to Video, Audio, Image, Code, or PDF studio",
-                            formatTags: ["Video (MP4/MKV)", "Audio (MP3/FLAC)", "Images (WebP/JXL)", "Code Cards", "PDF Tools"]
-                        ) {
-                            isShowingImporter = true
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        VStack(spacing: 0) {
+            if !jobs.isEmpty {
+                // Control Bar appears when files are queued
+                controlBar
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 
-                // Vertical Three Studios Sidebar
                 Divider().overlay(TossyColor.borderSubtle)
                 
-                threeStudiosSidebar
-                    .frame(width: sidebarWidth)
-                    .background(
-                        AppSettings.shared.appTheme == .titanium ?
-                        Color(red: 0.12, green: 0.125, blue: 0.14).opacity(0.68) :
-                        (AppSettings.shared.appTheme == .liquidGlass ? Color.white.opacity(0.04) : TossyColor.surfaceDeep)
-                    )
+                // Studio Option Banner (shown when image, video, or pdf is queued)
+                studioOptionBannerView
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                
+                ScrollView {
+                    LazyVStack(spacing: 6) {
+                        ForEach(jobs) { job in
+                            JobRowView(
+                                job: job,
+                                categoryType: categoryTypeFor(job.sourceURL),
+                                onRetry: {
+                                    Task { await convertSingleJob(job) }
+                                },
+                                onRemove: {
+                                    withAnimation(TossyMotion.springSmooth) {
+                                        jobs.removeAll(where: { $0.id == job.id })
+                                        if jobs.isEmpty {
+                                            activeMode = .all
+                                        } else {
+                                            activeMode = detectMode(for: jobs.map(\.sourceURL))
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    .padding(12)
+                }
+                
+                Divider().overlay(TossyColor.borderSubtle)
+                
+                bottomBar
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            } else {
+                // Clean full-bleed dropzone on homepage with no studios sidebar
+                DropZoneView(
+                    isTargeted: isTargeted,
+                    icon: "arrow.triangle.2.circlepath.circle",
+                    title: "Toss any files here to convert",
+                    subtitle: "Drag in Video or Image to convert or open Studio • PDF & Code auto-open Studio",
+                    formatTags: ["Video (MP4/MKV)", "Audio (MP3/FLAC)", "Images (WebP/JXL)", "Code Cards", "PDF Tools"]
+                ) {
+                    isShowingImporter = true
+                }
+                .padding(16)
             }
         }
         .frame(minWidth: 640, minHeight: 460)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             AppSettings.shared.appTheme == .titanium || AppSettings.shared.appTheme == .liquidGlass ?
             Color.clear : TossyColor.pitchBlack
@@ -310,527 +298,199 @@ struct UniversalCanvasView: View {
         }
     }
     
-    // MARK: - Vertical Three Studios Sidebar
-    
-    private var threeStudiosSidebar: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                // Sidebar Header
-                HStack(alignment: .center) {
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Studios")
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
-                            .foregroundStyle(TossyColor.textPrimary)
-                        Text("Pro Production Suites")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(TossyColor.textTertiary)
-                    }
-                    
-                    Spacer()
-                    
-                    if !jobs.isEmpty {
-                        Text("\(jobs.count) queued")
-                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(TossyColor.surfaceElevated)
-                            .clipShape(Capsule())
-                            .foregroundStyle(TossyColor.textSecondary)
-                    }
-                }
-                .padding(.horizontal, 4)
-                .padding(.top, 2)
-                
-                if activeMode == .video {
-                    // Video Studio Focus
-                    studioCard(
-                        title: "Media Studio (Video)",
-                        subtitle: "Lossless Cut, Audio & Speed",
-                        icon: "film.stack.fill",
-                        gradient: [Color.cyan, Color.blue],
-                        onOpen: {
-                            mediaStudioInitialTab = .trim
-                            showMediaStudio = true
-                        },
-                        chips: [
-                            ("Trim & Cut", "scissors", {
-                                mediaStudioInitialTab = .trim
-                                showMediaStudio = true
-                            }),
-                            ("Strip Audio", "waveform", {
-                                mediaStudioInitialTab = .extractAudio
-                                showMediaStudio = true
-                            }),
-                            ("Rotate & Speed", "rotate.right", {
-                                mediaStudioInitialTab = .rotateSpeed
-                                showMediaStudio = true
-                            }),
-                            ("Extract MP3", "waveform.badge.plus", {
-                                mediaStudioInitialTab = .extractAudio
-                                showMediaStudio = true
-                            })
-                        ]
-                    )
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Video Utilities")
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(TossyColor.textTertiary)
-                            .padding(.horizontal, 4)
-                            .padding(.top, 4)
-                        
-                        utilityRowButton(title: "Batch Token Rename", icon: "pencil.line") {
-                            showRenamer = true
-                        }
-                        utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
-                            showArchiveModal = true
-                        }
-                    }
-                    
-                    collapsibleOtherStudios
-                } else if activeMode == .audio {
-                    // Audio Studio Focus
-                    studioCard(
-                        title: "Audio Studio",
-                        subtitle: "Extraction & Normalization",
-                        icon: "waveform",
-                        gradient: [Color.purple, Color.indigo],
-                        onOpen: {
-                            mediaStudioInitialTab = .extractAudio
-                            showMediaStudio = true
-                        },
-                        chips: [
-                            ("Extract Audio", "waveform.badge.plus", {
-                                mediaStudioInitialTab = .extractAudio
-                                showMediaStudio = true
-                            }),
-                            ("EBU Loudnorm", "waveform.path.ecg", {
-                                settings.audioConfig.normalizeEBUR128.toggle()
-                            }),
-                            ("Silence / Strip", "speaker.slash", {
-                                mediaStudioInitialTab = .extractAudio
-                                showMediaStudio = true
-                            })
-                        ]
-                    )
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Audio Utilities")
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(TossyColor.textTertiary)
-                            .padding(.horizontal, 4)
-                            .padding(.top, 4)
-                        
-                        utilityRowButton(title: "Batch Token Rename", icon: "pencil.line") {
-                            showRenamer = true
-                        }
-                        utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
-                            showArchiveModal = true
-                        }
-                    }
-                    
-                    collapsibleOtherStudios
-                } else if activeMode == .image {
-                    // Image Studio Focus
-                    studioCard(
-                        title: "Image Studio & Vision AI",
-                        subtitle: "Background Cutout & Clean",
-                        icon: "photo.stack.fill",
-                        gradient: [Color.mint, Color.teal],
-                        onOpen: {
-                            mediaStudioInitialTab = .removeBg
-                            showMediaStudio = true
-                        },
-                        chips: [
-                            ("AI Remove BG", "person.crop.circle.badge.checkmark", {
-                                triggerAIRemoveBG()
-                            }),
-                            ("Quality Compare", "arrow.left.and.right.square.fill", {
-                                openQualityInspector()
-                            }),
-                            ("Strip EXIF", "eye.slash.fill", {
-                                showMetadataSanitizer = true
-                            }),
-                            ("Batch Rename", "pencil.line", {
-                                showRenamer = true
-                            })
-                        ]
-                    )
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Image Utilities")
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(TossyColor.textTertiary)
-                            .padding(.horizontal, 4)
-                            .padding(.top, 4)
-                        
-                        utilityRowButton(title: "Strip EXIF Metadata", icon: "eye.slash.fill") {
-                            showMetadataSanitizer = true
-                        }
-                        utilityRowButton(title: "Quality Inspector", icon: "arrow.left.and.right.square.fill") {
-                            openQualityInspector()
-                        }
-                        utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
-                            showArchiveModal = true
-                        }
-                    }
-                    
-                    collapsibleOtherStudios
-                } else if activeMode == .pdf {
-                    // PDF Studio Focus
-                    studioCard(
-                        title: "PDF Studio",
-                        subtitle: "Burst, Vision OCR & Compress",
-                        icon: "doc.richtext.fill",
-                        gradient: [Color.orange, Color.red],
-                        onOpen: {
-                            pdfStudioInitialTab = .merge
-                            showPDFStudio = true
-                        },
-                        chips: [
-                            ("Burst to Images", "doc.on.doc.fill", {
-                                triggerBurstPDF()
-                            }),
-                            ("Vision OCR", "text.viewfinder", {
-                                pdfStudioInitialTab = .ocr
-                                showPDFStudio = true
-                            }),
-                            ("Compress PDF", "arrow.down.right.and.arrow.up.left", {
-                                pdfStudioInitialTab = .compress
-                                showPDFStudio = true
-                            }),
-                            ("Merge & Split", "scissors", {
-                                pdfStudioInitialTab = .merge
-                                showPDFStudio = true
-                            })
-                        ]
-                    )
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("PDF Utilities")
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(TossyColor.textTertiary)
-                            .padding(.horizontal, 4)
-                            .padding(.top, 4)
-                        
-                        utilityRowButton(title: "Batch Token Rename", icon: "pencil.line") {
-                            showRenamer = true
-                        }
-                        utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
-                            showArchiveModal = true
-                        }
-                    }
-                    
-                    collapsibleOtherStudios
-                } else {
-                    // Universal Mode: All 3 Studios
-                    studioCard(
-                        title: "Media Studio",
-                        subtitle: "Video, Audio & AI Vision",
-                        icon: "film.stack.fill",
-                        gradient: [Color.cyan, Color.blue],
-                        onOpen: {
-                            mediaStudioInitialTab = .trim
-                            showMediaStudio = true
-                        },
-                        chips: [
-                            ("Trim & Cut", "scissors", {
-                                mediaStudioInitialTab = .trim
-                                showMediaStudio = true
-                            }),
-                            ("Strip Audio", "waveform", {
-                                mediaStudioInitialTab = .extractAudio
-                                showMediaStudio = true
-                            }),
-                            ("AI Remove BG", "person.crop.circle.badge.checkmark", {
-                                triggerAIRemoveBG()
-                            }),
-                            ("Rotate & Speed", "rotate.right", {
-                                mediaStudioInitialTab = .rotateSpeed
-                                showMediaStudio = true
-                            })
-                        ]
-                    )
-                    
-                    studioCard(
-                        title: "PDF Studio",
-                        subtitle: "Burst, Vision OCR & Compress",
-                        icon: "doc.richtext.fill",
-                        gradient: [Color.orange, Color.red],
-                        onOpen: {
-                            pdfStudioInitialTab = .merge
-                            showPDFStudio = true
-                        },
-                        chips: [
-                            ("Burst to Images", "doc.on.doc.fill", {
-                                triggerBurstPDF()
-                            }),
-                            ("Vision OCR", "text.viewfinder", {
-                                pdfStudioInitialTab = .ocr
-                                showPDFStudio = true
-                            }),
-                            ("Compress PDF", "arrow.down.right.and.arrow.up.left", {
-                                pdfStudioInitialTab = .compress
-                                showPDFStudio = true
-                            }),
-                            ("Merge & Split", "scissors", {
-                                pdfStudioInitialTab = .merge
-                                showPDFStudio = true
-                            })
-                        ]
-                    )
-                    
-                    studioCard(
-                        title: "Code Card Studio",
-                        subtitle: "VS Code Syntax to Retina PNG",
-                        icon: "curlybraces.square.fill",
-                        gradient: [Color.green, Color.teal],
-                        onOpen: {
-                            showCodeCards = true
-                        },
-                        chips: [
-                            ("New Card", "plus.square.fill", {
-                                codeCardInitialCode = "// Paste or write code here\n"
-                                codeCardInitialFileName = "snippet.swift"
-                                showCodeCards = true
-                            }),
-                            ("From Clipboard", "doc.on.clipboard.fill", {
-                                openCodeCardFromClipboard()
-                            }),
-                            ("18+ Languages", "text.alignleft", {
-                                showCodeCards = true
-                            })
-                        ]
-                    )
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Utilities")
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(TossyColor.textTertiary)
-                            .padding(.horizontal, 4)
-                            .padding(.top, 4)
-                        
-                        utilityRowButton(title: "Strip EXIF Metadata", icon: "eye.slash.fill") {
-                            showMetadataSanitizer = true
-                        }
-                        utilityRowButton(title: "Encrypted Archive", icon: "lock.shield.fill") {
-                            showArchiveModal = true
-                        }
-                        utilityRowButton(title: "Batch Token Rename", icon: "pencil.line") {
-                            showRenamer = true
-                        }
-                        utilityRowButton(title: "Quality Inspector", icon: "arrow.left.and.right.square.fill") {
-                            openQualityInspector()
-                        }
-                    }
-                }
-            }
-            .padding(10)
-        }
-    }
-    
-    private var collapsibleOtherStudios: some View {
-        DisclosureGroup(isExpanded: $showOtherStudios) {
-            VStack(spacing: 8) {
-                if activeMode != .video && activeMode != .audio {
-                    secondaryStudioRow(title: "Media Studio", icon: "film.stack.fill", gradient: [Color.cyan, Color.blue]) {
-                        mediaStudioInitialTab = .trim
-                        showMediaStudio = true
-                    }
-                }
-                if activeMode != .pdf {
-                    secondaryStudioRow(title: "PDF Studio", icon: "doc.richtext.fill", gradient: [Color.orange, Color.red]) {
-                        pdfStudioInitialTab = .merge
-                        showPDFStudio = true
-                    }
-                }
-                secondaryStudioRow(title: "Code Card Studio", icon: "curlybraces.square.fill", gradient: [Color.green, Color.teal]) {
-                    showCodeCards = true
-                }
-                secondaryStudioRow(title: "Encrypted Archive", icon: "lock.shield.fill", gradient: [Color.gray, Color.secondary]) {
-                    showArchiveModal = true
-                }
-            }
-            .padding(.top, 4)
-        } label: {
-            Text("Other Studios & Tools")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(TossyColor.textTertiary)
-        }
-        .padding(.top, 6)
-    }
-    
-    private func secondaryStudioRow(
-        title: String,
-        icon: String,
-        gradient: [Color],
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 22, height: 22)
-                    Image(systemName: icon)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-                Text(title)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(TossyColor.textPrimary)
-                Spacer()
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 9))
-                    .foregroundStyle(TossyColor.textTertiary)
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(TossyColor.surfaceElevated.opacity(0.6))
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-        }
-        .buttonStyle(.plain)
-    }
+    // MARK: - Contextual Studio Option Banner
     
     @ViewBuilder
-    private func studioCard(
+    private var studioOptionBannerView: some View {
+        if activeMode == .image || (jobs.contains(where: { imageExtensions.contains($0.sourceURL.pathExtension.lowercased()) }) && activeMode == .all) {
+            studioBanner(
+                title: "Image Studio Available",
+                subtitle: "AI Background Removal, EXIF Sanitizer, Quality Compare & Inspect",
+                icon: "photo.stack.fill",
+                actionTitle: "Open Image Studio",
+                onOpen: {
+                    TossyHaptic.performFeedback(.alignment)
+                    TossySound.playStudioOpen()
+                    mediaStudioInitialTab = .removeBg
+                    showMediaStudio = true
+                },
+                chips: [
+                    ("AI Remove BG", "person.crop.circle.badge.checkmark", { triggerAIRemoveBG() }),
+                    ("Compare Quality", "arrow.left.and.right.square.fill", { openQualityInspector() }),
+                    ("Strip EXIF", "eye.slash.fill", { showMetadataSanitizer = true }),
+                    ("Batch Rename", "pencil.line", { showRenamer = true })
+                ]
+            )
+        } else if activeMode == .video || (jobs.contains(where: { videoExtensions.contains($0.sourceURL.pathExtension.lowercased()) }) && activeMode == .all) {
+            studioBanner(
+                title: "Video Studio Available",
+                subtitle: "Lossless Cut & Trim, Audio Extraction, Playback Speed & Rotation",
+                icon: "film.stack.fill",
+                actionTitle: "Open Video Studio",
+                onOpen: {
+                    TossyHaptic.performFeedback(.alignment)
+                    TossySound.playStudioOpen()
+                    mediaStudioInitialTab = .trim
+                    showMediaStudio = true
+                },
+                chips: [
+                    ("Trim & Cut", "scissors", {
+                        mediaStudioInitialTab = .trim
+                        showMediaStudio = true
+                    }),
+                    ("Extract Audio", "waveform", {
+                        mediaStudioInitialTab = .extractAudio
+                        showMediaStudio = true
+                    }),
+                    ("Rotate & Speed", "rotate.right", {
+                        mediaStudioInitialTab = .rotateSpeed
+                        showMediaStudio = true
+                    }),
+                    ("Extract MP3", "waveform.badge.plus", {
+                        mediaStudioInitialTab = .extractAudio
+                        showMediaStudio = true
+                    })
+                ]
+            )
+        } else if activeMode == .pdf || jobs.contains(where: { $0.sourceURL.pathExtension.lowercased() == "pdf" }) {
+            studioBanner(
+                title: "PDF & Document Studio Available",
+                subtitle: "Burst to Images, Vision OCR, Document Compression & Page Merge",
+                icon: "doc.richtext.fill",
+                actionTitle: "Open PDF Studio",
+                onOpen: {
+                    TossyHaptic.performFeedback(.alignment)
+                    TossySound.playStudioOpen()
+                    pdfStudioInitialTab = .merge
+                    showPDFStudio = true
+                },
+                chips: [
+                    ("Burst Pages", "doc.on.doc.fill", { triggerBurstPDF() }),
+                    ("Vision OCR", "text.viewfinder", {
+                        pdfStudioInitialTab = .ocr
+                        showPDFStudio = true
+                    }),
+                    ("Compress PDF", "arrow.down.right.and.arrow.up.left", {
+                        pdfStudioInitialTab = .compress
+                        showPDFStudio = true
+                    }),
+                    ("Merge & Split", "scissors", {
+                        pdfStudioInitialTab = .merge
+                        showPDFStudio = true
+                    })
+                ]
+            )
+        }
+    }
+    
+    private func studioBanner(
         title: String,
         subtitle: String,
         icon: String,
-        gradient: [Color],
+        actionTitle: String,
         onOpen: @escaping () -> Void,
         chips: [(String, String, () -> Void)]
     ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Card Header
-            HStack(spacing: 8) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(
-                            LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
-                        )
-                        .frame(width: 26, height: 26)
-                        .shadow(color: gradient[0].opacity(0.35), radius: 3, y: 1)
-                    
-                    Image(systemName: icon)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-                
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(title)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(TossyColor.textPrimary)
-                    
-                    Text(subtitle)
-                        .font(.system(size: 9))
-                        .foregroundStyle(TossyColor.textSecondary)
-                        .lineLimit(1)
-                }
-                
-                Spacer()
-                
-                Button(action: onOpen) {
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(TossyColor.textSecondary)
-                        .padding(5)
-                        .background(TossyColor.surfaceHighlight.opacity(0.6))
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .help("Open \(title)")
+        HStack(spacing: 12) {
+            // Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(TossyColor.surfaceElevated)
+                    .frame(width: 32, height: 32)
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(TossyColor.accentProminentBg)
             }
             
-            // Feature action chips
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 5) {
-                ForEach(0..<chips.count, id: \.self) { idx in
-                    let chip = chips[idx]
-                    Button(action: chip.2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: chip.1)
-                                .font(.system(size: 8, weight: .medium))
-                                .foregroundStyle(TossyColor.textSecondary)
-                            
-                            Text(chip.0)
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundStyle(TossyColor.textPrimary)
-                                .lineLimit(1)
-                            
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 4)
+            // Text Details
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(title)
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundStyle(TossyColor.textPrimary)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                    
+                    Text("Studio")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
                         .background(TossyColor.surfaceElevated)
-                        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .strokeBorder(TossyColor.borderSubtle.opacity(0.6), lineWidth: 0.5)
-                        )
+                        .clipShape(Capsule())
+                        .foregroundStyle(TossyColor.textSecondary)
+                }
+                
+                Text(subtitle)
+                    .font(.system(size: 10))
+                    .foregroundStyle(TossyColor.textSecondary)
+                    .lineLimit(1)
+            }
+            
+            Spacer(minLength: 8)
+            
+            // Quick tool chips
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(0..<chips.count, id: \.self) { idx in
+                        let chip = chips[idx]
+                        Button(action: {
+                            TossyHaptic.performFeedback(.generic)
+                            chip.2()
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: chip.1)
+                                    .font(.system(size: 9))
+                                Text(chip.0)
+                                    .font(.system(size: 10, weight: .medium))
+                                    .lineLimit(1)
+                                    .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 4)
+                            .background(TossyColor.surfaceElevated)
+                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                            )
+                            .foregroundStyle(TossyColor.textSecondary)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
             
             // Primary Open Studio Button
-            Button(action: onOpen) {
-                HStack {
-                    Text("Open Studio")
-                        .font(.system(size: 10, weight: .semibold))
-                    Spacer()
-                    Image(systemName: "chevron.right")
+            Button(action: {
+                TossyHaptic.performFeedback(.alignment)
+                TossySound.playStudioOpen()
+                onOpen()
+            }) {
+                HStack(spacing: 5) {
+                    Text(actionTitle)
+                        .font(.system(size: 11, weight: .bold))
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                    Image(systemName: "arrow.up.right")
                         .font(.system(size: 9, weight: .bold))
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .background(TossyColor.surfaceHighlight.opacity(0.5))
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .foregroundStyle(TossyColor.textPrimary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(TossyColor.accentProminentBg)
+                .foregroundStyle(TossyColor.accentProminentFg)
+                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
             }
             .buttonStyle(.plain)
         }
-        .padding(9)
-        .background(TossyColor.surfaceBase)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(TossyColor.surfaceDeep)
         .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+            Rectangle()
+                .frame(height: 1)
+                .foregroundStyle(TossyColor.borderSubtle),
+            alignment: .bottom
         )
-        .brushedTitaniumCard(cornerRadius: 10, isElevated: true)
-    }
-    
-    private func utilityRowButton(
-        title: String,
-        icon: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.system(size: 10))
-                    .foregroundStyle(TossyColor.textSecondary)
-                    .frame(width: 14)
-                
-                Text(title)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(TossyColor.textPrimary)
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundStyle(TossyColor.textTertiary)
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(TossyColor.surfaceElevated.opacity(0.7))
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .strokeBorder(TossyColor.borderSubtle.opacity(0.5), lineWidth: 0.5)
-            )
-        }
-        .buttonStyle(.plain)
     }
     
     private func triggerAIRemoveBG() {
@@ -1067,6 +727,83 @@ struct UniversalCanvasView: View {
                     .frame(width: 110)
                 }
                 
+                // Studios & Tools Menu
+                Menu {
+                    Section("Production Studios") {
+                        Button {
+                            TossyHaptic.performFeedback(.alignment)
+                            TossySound.playStudioOpen()
+                            mediaStudioInitialTab = (activeMode == .image ? .removeBg : .trim)
+                            showMediaStudio = true
+                        } label: {
+                            Label(activeMode == .image ? "Image Studio (AI & Vision)" : "Media Studio (Video & Audio)", systemImage: activeMode == .image ? "photo.stack" : "film.stack")
+                        }
+                        
+                        Button {
+                            TossyHaptic.performFeedback(.alignment)
+                            TossySound.playStudioOpen()
+                            pdfStudioInitialTab = .merge
+                            showPDFStudio = true
+                        } label: {
+                            Label("PDF Studio (Merge, OCR, Compress)", systemImage: "doc.richtext")
+                        }
+                        
+                        Button {
+                            TossyHaptic.performFeedback(.alignment)
+                            TossySound.playStudioOpen()
+                            showCodeCards = true
+                        } label: {
+                            Label("Code Card Studio", systemImage: "curlybraces.square")
+                        }
+                    }
+                    
+                    Section("Utilities") {
+                        Button {
+                            showMetadataSanitizer = true
+                        } label: {
+                            Label("Strip EXIF Metadata", systemImage: "eye.slash")
+                        }
+                        
+                        Button {
+                            openQualityInspector()
+                        } label: {
+                            Label("Quality Inspector (Compare)", systemImage: "arrow.left.and.right.square")
+                        }
+                        
+                        Button {
+                            showArchiveModal = true
+                        } label: {
+                            Label("Encrypted Archive (.zip / .tar)", systemImage: "lock.shield")
+                        }
+                        
+                        Button {
+                            showRenamer = true
+                        } label: {
+                            Label("Batch Token Renamer", systemImage: "pencil.line")
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "wand.and.stars")
+                        Text("Studios & Tools")
+                            .font(.system(size: 11, weight: .medium))
+                            .fixedSize(horizontal: true, vertical: false)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 8))
+                    }
+                    .foregroundStyle(TossyColor.textSecondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(TossyColor.surfaceElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .help("Open Media, PDF, or Code Studios and Pro Utilities")
+                
                 Spacer()
                 
                 // Destination Button
@@ -1208,19 +945,41 @@ struct UniversalCanvasView: View {
     }
     
     private func addJobs(for urls: [URL]) {
-        // Detect code files first -> opens Code Card Studio automatically
+        // 1. Detect code files -> auto-open Code Card Studio
         let codeFiles = urls.filter { CodeLanguageDetector.codeExtensions.contains($0.pathExtension.lowercased()) }
         if !codeFiles.isEmpty, let firstCode = codeFiles.first {
             if let content = try? String(contentsOf: firstCode, encoding: .utf8) {
                 self.codeCardInitialCode = content
                 self.codeCardInitialFileName = firstCode.lastPathComponent
                 self.showCodeCards = true
+                TossyHaptic.performFeedback(.alignment)
+                TossySound.playStudioOpen()
                 if codeFiles.count == urls.count {
                     return
                 }
             }
         }
         
+        // 2. Detect PDF files -> auto-open PDF Studio
+        let pdfFiles = urls.filter { $0.pathExtension.lowercased() == "pdf" }
+        if !pdfFiles.isEmpty {
+            self.pdfStudioInitialTab = .merge
+            self.showPDFStudio = true
+            TossyHaptic.performFeedback(.alignment)
+            TossySound.playStudioOpen()
+            if pdfFiles.count == urls.count {
+                for url in pdfFiles {
+                    if !jobs.contains(where: { $0.sourceURL == url }) {
+                        jobs.append(ConversionJob(sourceURL: url))
+                    }
+                }
+                self.activeMode = .pdf
+                self.selectedTarget = .pdfAction("PNG")
+                return
+            }
+        }
+        
+        // 3. Queue files and show contextual Studio options for Video and Image
         var addedAny = false
         for url in urls {
             if CodeLanguageDetector.codeExtensions.contains(url.pathExtension.lowercased()) {
@@ -1255,6 +1014,8 @@ struct UniversalCanvasView: View {
                     }
                 }
             }
+            TossyHaptic.performFeedback(.generic)
+            TossySound.playToss()
         }
     }
     

@@ -14,27 +14,30 @@ echo "================================================================"
 
 mkdir -p build_sandbox/tests
 
-echo "1/6 Compiling PDF Studio Test Suite..."
+echo "1/7 Compiling PDF Studio Test Suite..."
 swiftc -parse-as-library $(find Sources/EasyConvert -name "*.swift" ! -name "EasyConvertApp.swift") build_sandbox/tests/test_pdf_studio.swift -o build_sandbox/tests/test_pdf_studio_bin
 
-echo "2/6 Compiling Media Studio Test Suite..."
+echo "2/7 Compiling Media Studio Test Suite..."
 swiftc -parse-as-library $(find Sources/EasyConvert -name "*.swift" ! -name "EasyConvertApp.swift") build_sandbox/tests/test_media_studio.swift -o build_sandbox/tests/test_media_studio_bin
 
-echo "3/6 Compiling Archive Suite Test Suite..."
+echo "3/7 Compiling Archive Suite Test Suite..."
 swiftc -parse-as-library $(find Sources/EasyConvert -name "*.swift" ! -name "EasyConvertApp.swift") build_sandbox/tests/test_archive_studio.swift -o build_sandbox/tests/test_archive_studio_bin
 
-echo "4/6 Compiling Automation Suite Test Suite..."
+echo "4/7 Compiling Automation Suite Test Suite..."
 swiftc -parse-as-library $(find Sources/EasyConvert -name "*.swift" ! -name "EasyConvertApp.swift") build_sandbox/tests/test_automation_studio.swift -o build_sandbox/tests/test_automation_studio_bin
 
-echo "5/6 Compiling QA Fixes & Safeguards Test Suite..."
+echo "5/7 Compiling QA Fixes & Safeguards Test Suite..."
 swiftc -parse-as-library $(find Sources/EasyConvert -name "*.swift" ! -name "EasyConvertApp.swift") build_sandbox/tests/test_qa_bugs_only.swift -o build_sandbox/tests/test_qa_bugs_only_bin
 
-echo "6/6 Compiling V2 Polish Tasks Test Suite..."
+echo "6/7 Compiling V2 Polish Tasks Test Suite..."
 swiftc -parse-as-library $(find Sources/EasyConvert -name "*.swift" ! -name "EasyConvertApp.swift") build_sandbox/tests/test_v2_polish_tasks.swift -o build_sandbox/tests/test_v2_polish_tasks_bin
+
+echo "7/7 Compiling V2.1 Redesign & Themes Test Suite..."
+swiftc -parse-as-library $(find Sources/EasyConvert -name "*.swift" ! -name "EasyConvertApp.swift") build_sandbox/tests/test_v2_1_redesign.swift -o build_sandbox/tests/test_v2_1_redesign_bin
 
 echo ""
 echo "================================================================"
-echo "               EXECUTING ALL 6 TEST SUITES                      "
+echo "               EXECUTING ALL 7 TEST SUITES                      "
 echo "================================================================"
 
 echo ""
@@ -60,6 +63,10 @@ echo ">>> Running Targeted QA Bug Fixes Tests..."
 echo ""
 echo ">>> Running V2 Polish Tasks Tests..."
 ./build_sandbox/tests/test_v2_polish_tasks_bin
+
+echo ""
+echo ">>> Running V2.1 Redesign & Themes Tests..."
+./build_sandbox/tests/test_v2_1_redesign_bin
 
 echo ""
 echo "================================================================"
