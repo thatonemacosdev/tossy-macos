@@ -94,6 +94,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         return items
     }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        MenuBarManager.shared.openMainWindow()
+        return true
+    }
+}
+
+struct WindowAccessor: NSViewRepresentable {
+    let callback: (NSWindow) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            if let window = view.window {
+                callback(window)
+            }
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            if let window = nsView.window {
+                callback(window)
+            }
+        }
+    }
 }
 
 @main
@@ -104,6 +131,9 @@ struct TossyApp: App {
         WindowGroup("Tossy") {
             RootView()
                 .frame(minWidth: 640, minHeight: 460)
+                .background(WindowAccessor { window in
+                    MenuBarManager.shared.registerMainWindow(window)
+                })
                 .onAppear {
                     MenuBarManager.shared.setupIfNeeded()
                     if AppSettings.shared.automaticallyCheckForUpdates {

@@ -102,6 +102,33 @@ final class TossyStatusBarTrackingView: NSView {
     }
 }
 
+final class MainWindowDelegate: NSObject, NSWindowDelegate {
+    static let shared = MainWindowDelegate()
+    var isTerminating = false
+
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleWillTerminate),
+            name: NSApplication.willTerminateNotification,
+            object: nil
+        )
+    }
+
+    @objc private func handleWillTerminate() {
+        isTerminating = true
+    }
+
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        if isTerminating {
+            return true
+        }
+        sender.orderOut(nil)
+        return false
+    }
+}
+
 @MainActor
 final class MenuBarManager: NSObject, ObservableObject, NSPopoverDelegate {
     static let shared = MenuBarManager()
@@ -112,6 +139,13 @@ final class MenuBarManager: NSObject, ObservableObject, NSPopoverDelegate {
     private var closeTimer: Timer?
     private var globalMouseMonitor: Any?
     private var hoverPollingTimer: Timer?
+    var mainWindow: NSWindow?
+
+    func registerMainWindow(_ window: NSWindow) {
+        self.mainWindow = window
+        window.delegate = MainWindowDelegate.shared
+        window.isReleasedWhenClosed = false
+    }
 
     override private init() {
         super.init()
@@ -408,13 +442,47 @@ final class MenuBarManager: NSObject, ObservableObject, NSPopoverDelegate {
     }
 
     @objc func openMainWindow() {
+        closePopoverImmediately()
         NSApp.activate(ignoringOtherApps: true)
-        if let window = NSApp.windows.first(where: { $0.canBecomeMain && !$0.isMiniaturized }) {
+
+        if let window = mainWindow {
+            if window.isMiniaturized {
+                window.deminiaturize(nil)
+            }
             window.makeKeyAndOrderFront(nil)
-        } else if let window = NSApp.windows.first {
-            window.deminiaturize(nil)
-            window.makeKeyAndOrderFront(nil)
+            window.orderFrontRegardless()
+            return
         }
+
+        for window in NSApp.windows {
+            let className = String(describing: type(of: window))
+            if className.contains("StatusBar") || className.contains("Popover") || className.contains("Panel") {
+                continue
+            }
+            if window.canBecomeMain {
+                registerMainWindow(window)
+                if window.isMiniaturized {
+                    window.deminiaturize(nil)
+                }
+                window.makeKeyAndOrderFront(nil)
+                window.orderFrontRegardless()
+                return
+            }
+        }
+
+        let newWindow = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 720, height: 540),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        newWindow.center()
+        newWindow.title = "Tossy"
+        newWindow.titlebarAppearsTransparent = true
+        newWindow.contentViewController = NSHostingController(rootView: RootView())
+        registerMainWindow(newWindow)
+        newWindow.makeKeyAndOrderFront(nil)
+        newWindow.orderFrontRegardless()
     }
 
     @objc func openSettingsWindow() {
@@ -427,6 +495,7 @@ final class MenuBarManager: NSObject, ObservableObject, NSPopoverDelegate {
     }
 
     @objc func quitApp() {
+        MainWindowDelegate.shared.isTerminating = true
         NSApp.terminate(nil)
     }
 
