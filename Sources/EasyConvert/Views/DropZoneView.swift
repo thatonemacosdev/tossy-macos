@@ -9,7 +9,6 @@ struct DropZoneView: View {
     let browseAction: () -> Void
 
     @State private var isHovered = false
-    @State private var iconBounce = false
 
     var body: some View {
         GeometryReader { geo in
@@ -70,7 +69,6 @@ struct DropZoneView: View {
                                     lineWidth: 1
                                 )
                         )
-                        .scaleEffect(isTargeted ? 1.12 : (isHovered ? 1.04 : 1.0))
                     
                     Image(systemName: icon)
                         .font(.system(size: iconFontSize, weight: .light))
@@ -78,8 +76,10 @@ struct DropZoneView: View {
                             isTargeted ? TossyColor.textPrimary :
                             (isHovered ? TossyColor.textPrimary : TossyColor.textSecondary)
                         )
-                        .offset(y: iconBounce ? -5 : 0)
+                        .frame(width: circleSize, height: circleSize, alignment: .center)
                 }
+                .frame(width: circleSize, height: circleSize)
+                .scaleEffect(isTargeted ? 1.12 : (isHovered ? 1.04 : 1.0))
                 .animation(TossyMotion.springBouncy, value: isTargeted)
                 .animation(TossyMotion.springSnappy, value: isHovered)
 
@@ -164,9 +164,6 @@ struct DropZoneView: View {
             .animation(TossyMotion.springSnappy, value: isHovered)
             .onHover { hovering in
                 isHovered = hovering
-                withAnimation(TossyMotion.springBouncy) {
-                    iconBounce = hovering
-                }
             }
         }
     }
