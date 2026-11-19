@@ -49,66 +49,37 @@ final class ArchiveService: Sendable {
         
         if ext == "zip" {
             // Use ditto for clean macOS metadata and resource fork preservation
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
-            process.standardInput = FileHandle.nullDevice
-            process.arguments = ["-x", "-k", archiveURL.path, safeFolder.path]
-            let errPipe = Pipe()
-            process.standardError = errPipe
+            let dittoResult = try await SubprocessRunner.run(
+                executablePath: "/usr/bin/ditto",
+                arguments: ["-x", "-k", archiveURL.path, safeFolder.path]
+            )
             
-            try process.run()
-            process.waitUntilExit()
-            
-            if process.terminationStatus != 0 {
+            if !dittoResult.isSuccess {
                 // Try fallback with /usr/bin/unzip if encrypted with password
-                let unzipProcess = Process()
-                unzipProcess.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-                unzipProcess.standardInput = FileHandle.nullDevice
                 var unzipArgs = ["-q", "-o"]
                 if let password, !password.isEmpty {
                     unzipArgs += ["-P", password]
                 }
                 unzipArgs += [archiveURL.path, "-d", safeFolder.path]
-                unzipProcess.arguments = unzipArgs
-                let unzipErr = Pipe()
-                unzipProcess.standardError = unzipErr
-                try unzipProcess.run()
-                unzipProcess.waitUntilExit()
-                
-                guard unzipProcess.terminationStatus == 0 else {
-                    let errData = unzipErr.fileHandleForReading.readDataToEndOfFile()
-                    let errStr = String(data: errData, encoding: .utf8) ?? ""
-                    throw ArchiveError.extractionFailed("Unzip failed (code \(unzipProcess.terminationStatus)): \(errStr.suffix(200))")
+                let unzipResult = try await SubprocessRunner.run(executablePath: "/usr/bin/unzip", arguments: unzipArgs)
+                guard unzipResult.isSuccess else {
+                    throw ArchiveError.extractionFailed("Unzip failed (code \(unzipResult.exitCode)): \(unzipResult.stderrString.suffix(200))")
                 }
             }
-        } else if ["tar", "gz", "tgz", "bz2", "tbz2", "xz", "txz"].contains(ext) {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
-            process.standardInput = FileHandle.nullDevice
-            process.arguments = ["-xf", archiveURL.path, "-C", safeFolder.path]
-            let errPipe = Pipe()
-            process.standardError = errPipe
-            
-            try process.run()
-            process.waitUntilExit()
-            
-            guard process.terminationStatus == 0 else {
-                let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
-                let errStr = String(data: errData, encoding: .utf8) ?? ""
-                throw ArchiveError.extractionFailed("Tar extract failed: \(errStr.suffix(200))")
+        } else if ["tar", "gz", "tgz", "bz2", "tbz2", "xz", "txz", "zst"].contains(ext) {
+            let tarResult = try await SubprocessRunner.run(
+                executablePath: "/usr/bin/tar",
+                arguments: ["-xf", archiveURL.path, "-C", safeFolder.path]
+            )
+            guard tarResult.isSuccess else {
+                throw ArchiveError.extractionFailed("Tar extract failed: \(tarResult.stderrString.suffix(200))")
             }
         } else {
-            // General 7z / fallback
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
-            process.standardInput = FileHandle.nullDevice
-            process.arguments = ["-xf", archiveURL.path, "-C", safeFolder.path]
-            let errPipe = Pipe()
-            process.standardError = errPipe
-            try process.run()
-            process.waitUntilExit()
-            
-            guard process.terminationStatus == 0 else {
+            let tarResult = try await SubprocessRunner.run(
+                executablePath: "/usr/bin/tar",
+                arguments: ["-xf", archiveURL.path, "-C", safeFolder.path]
+            )
+            guard tarResult.isSuccess else {
                 throw ArchiveError.unsupportedArchiveFormat(ext)
             }
         }
@@ -136,90 +107,68 @@ final class ArchiveService: Sendable {
         let safeDestination = OutputNaming.uniqueDestinationURL(desiredURL: destinationURL)
         
         if let password, !password.isEmpty {
-            // Password protected zip
             let parentFolder = sourceURLs[0].deletingLastPathComponent()
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/zip")
-            process.standardInput = FileHandle.nullDevice
-            process.currentDirectoryURL = parentFolder
-            
             var args = ["-q", "-r", "-P", password, safeDestination.path]
             for url in sourceURLs {
                 args.append(url.lastPathComponent)
             }
-            process.arguments = args
-            let errPipe = Pipe()
-            process.standardError = errPipe
-            
-            try process.run()
-            process.waitUntilExit()
-            
-            guard process.terminationStatus == 0, FileManager.default.fileExists(atPath: safeDestination.path) else {
-                let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
-                let errStr = String(data: errData, encoding: .utf8) ?? ""
-                throw ArchiveError.compressionFailed("Encrypted zip creation failed: \(errStr.suffix(200))")
+            let result = try await SubprocessRunner.run(
+                executablePath: "/usr/bin/zip",
+                arguments: args,
+                currentDirectoryURL: parentFolder
+            )
+            guard result.isSuccess, FileManager.default.fileExists(atPath: safeDestination.path) else {
+                throw ArchiveError.compressionFailed("Encrypted zip creation failed: \(result.stderrString.suffix(200))")
             }
         } else if format.lowercased() == "zip" {
-            // Use ditto for clean macOS zip creation with resource preservation
             if sourceURLs.count == 1 {
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
-                process.standardInput = FileHandle.nullDevice
-                process.arguments = ["-c", "-k", "--keepParent", sourceURLs[0].path, safeDestination.path]
-                try process.run()
-                process.waitUntilExit()
-                guard process.terminationStatus == 0 else {
+                let result = try await SubprocessRunner.run(
+                    executablePath: "/usr/bin/ditto",
+                    arguments: ["-c", "-k", "--keepParent", sourceURLs[0].path, safeDestination.path]
+                )
+                guard result.isSuccess else {
                     throw ArchiveError.compressionFailed("Ditto zip failed")
                 }
             } else {
                 let parentFolder = sourceURLs[0].deletingLastPathComponent()
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: "/usr/bin/zip")
-                process.standardInput = FileHandle.nullDevice
-                process.currentDirectoryURL = parentFolder
                 var args = ["-q", "-r", safeDestination.path]
                 for url in sourceURLs {
                     args.append(url.lastPathComponent)
                 }
-                process.arguments = args
-                try process.run()
-                process.waitUntilExit()
-                guard process.terminationStatus == 0 else {
+                let result = try await SubprocessRunner.run(
+                    executablePath: "/usr/bin/zip",
+                    arguments: args,
+                    currentDirectoryURL: parentFolder
+                )
+                guard result.isSuccess else {
                     throw ArchiveError.compressionFailed("Zip creation failed")
                 }
             }
-        } else if ["tar.gz", "tgz"].contains(format.lowercased()) {
-            let parentFolder = sourceURLs[0].deletingLastPathComponent()
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
-            process.standardInput = FileHandle.nullDevice
-            process.currentDirectoryURL = parentFolder
-            var args = ["-czf", safeDestination.path]
-            for url in sourceURLs {
-                args.append(url.lastPathComponent)
-            }
-            process.arguments = args
-            try process.run()
-            process.waitUntilExit()
-            guard process.terminationStatus == 0 else {
-                throw ArchiveError.compressionFailed("Tar.gz creation failed")
-            }
         } else {
-            // Standard tar fallback
             let parentFolder = sourceURLs[0].deletingLastPathComponent()
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
-            process.standardInput = FileHandle.nullDevice
-            process.currentDirectoryURL = parentFolder
-            var args = ["-cf", safeDestination.path]
+            let tarFlag: String
+            let lowerFormat = format.lowercased()
+            if ["tar.gz", "tgz"].contains(lowerFormat) {
+                tarFlag = "-czf"
+            } else if ["tar.bz2", "tbz2", "bz2"].contains(lowerFormat) {
+                tarFlag = "-cjf"
+            } else if ["tar.xz", "txz", "xz"].contains(lowerFormat) {
+                tarFlag = "-cJf"
+            } else {
+                tarFlag = "-cf"
+            }
+
+            var args = [tarFlag, safeDestination.path]
             for url in sourceURLs {
                 args.append(url.lastPathComponent)
             }
-            process.arguments = args
-            try process.run()
-            process.waitUntilExit()
-            guard process.terminationStatus == 0 else {
-                throw ArchiveError.compressionFailed("Archive creation failed")
+            let result = try await SubprocessRunner.run(
+                executablePath: "/usr/bin/tar",
+                arguments: args,
+                currentDirectoryURL: parentFolder
+            )
+            guard result.isSuccess else {
+                throw ArchiveError.compressionFailed("Archive creation failed: \(result.stderrString.suffix(200))")
             }
         }
         
@@ -243,17 +192,14 @@ final class ArchiveService: Sendable {
         let safeFolder = OutputNaming.uniqueFolderURL(desiredFolderURL: destinationFolder)
         try? FileManager.default.createDirectory(at: safeFolder, withIntermediateDirectories: true)
         
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/split")
-        process.standardInput = FileHandle.nullDevice
         let baseName = archiveURL.lastPathComponent
         let prefix = safeFolder.appendingPathComponent("\(baseName).part_").path
         
-        process.arguments = ["-b", "\(chunkSizeBytes)", archiveURL.path, prefix]
-        try process.run()
-        process.waitUntilExit()
-        
-        guard process.terminationStatus == 0 else {
+        let result = try await SubprocessRunner.run(
+            executablePath: "/usr/bin/split",
+            arguments: ["-b", "\(chunkSizeBytes)", archiveURL.path, prefix]
+        )
+        guard result.isSuccess else {
             throw ArchiveError.compressionFailed("Volume splitting failed")
         }
         

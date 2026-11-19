@@ -11,7 +11,19 @@ enum OutputNaming {
     static func resetClaimedPaths() {
         lock.lock()
         defer { lock.unlock() }
-        claimedPaths.removeAll()
+        // Prune paths that are already materialized on disk, preserving any in-flight claims
+        // from concurrent batches running in Menu Bar or Studio windows.
+        claimedPaths = claimedPaths.filter { !FileManager.default.fileExists(atPath: $0) }
+    }
+
+    static func releaseClaimedPath(_ path: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        claimedPaths.remove(path)
+    }
+
+    static func releaseClaimedPath(_ url: URL) {
+        releaseClaimedPath(url.path)
     }
 
     /// Picks a non-colliding output URL for `sourceURL` converted to `fileExtension`,

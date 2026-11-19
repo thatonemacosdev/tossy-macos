@@ -538,3 +538,54 @@ struct TossyDragChip: View {
         }
     }
 }
+
+// MARK: - Liquid Glass Effects
+
+struct TossyGlassModifier: ViewModifier {
+    var cornerRadius: CGFloat = 12
+    var interactive: Bool = true
+
+    func body(content: Content) -> some View {
+        if AppSettings.shared.appTheme == .liquidGlass {
+            content
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5)
+                )
+                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+        } else {
+            content
+        }
+    }
+}
+
+extension View {
+    func tossyGlassEffect(cornerRadius: CGFloat = 12, interactive: Bool = true) -> some View {
+        modifier(TossyGlassModifier(cornerRadius: cornerRadius, interactive: interactive))
+    }
+}
+
+struct TossyGlassContainer<Content: View>: View {
+    var cornerRadius: CGFloat = 14
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        if AppSettings.shared.appTheme == .liquidGlass {
+            content()
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.75)
+                )
+                .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: 6)
+        } else {
+            content()
+                .background(TossyColor.surfaceDeep, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                )
+        }
+    }
+}

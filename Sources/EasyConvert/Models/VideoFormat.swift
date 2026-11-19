@@ -18,18 +18,18 @@ enum VideoCategory: String, CaseIterable {
 }
 
 enum VideoFormat: String, CaseIterable, Identifiable {
-    case mp4H264, mp4Hevc, movH264, movHevc, movProRes422
+    case mp4H264, mp4Hevc, movH264, movHevc, movProRes422, movProRes4444
     case mkv, webm, avi, flv, mpeg, ts, mts, m2ts, ogv, threeGp, asf, mxf, f4v, vob, dv, nut
-    case webmVp8, webmVp9, mp4Av1, mpeg2, mpeg4Part2
+    case webmVp8, webmVp9, webmAlpha, mp4Av1, mpeg2, mpeg4Part2
     case dnxhd, dnxhr
-    case animatedGif, animatedWebp
+    case animatedGif, animatedWebp, apng
 
     var id: String { rawValue }
 
     var category: VideoCategory {
         switch self {
-        case .dnxhd, .dnxhr, .movProRes422: return .professional
-        case .animatedGif, .animatedWebp: return .animation
+        case .dnxhd, .dnxhr, .movProRes422, .movProRes4444: return .professional
+        case .animatedGif, .animatedWebp, .apng: return .animation
         default: return .common
         }
     }
@@ -41,6 +41,7 @@ enum VideoFormat: String, CaseIterable, Identifiable {
         case .movH264: return "MOV (H.264)"
         case .movHevc: return "MOV (HEVC)"
         case .movProRes422: return "MOV (ProRes 422)"
+        case .movProRes4444: return "MOV (ProRes 4444 + Alpha)"
         case .mkv: return "MKV (H.264 + AAC)"
         case .webm: return "WebM (VP9 + Opus)"
         case .avi: return "AVI (H.264 + AAC)"
@@ -59,6 +60,7 @@ enum VideoFormat: String, CaseIterable, Identifiable {
         case .nut: return "NUT (H.264)"
         case .webmVp8: return "WebM (VP8 + Vorbis)"
         case .webmVp9: return "WebM (VP9 + Opus)"
+        case .webmAlpha: return "WebM (VP9 + Alpha)"
         case .mp4Av1: return "MP4 (AV1)"
         case .mpeg2: return "MPEG-2 (.mpg)"
         case .mpeg4Part2: return "AVI (MPEG-4 Part 2)"
@@ -66,15 +68,16 @@ enum VideoFormat: String, CaseIterable, Identifiable {
         case .dnxhr: return "MOV (DNxHR HQ)"
         case .animatedGif: return "Animated GIF"
         case .animatedWebp: return "Animated WebP"
+        case .apng: return "APNG (Animated PNG)"
         }
     }
 
     var fileExtension: String {
         switch self {
         case .mp4H264, .mp4Hevc, .mp4Av1: return "mp4"
-        case .movH264, .movHevc, .movProRes422, .dnxhd, .dnxhr: return "mov"
+        case .movH264, .movHevc, .movProRes422, .movProRes4444, .dnxhd, .dnxhr: return "mov"
         case .mkv: return "mkv"
-        case .webm, .webmVp8, .webmVp9: return "webm"
+        case .webm, .webmVp8, .webmVp9, .webmAlpha: return "webm"
         case .avi, .mpeg4Part2: return "avi"
         case .flv: return "flv"
         case .mpeg, .mpeg2: return "mpg"
@@ -91,6 +94,7 @@ enum VideoFormat: String, CaseIterable, Identifiable {
         case .nut: return "nut"
         case .animatedGif: return "gif"
         case .animatedWebp: return "webp"
+        case .apng: return "png"
         }
     }
 
@@ -99,9 +103,11 @@ enum VideoFormat: String, CaseIterable, Identifiable {
         case .mp4H264, .movH264: return .avFoundation(preset: AVAssetExportPresetHighestQuality)
         case .mp4Hevc, .movHevc: return .avFoundation(preset: AVAssetExportPresetHEVCHighestQuality)
         case .movProRes422: return .avFoundation(preset: AVAssetExportPresetAppleProRes422LPCM)
+        case .movProRes4444: return .avFoundation(preset: AVAssetExportPresetAppleProRes4444LPCM)
 
         case .mkv: return .ffmpeg(muxer: nil, videoCodec: "libx264", audioCodec: "aac", extraArgs: [])
         case .webm, .webmVp9: return .ffmpeg(muxer: nil, videoCodec: "libvpx-vp9", audioCodec: "libopus", extraArgs: ["-cpu-used", "4", "-row-mt", "1"])
+        case .webmAlpha: return .ffmpeg(muxer: nil, videoCodec: "libvpx-vp9", audioCodec: "libopus", extraArgs: ["-pix_fmt", "yuva420p", "-cpu-used", "4", "-row-mt", "1"])
         // ffmpeg's native vorbis encoder only supports stereo output; force it regardless of source.
         case .webmVp8: return .ffmpeg(muxer: nil, videoCodec: "libvpx", audioCodec: "vorbis", extraArgs: ["-strict", "-2", "-ac", "2"])
         case .avi: return .ffmpeg(muxer: nil, videoCodec: "libx264", audioCodec: "aac", extraArgs: [])
@@ -137,6 +143,13 @@ enum VideoFormat: String, CaseIterable, Identifiable {
             )
         case .animatedWebp:
             return .animatedWebp
+        case .apng:
+            return .ffmpeg(
+                muxer: "apng",
+                videoCodec: "apng",
+                audioCodec: nil,
+                extraArgs: ["-plays", "0"]
+            )
         }
     }
 
@@ -161,7 +174,7 @@ enum VideoFormat: String, CaseIterable, Identifiable {
     var fileType: AVFileType? {
         switch self {
         case .mp4H264, .mp4Hevc: return .mp4
-        case .movH264, .movHevc, .movProRes422: return .mov
+        case .movH264, .movHevc, .movProRes422, .movProRes4444: return .mov
         default: return nil
         }
     }
@@ -179,6 +192,6 @@ enum VideoFormat: String, CaseIterable, Identifiable {
     static let readableExtensions: Set<String> = [
         "mp4", "mov", "m4v", "mkv", "webm", "avi", "flv", "mpg", "mpeg",
         "ts", "mts", "m2ts", "ogv", "3gp", "wmv", "asf", "mxf", "f4v",
-        "vob", "dv", "nut"
+        "vob", "dv", "nut", "apng"
     ]
 }

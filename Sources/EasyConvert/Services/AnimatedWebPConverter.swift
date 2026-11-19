@@ -89,29 +89,10 @@ final class AnimatedWebPConverter {
         }
         img2webpArgs += ["-o", outputURL.path]
 
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: img2webpPath)
-        process.arguments = img2webpArgs
-
-        let errorPipe = Pipe()
-        process.standardError = errorPipe
-        process.standardOutput = FileHandle.nullDevice
-
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            process.terminationHandler = { proc in
-                if proc.terminationStatus == 0 {
-                    continuation.resume()
-                } else {
-                    let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
-                    let message = String(data: data, encoding: .utf8) ?? "img2webp failed."
-                    continuation.resume(throwing: AnimatedWebPError.assemblyFailed(message))
-                }
-            }
-            do {
-                try process.run()
-            } catch {
-                continuation.resume(throwing: error)
-            }
+        let result = try await SubprocessRunner.run(executablePath: img2webpPath, arguments: img2webpArgs)
+        guard result.isSuccess else {
+            let message = result.stderrString.isEmpty ? "img2webp failed." : result.stderrString
+            throw AnimatedWebPError.assemblyFailed(message)
         }
 
         onProgress(1.0)

@@ -577,28 +577,10 @@ final class ImageConverter {
             arguments += ["--faster_decoding", "\(jxlCfg.fasterDecoding)"]
         }
 
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: cjxlPath)
-        process.arguments = arguments
-        let errorPipe = Pipe()
-        process.standardError = errorPipe
-        process.standardOutput = FileHandle.nullDevice
-
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            process.terminationHandler = { proc in
-                if proc.terminationStatus == 0 {
-                    continuation.resume()
-                } else {
-                    let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
-                    let message = String(data: data, encoding: .utf8) ?? "cjxl failed."
-                    continuation.resume(throwing: ConversionError.formatUnavailable(message))
-                }
-            }
-            do {
-                try process.run()
-            } catch {
-                continuation.resume(throwing: error)
-            }
+        let result = try await SubprocessRunner.run(executablePath: cjxlPath, arguments: arguments)
+        guard result.isSuccess else {
+            let message = result.stderrString.isEmpty ? "cjxl failed." : result.stderrString
+            throw ConversionError.formatUnavailable(message)
         }
     }
 
@@ -629,28 +611,10 @@ final class ImageConverter {
         }
         arguments += [tempPNG.path, "-o", outputURL.path]
 
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: cwebpPath)
-        process.arguments = arguments
-        let errorPipe = Pipe()
-        process.standardError = errorPipe
-        process.standardOutput = FileHandle.nullDevice
-
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            process.terminationHandler = { proc in
-                if proc.terminationStatus == 0 {
-                    continuation.resume()
-                } else {
-                    let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
-                    let message = String(data: data, encoding: .utf8) ?? "cwebp failed."
-                    continuation.resume(throwing: ConversionError.formatUnavailable(message))
-                }
-            }
-            do {
-                try process.run()
-            } catch {
-                continuation.resume(throwing: error)
-            }
+        let result = try await SubprocessRunner.run(executablePath: cwebpPath, arguments: arguments)
+        guard result.isSuccess else {
+            let message = result.stderrString.isEmpty ? "cwebp failed." : result.stderrString
+            throw ConversionError.formatUnavailable(message)
         }
     }
 

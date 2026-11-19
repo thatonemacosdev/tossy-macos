@@ -156,7 +156,7 @@ final class AudioConverter {
 
     private func isBitrateControllable(_ format: AudioFormat) -> Bool {
         switch format {
-        case .mp3, .aac, .m4a, .ogg, .opus, .wma, .ac3, .eac3, .amr: return true
+        case .mp3, .aac, .m4a, .ogg, .opus, .wma, .ac3, .eac3, .amr, .m4r: return true
         case .wav, .flac, .alac, .caf, .aiff: return false
         }
     }

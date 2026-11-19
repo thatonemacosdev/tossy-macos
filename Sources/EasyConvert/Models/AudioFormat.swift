@@ -1,7 +1,7 @@
 import UniformTypeIdentifiers
 
 enum AudioFormat: String, CaseIterable, Identifiable {
-    case mp3, aac, m4a, wav, flac, alac, aiff, ogg, opus, wma, ac3, eac3, amr, caf
+    case mp3, aac, m4a, wav, flac, alac, aiff, ogg, opus, wma, ac3, eac3, amr, caf, m4r
 
     var id: String { rawValue }
 
@@ -21,6 +21,7 @@ enum AudioFormat: String, CaseIterable, Identifiable {
         case .eac3: return "E-AC3 (Dolby Digital Plus)"
         case .amr: return "AMR"
         case .caf: return "CAF (Apple Core Audio)"
+        case .m4r: return "M4R (iPhone Ringtone)"
         }
     }
 
@@ -40,6 +41,7 @@ enum AudioFormat: String, CaseIterable, Identifiable {
         case .eac3: return "eac3"
         case .amr: return "amr"
         case .caf: return "caf"
+        case .m4r: return "m4r"
         }
     }
 
@@ -61,12 +63,13 @@ enum AudioFormat: String, CaseIterable, Identifiable {
         case .eac3: return (nil, "eac3", [])
         case .amr: return (nil, "libopencore_amrnb", ["-ar", "8000", "-ac", "1"])
         case .caf: return (nil, "pcm_s16le", [])
+        case .m4r: return ("ipod", "aac", [])
         }
     }
 
     var supportsQuality: Bool {
         switch self {
-        case .mp3, .aac, .m4a, .ogg, .opus: return true
+        case .mp3, .aac, .m4a, .ogg, .opus, .m4r: return true
         default: return false
         }
     }
@@ -87,7 +90,7 @@ enum AudioFormat: String, CaseIterable, Identifiable {
 
     static let readableExtensions: Set<String> = [
         "mp3", "aac", "m4a", "wav", "wave", "flac", "aif", "aiff", "alac",
-        "ogg", "opus", "wma", "ac3", "eac3", "amr", "caf", "webm", "weba"
+        "ogg", "opus", "wma", "ac3", "eac3", "amr", "caf", "m4r", "webm", "weba"
     ]
 
     /// Maps a source file's extension back to one of our writable formats  -  used by
@@ -107,6 +110,7 @@ enum AudioFormat: String, CaseIterable, Identifiable {
         case "eac3": return .eac3
         case "amr": return .amr
         case "caf": return .caf
+        case "m4r": return .m4r
         default: return nil
         }
     }

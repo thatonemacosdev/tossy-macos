@@ -143,20 +143,9 @@ final class VideoGeometrySpeedService: Sendable {
             arguments.append(safeDestination.path)
         }
         
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: ffmpegPath)
-        process.standardInput = FileHandle.nullDevice
-        process.arguments = arguments
-        let errPipe = Pipe()
-        process.standardError = errPipe
-        
-        try process.run()
-        process.waitUntilExit()
-        
-        guard process.terminationStatus == 0, FileManager.default.fileExists(atPath: safeDestination.path) else {
-            let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
-            let errStr = String(data: errData, encoding: .utf8) ?? ""
-            throw MediaStudioError.executionFailed("Video transformation failed (exit code \(process.terminationStatus)): \(errStr.suffix(300))")
+        let result = try await SubprocessRunner.run(executablePath: ffmpegPath, arguments: arguments)
+        guard result.isSuccess, FileManager.default.fileExists(atPath: safeDestination.path) else {
+            throw MediaStudioError.executionFailed("Video transformation failed (exit code \(result.exitCode)): \(result.stderrString.suffix(300))")
         }
         
         return safeDestination

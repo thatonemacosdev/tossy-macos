@@ -15,7 +15,7 @@ if [ -z "${SDKROOT:-}" ] && [ -d "/Library/Developer/CommandLineTools/SDKs/MacOS
 fi
 
 echo "Building ${APP_NAME} (${CONFIG})..."
-swift build -c "${CONFIG}" -Xswiftc -lto=llvm-thin -Xlinker -dead_strip
+swift build -c "${CONFIG}" -Xlinker -dead_strip
 
 echo "Packaging ${APP_BUNDLE}..."
 rm -rf "${APP_BUNDLE}"
@@ -62,19 +62,20 @@ mkdir -p dist
 rm -rf dist/Tossy.app dist/Tossy-*.zip dist/Tossy-*.dmg dist/dmg_staging
 cp -R "${APP_BUNDLE}" dist/Tossy.app
 
-VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "Info.plist" 2>/dev/null || echo "2.1.0")
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "Info.plist" 2>/dev/null || echo "2.2.0")
 
 echo "Packaging clean distribution zip with ditto (v${VERSION})…"
-ditto -c -k --keepParent "dist/Tossy.app" "dist/Tossy-${VERSION}-macOS.zip"
-echo "Packaged dist/Tossy-${VERSION}-macOS.zip"
+ditto -c -k --keepParent "dist/Tossy.app" "dist/Tossy-v${VERSION}-macOS-arm64.zip"
+cp "dist/Tossy-v${VERSION}-macOS-arm64.zip" "dist/Tossy-${VERSION}-macOS.zip"
+echo "Packaged dist/Tossy-v${VERSION}-macOS-arm64.zip (and dist/Tossy-${VERSION}-macOS.zip)"
 
 echo ""
 echo "================================================================"
 echo "          RELEASE PACKAGING COMPLETE (v${VERSION})              "
 echo "================================================================"
-echo "ZIP Archive:   dist/Tossy-${VERSION}-macOS.zip ($(du -sh "dist/Tossy-${VERSION}-macOS.zip" | cut -f1))"
+echo "ZIP Archive:   dist/Tossy-v${VERSION}-macOS-arm64.zip ($(du -sh "dist/Tossy-v${VERSION}-macOS-arm64.zip" | cut -f1))"
 echo ""
 echo "SHA-256 Checksum:"
-shasum -a 256 "dist/Tossy-${VERSION}-macOS.zip"
+shasum -a 256 "dist/Tossy-v${VERSION}-macOS-arm64.zip"
 echo "================================================================"
 

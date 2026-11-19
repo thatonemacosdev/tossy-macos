@@ -87,6 +87,10 @@ final class VideoConverter {
                 vCodec = preferHardware ? "prores_videotoolbox" : "prores_ks"
                 aCodec = "pcm_s16le"
                 extra = ["-profile:v", "2"]
+            case .movProRes4444:
+                vCodec = preferHardware ? "prores_videotoolbox" : "prores_ks"
+                aCodec = "pcm_s16le"
+                extra = ["-profile:v", "4", "-pix_fmt", "yuva444p10le"]
             default:
                 vCodec = preferHardware ? "h264_videotoolbox" : "libx264"
                 aCodec = "aac"

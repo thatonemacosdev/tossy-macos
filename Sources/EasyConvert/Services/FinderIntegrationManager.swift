@@ -161,7 +161,7 @@ final class FinderIntegrationManager: @unchecked Sendable {
         
         let script = """
         for f in "$@"; do
-            encoded=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$f" 2>/dev/null || echo "$f")
+            encoded=$(osascript -l JavaScript -e 'function run(argv) { return encodeURIComponent(argv[0]); }' "$f" 2>/dev/null || echo "$f")
             open "tossy://convert?files=$encoded"
         done
         """

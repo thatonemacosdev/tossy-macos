@@ -36,23 +36,8 @@ enum FFmpegLocator {
     }
 
     private static func runWhich(binaryName: String) -> String? {
-        let which = Process()
-        which.executableURL = URL(fileURLWithPath: "/usr/bin/which")
-        which.arguments = [binaryName]
-        let pipe = Pipe()
-        which.standardOutput = pipe
-        which.standardError = Pipe()
-        do {
-            try which.run()
-            which.waitUntilExit()
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            if let path = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
-               !path.isEmpty {
-                return path
-            }
-        } catch {
-            return nil
-        }
-        return nil
+        let result = SubprocessRunner.runSync(executablePath: "/usr/bin/which", arguments: [binaryName])
+        let path = result.stdoutString.trimmingCharacters(in: .whitespacesAndNewlines)
+        return path.isEmpty ? nil : path
     }
 }

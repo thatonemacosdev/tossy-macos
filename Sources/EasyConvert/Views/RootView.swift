@@ -22,13 +22,26 @@ enum AppTab: String, CaseIterable, Identifiable {
     }
 }
 
+enum ActiveSheet: Identifiable {
+    case whatsNew
+    case update(AppReleaseInfo)
+
+    var id: String {
+        switch self {
+        case .whatsNew: return "whatsNew"
+        case .update(let release): return "update_\(release.tagName)"
+        }
+    }
+}
+
 struct RootView: View {
     @State private var selectedTab: AppTab = .dropzone
     @Namespace private var tabNamespace
     @Environment(\.openSettings) private var openSettingsAction
+    @Environment(\.colorScheme) private var systemColorScheme
     @Bindable var settings = AppSettings.shared
     @State private var isHeaderTargeted: Bool = false
-    @State private var showWhatsNew: Bool = false
+    @State private var activeSheet: ActiveSheet?
 
     private var visibleTabs: [AppTab] {
         if settings.navigationLayoutMode == .classic {
@@ -106,6 +119,7 @@ struct RootView: View {
                         RoundedRectangle(cornerRadius: 11, style: .continuous)
                             .strokeBorder(isHeaderTargeted ? Color.accentColor : TossyColor.borderSubtle, lineWidth: 1)
                     )
+                    .tossyGlassEffect(cornerRadius: 11)
                     .onDrop(of: [.fileURL], isTargeted: $isHeaderTargeted) { providers in
                         routeDroppedProviders(providers)
                         return true
@@ -165,11 +179,14 @@ struct RootView: View {
 
                         // Quick Theme Switcher
                         Menu {
+                            Toggle("Match macOS Appearance", isOn: $settings.followSystemAppearance)
+                            Divider()
                             Section("Dark Themes") {
                                 ForEach(AppTheme.darkThemes) { theme in
                                     Button {
                                         withAnimation(TossyMotion.springSmooth) {
                                             settings.appTheme = theme
+                                            settings.preferredDarkTheme = theme
                                         }
                                     } label: {
                                         HStack {
@@ -186,6 +203,7 @@ struct RootView: View {
                                     Button {
                                         withAnimation(TossyMotion.springSmooth) {
                                             settings.appTheme = theme
+                                            settings.preferredLightTheme = theme
                                         }
                                     } label: {
                                         HStack {
@@ -261,7 +279,16 @@ struct RootView: View {
                 )
             }
         }
-        .preferredColorScheme(settings.appTheme.isDark ? .dark : .light)
+        .preferredColorScheme(
+            settings.followSystemAppearance ? nil : (settings.appTheme.isDark ? .dark : .light)
+        )
+        .onChange(of: systemColorScheme) { _, newScheme in
+            if settings.followSystemAppearance {
+                withAnimation(TossyMotion.springSmooth) {
+                    settings.appTheme = (newScheme == .light) ? settings.preferredLightTheme : settings.preferredDarkTheme
+                }
+            }
+        }
         .tint(TossyColor.accentProminentBg)
         .overlay(alignment: .bottomTrailing) {
             Text("v\(AppVersion.string)")
@@ -269,22 +296,32 @@ struct RootView: View {
                 .foregroundStyle(TossyColor.textTertiary)
                 .padding(6)
         }
-        .sheet(isPresented: Bindable(UpdateManager.shared).isShowingUpdateModal) {
-            if let release = UpdateManager.shared.availableUpdate {
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .whatsNew:
+                WhatsNewModalView()
+            case .update(let release):
                 UpdateModalView(release: release)
             }
         }
-        .sheet(isPresented: $showWhatsNew) {
-            WhatsNewModalView()
-        }
         .onAppear {
+            if settings.followSystemAppearance {
+                settings.appTheme = (systemColorScheme == .light) ? settings.preferredLightTheme : settings.preferredDarkTheme
+            }
             if AppSettings.shared.lastSeenWhatsNewVersion != AppVersion.string {
                 AppSettings.shared.lastSeenWhatsNewVersion = AppVersion.string
-                showWhatsNew = true
+                activeSheet = .whatsNew
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("TossyShowWhatsNew"))) { _ in
-            showWhatsNew = true
+            activeSheet = .whatsNew
+        }
+        .onChange(of: UpdateManager.shared.isShowingUpdateModal) { _, isShowing in
+            if isShowing, let release = UpdateManager.shared.availableUpdate {
+                activeSheet = .update(release)
+            } else if case .update = activeSheet {
+                activeSheet = nil
+            }
         }
     }
 

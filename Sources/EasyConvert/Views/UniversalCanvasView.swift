@@ -913,6 +913,7 @@ struct UniversalCanvasView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(TossyColor.surfaceDeep)
+        .tossyGlassEffect(cornerRadius: 0)
     }
     
     // MARK: - Helper Methods
@@ -1125,7 +1126,32 @@ struct UniversalCanvasView: View {
         job.status = .converting(progress: 0.1, etaText: nil)
         
         do {
-            if ext == "pdf" {
+            let subExts = ["srt", "vtt"]
+            let dataExts = ["json", "plist", "csv"]
+            let docExts = ["docx", "rtf", "odt", "html", "md"]
+            let archExts = ["tar", "gz", "tgz", "bz2", "tbz2", "xz", "txz", "zip", "7z", "rar"]
+            
+            if subExts.contains(ext) {
+                let targetExt = ext == "srt" ? "vtt" : "srt"
+                let outURL = try await DocumentAndDataConverterService.shared.convertSubtitle(sourceURL: url, targetExtension: targetExt, destinationFolder: dest)
+                job.status = .done(outputURL: outURL)
+            } else if dataExts.contains(ext) {
+                let targetExt = ext == "json" ? "plist" : "json"
+                let outURL = try await DocumentAndDataConverterService.shared.convertData(sourceURL: url, targetExtension: targetExt, destinationFolder: dest)
+                job.status = .done(outputURL: outURL)
+            } else if docExts.contains(ext) {
+                let targetExt = "pdf"
+                let outURL = try await DocumentAndDataConverterService.shared.convertDocument(sourceURL: url, targetExtension: targetExt, destinationFolder: dest)
+                job.status = .done(outputURL: outURL)
+            } else if archExts.contains(ext) {
+                let folder = dest ?? url.deletingLastPathComponent().appendingPathComponent(url.deletingPathExtension().lastPathComponent)
+                let extracted = try await ArchiveService.shared.extractArchive(archiveURL: url, destinationFolder: folder)
+                if let first = extracted.first {
+                    job.status = .done(outputURL: first, note: "Extracted \(extracted.count) files")
+                } else {
+                    job.status = .done(outputURL: folder, note: "Archive extracted")
+                }
+            } else if ext == "pdf" {
                 switch selectedTarget {
                 case .pdfAction("Compress"):
                     let safeDest = OutputNaming.uniqueOutputURL(for: url, fileExtension: "pdf", destinationFolder: dest)

@@ -270,6 +270,30 @@ final class AppSettings {
         didSet { UserDefaults.standard.set(appTheme.rawValue, forKey: "appTheme") }
     }
 
+    var followSystemAppearance: Bool {
+        didSet { UserDefaults.standard.set(followSystemAppearance, forKey: "followSystemAppearance") }
+    }
+
+    var preferredDarkTheme: AppTheme {
+        didSet { UserDefaults.standard.set(preferredDarkTheme.rawValue, forKey: "preferredDarkTheme") }
+    }
+
+    var preferredLightTheme: AppTheme {
+        didSet { UserDefaults.standard.set(preferredLightTheme.rawValue, forKey: "preferredLightTheme") }
+    }
+
+    func activeTheme(for colorScheme: ColorScheme?) -> AppTheme {
+        guard followSystemAppearance, let colorScheme else { return appTheme }
+        switch colorScheme {
+        case .dark:
+            return preferredDarkTheme
+        case .light:
+            return preferredLightTheme
+        @unknown default:
+            return appTheme
+        }
+    }
+
     var navigationLayoutMode: NavigationLayoutMode {
         didSet { UserDefaults.standard.set(navigationLayoutMode.rawValue, forKey: "navigationLayoutMode") }
     }
@@ -334,116 +358,51 @@ final class AppSettings {
     }
     
     // MARK: - Format Specific Settings
-    private var _webpConfig: WebPConfig?
+    private var configCache: [String: Any] = [:]
+
+    private func getCachedConfig<T: Codable>(forKey key: String, default: T) -> T {
+        if let cached = configCache[key] as? T { return cached }
+        let loaded: T = Self.loadJSON(forKey: key) ?? `default`
+        configCache[key] = loaded
+        return loaded
+    }
+
+    private func setCachedConfig<T: Codable>(_ value: T, forKey key: String) {
+        configCache[key] = value
+        saveJSON(value, forKey: key)
+    }
+
     var webpConfig: WebPConfig {
-        get {
-            if let cached = _webpConfig { return cached }
-            let loaded: WebPConfig = Self.loadJSON(forKey: "webpConfig") ?? WebPConfig()
-            _webpConfig = loaded
-            return loaded
-        }
-        set {
-            _webpConfig = newValue
-            saveJSON(newValue, forKey: "webpConfig")
-        }
+        get { getCachedConfig(forKey: "webpConfig", default: WebPConfig()) }
+        set { setCachedConfig(newValue, forKey: "webpConfig") }
     }
-
-    private var _jxlConfig: JXLConfig?
     var jxlConfig: JXLConfig {
-        get {
-            if let cached = _jxlConfig { return cached }
-            let loaded: JXLConfig = Self.loadJSON(forKey: "jxlConfig") ?? JXLConfig()
-            _jxlConfig = loaded
-            return loaded
-        }
-        set {
-            _jxlConfig = newValue
-            saveJSON(newValue, forKey: "jxlConfig")
-        }
+        get { getCachedConfig(forKey: "jxlConfig", default: JXLConfig()) }
+        set { setCachedConfig(newValue, forKey: "jxlConfig") }
     }
-
-    private var _jpegConfig: JPEGConfig?
     var jpegConfig: JPEGConfig {
-        get {
-            if let cached = _jpegConfig { return cached }
-            let loaded: JPEGConfig = Self.loadJSON(forKey: "jpegConfig") ?? JPEGConfig()
-            _jpegConfig = loaded
-            return loaded
-        }
-        set {
-            _jpegConfig = newValue
-            saveJSON(newValue, forKey: "jpegConfig")
-        }
+        get { getCachedConfig(forKey: "jpegConfig", default: JPEGConfig()) }
+        set { setCachedConfig(newValue, forKey: "jpegConfig") }
     }
-
-    private var _pngConfig: PNGConfig?
     var pngConfig: PNGConfig {
-        get {
-            if let cached = _pngConfig { return cached }
-            let loaded: PNGConfig = Self.loadJSON(forKey: "pngConfig") ?? PNGConfig()
-            _pngConfig = loaded
-            return loaded
-        }
-        set {
-            _pngConfig = newValue
-            saveJSON(newValue, forKey: "pngConfig")
-        }
+        get { getCachedConfig(forKey: "pngConfig", default: PNGConfig()) }
+        set { setCachedConfig(newValue, forKey: "pngConfig") }
     }
-
-    private var _tiffConfig: TIFFConfig?
     var tiffConfig: TIFFConfig {
-        get {
-            if let cached = _tiffConfig { return cached }
-            let loaded: TIFFConfig = Self.loadJSON(forKey: "tiffConfig") ?? TIFFConfig()
-            _tiffConfig = loaded
-            return loaded
-        }
-        set {
-            _tiffConfig = newValue
-            saveJSON(newValue, forKey: "tiffConfig")
-        }
+        get { getCachedConfig(forKey: "tiffConfig", default: TIFFConfig()) }
+        set { setCachedConfig(newValue, forKey: "tiffConfig") }
     }
-
-    private var _gifConfig: GIFConfig?
     var gifConfig: GIFConfig {
-        get {
-            if let cached = _gifConfig { return cached }
-            let loaded: GIFConfig = Self.loadJSON(forKey: "gifConfig") ?? GIFConfig()
-            _gifConfig = loaded
-            return loaded
-        }
-        set {
-            _gifConfig = newValue
-            saveJSON(newValue, forKey: "gifConfig")
-        }
+        get { getCachedConfig(forKey: "gifConfig", default: GIFConfig()) }
+        set { setCachedConfig(newValue, forKey: "gifConfig") }
     }
-
-    private var _videoConfig: VideoConfig?
     var videoConfig: VideoConfig {
-        get {
-            if let cached = _videoConfig { return cached }
-            let loaded: VideoConfig = Self.loadJSON(forKey: "videoConfig") ?? VideoConfig()
-            _videoConfig = loaded
-            return loaded
-        }
-        set {
-            _videoConfig = newValue
-            saveJSON(newValue, forKey: "videoConfig")
-        }
+        get { getCachedConfig(forKey: "videoConfig", default: VideoConfig()) }
+        set { setCachedConfig(newValue, forKey: "videoConfig") }
     }
-
-    private var _audioConfig: AudioConfig?
     var audioConfig: AudioConfig {
-        get {
-            if let cached = _audioConfig { return cached }
-            let loaded: AudioConfig = Self.loadJSON(forKey: "audioConfig") ?? AudioConfig()
-            _audioConfig = loaded
-            return loaded
-        }
-        set {
-            _audioConfig = newValue
-            saveJSON(newValue, forKey: "audioConfig")
-        }
+        get { getCachedConfig(forKey: "audioConfig", default: AudioConfig()) }
+        set { setCachedConfig(newValue, forKey: "audioConfig") }
     }
     
     // MARK: - Initializer
@@ -484,6 +443,12 @@ final class AppSettings {
 
         let themeRaw = defaults.string(forKey: "appTheme") ?? AppTheme.dark.rawValue
         self.appTheme = AppTheme(rawValue: themeRaw) ?? .dark
+
+        self.followSystemAppearance = defaults.object(forKey: "followSystemAppearance") as? Bool ?? false
+        let darkRaw = defaults.string(forKey: "preferredDarkTheme") ?? AppTheme.dark.rawValue
+        self.preferredDarkTheme = AppTheme(rawValue: darkRaw) ?? .dark
+        let lightRaw = defaults.string(forKey: "preferredLightTheme") ?? AppTheme.light.rawValue
+        self.preferredLightTheme = AppTheme(rawValue: lightRaw) ?? .light
 
         let layoutRaw = defaults.string(forKey: "navigationLayoutMode") ?? NavigationLayoutMode.unified.rawValue
         self.navigationLayoutMode = NavigationLayoutMode(rawValue: layoutRaw) ?? .unified

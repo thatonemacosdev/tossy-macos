@@ -55,20 +55,9 @@ final class AudioExtractorService: Sendable {
         
         arguments.append(safeDestination.path)
         
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: ffmpegPath)
-        process.standardInput = FileHandle.nullDevice
-        process.arguments = arguments
-        let errPipe = Pipe()
-        process.standardError = errPipe
-        
-        try process.run()
-        process.waitUntilExit()
-        
-        guard process.terminationStatus == 0, FileManager.default.fileExists(atPath: safeDestination.path) else {
-            let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
-            let errStr = String(data: errData, encoding: .utf8) ?? ""
-            throw MediaStudioError.executionFailed("Audio extraction failed (exit code \(process.terminationStatus)): \(errStr.suffix(300))")
+        let result = try await SubprocessRunner.run(executablePath: ffmpegPath, arguments: arguments)
+        guard result.isSuccess, FileManager.default.fileExists(atPath: safeDestination.path) else {
+            throw MediaStudioError.executionFailed("Audio extraction failed (exit code \(result.exitCode)): \(result.stderrString.suffix(300))")
         }
         
         return safeDestination
@@ -99,20 +88,9 @@ final class AudioExtractorService: Sendable {
             safeDestination.path
         ]
         
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: ffmpegPath)
-        process.standardInput = FileHandle.nullDevice
-        process.arguments = arguments
-        let errPipe = Pipe()
-        process.standardError = errPipe
-        
-        try process.run()
-        process.waitUntilExit()
-        
-        guard process.terminationStatus == 0, FileManager.default.fileExists(atPath: safeDestination.path) else {
-            let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
-            let errStr = String(data: errData, encoding: .utf8) ?? ""
-            throw MediaStudioError.executionFailed("Audio stripping failed (exit code \(process.terminationStatus)): \(errStr.suffix(300))")
+        let stripResult = try await SubprocessRunner.run(executablePath: ffmpegPath, arguments: arguments)
+        guard stripResult.isSuccess, FileManager.default.fileExists(atPath: safeDestination.path) else {
+            throw MediaStudioError.executionFailed("Audio stripping failed (exit code \(stripResult.exitCode)): \(stripResult.stderrString.suffix(300))")
         }
         
         return safeDestination
