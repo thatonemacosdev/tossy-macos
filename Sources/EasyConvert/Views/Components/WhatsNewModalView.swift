@@ -32,7 +32,7 @@ struct WhatsNewModalView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 
-                Text("Welcome to Tossy 2.0")
+                Text("Welcome to Tossy 2.1")
                     .font(.system(size: 19, weight: .bold, design: .rounded))
                     .foregroundStyle(TossyColor.textPrimary)
                 

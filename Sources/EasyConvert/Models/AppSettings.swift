@@ -301,6 +301,27 @@ final class AppSettings {
     var enabledFinderFormats: [String] {
         didSet { UserDefaults.standard.set(enabledFinderFormats, forKey: "enabledFinderFormats") }
     }
+
+    // MARK: - Community & Conversion Metrics
+    var hasPromptedForGitHubStar: Bool {
+        didSet { UserDefaults.standard.set(hasPromptedForGitHubStar, forKey: "hasPromptedForGitHubStar") }
+    }
+
+    var completedConversionsCount: Int {
+        didSet { UserDefaults.standard.set(completedConversionsCount, forKey: "completedConversionsCount") }
+    }
+
+    var shouldShowGitHubStarPrompt: Bool {
+        !hasPromptedForGitHubStar && completedConversionsCount >= 1
+    }
+
+    func recordSuccessfulConversion(count: Int = 1) {
+        completedConversionsCount += max(1, count)
+    }
+
+    func dismissGitHubStarPrompt() {
+        hasPromptedForGitHubStar = true
+    }
     
     var maxFileSizeBytes: Int64? {
         didSet {
@@ -393,6 +414,8 @@ final class AppSettings {
         self.finderActionBehavior = FinderActionBehavior(rawValue: finderBehaviorRaw) ?? .silentBackground
 
         self.enabledFinderFormats = defaults.stringArray(forKey: "enabledFinderFormats") ?? ["png", "jpeg", "webp", "mp4", "mp3", "flac"]
+        self.hasPromptedForGitHubStar = defaults.bool(forKey: "hasPromptedForGitHubStar")
+        self.completedConversionsCount = defaults.integer(forKey: "completedConversionsCount")
         
         if let stored = defaults.object(forKey: "maxFileSizeBytes") as? NSNumber {
             let val = stored.int64Value

@@ -1083,6 +1083,15 @@ struct UniversalCanvasView: View {
             self.comparisonSource = firstDone.sourceURL
             self.comparisonOutput = out
         }
+
+        let doneCount = jobs.filter {
+            if case .done = $0.status { return true }
+            return false
+        }.count
+        if doneCount > 0 {
+            AppSettings.shared.recordSuccessfulConversion(count: doneCount)
+            BatchNotifier.notify(summary: "Converted \(doneCount) item(s)", jobCount: doneCount)
+        }
     }
     
     private func convertSingleJob(_ job: ConversionJob) async {
@@ -1092,6 +1101,9 @@ struct UniversalCanvasView: View {
         let targetBytes = ByteSize.parse(targetSizeText)
         let targetWidth: Int? = (selectedResolutionPreset == "4K" ? 3840 : (selectedResolutionPreset == "1080p" ? 1920 : nil))
         await convertJob(job, img: imgConverter, vid: vidConverter, aud: audConverter, targetBytes: targetBytes, targetWidth: targetWidth)
+        if case .done = job.status {
+            AppSettings.shared.recordSuccessfulConversion(count: 1)
+        }
     }
     
     private func convertJob(
@@ -1244,6 +1256,13 @@ struct UniversalCanvasView: View {
                 self.comparisonSource = firstDone.sourceURL
                 self.comparisonOutput = out
             }
+            let successCount = imageJobs.filter {
+                if case .done = $0.status { return true }
+                return false
+            }.count
+            if successCount > 0 {
+                AppSettings.shared.recordSuccessfulConversion(count: successCount)
+            }
         }
     }
     
@@ -1269,6 +1288,13 @@ struct UniversalCanvasView: View {
             }
             isConverting = false
             batchSummaryText = "Burst complete."
+            let successCount = pdfJobs.filter {
+                if case .done = $0.status { return true }
+                return false
+            }.count
+            if successCount > 0 {
+                AppSettings.shared.recordSuccessfulConversion(count: successCount)
+            }
         }
     }
     

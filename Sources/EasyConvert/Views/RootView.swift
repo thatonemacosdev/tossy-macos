@@ -233,6 +233,13 @@ struct RootView: View {
                 Divider()
                     .overlay(TossyColor.borderSubtle)
 
+                if settings.shouldShowGitHubStarPrompt {
+                    GitHubStarPromptBanner()
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    Divider()
+                        .overlay(TossyColor.borderSubtle)
+                }
+
                 // Active Tab View
                 Group {
                     switch selectedTab {

@@ -315,6 +315,9 @@ struct MiniTossyModalView: View {
                 self.convertedOutputs = outputs
                 self.isConverting = false
                 self.isFinished = true
+                if !outputs.isEmpty {
+                    AppSettings.shared.recordSuccessfulConversion(count: outputs.count)
+                }
                 if settings.playCompletionSound {
                     NSSound(named: "Glass")?.play()
                 }

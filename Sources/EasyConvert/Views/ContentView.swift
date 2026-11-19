@@ -342,6 +342,13 @@ struct ContentView: View {
 
         let summary = BatchSummary.summarize(jobs: jobs)
         batchSummaryText = summary
+        let doneCount = jobs.filter {
+            if case .done = $0.status { return true }
+            return false
+        }.count
+        if doneCount > 0 {
+            AppSettings.shared.recordSuccessfulConversion(count: doneCount)
+        }
         BatchNotifier.notify(summary: summary, jobCount: pendingJobs.count)
     }
 
