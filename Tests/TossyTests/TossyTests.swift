@@ -128,4 +128,23 @@ final class TossyTests: XCTestCase {
         XCTAssertEqual(propertyList?["name"] as? String, "Tossy")
         XCTAssertEqual(propertyList?["version"] as? String, "2.2.0")
     }
+
+    func testWatchFolderRuleAndService() {
+        let rule = WatchFolderRule(
+            folderPath: "/tmp/tossy_watch",
+            preset: "Auto-convert Images to WebP",
+            isEnabled: true
+        )
+        XCTAssertEqual(rule.folderURL.path, "/tmp/tossy_watch")
+        XCTAssertTrue(rule.isEnabled)
+
+        let initialRules = WatchFolderService.shared.savedRules()
+        WatchFolderService.shared.syncRules([rule])
+        let updated = WatchFolderService.shared.savedRules()
+        XCTAssertEqual(updated.count, 1)
+        XCTAssertEqual(updated.first?.folderPath, "/tmp/tossy_watch")
+
+        WatchFolderService.shared.stopAll()
+        WatchFolderService.shared.syncRules(initialRules)
+    }
 }

@@ -6,6 +6,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApplication.shared.servicesProvider = self
         NSRegisterServicesProvider(self, "Tossy")
         handleCommandLineArguments()
+
+        Task.detached(priority: .utility) {
+            WatchFolderService.shared.start()
+        }
     }
     
     private func handleCommandLineArguments() {
