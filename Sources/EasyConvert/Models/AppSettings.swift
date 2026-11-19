@@ -21,41 +21,60 @@ enum FileConflictAction: String, CaseIterable, Identifiable {
 }
 
 enum AppTheme: String, CaseIterable, Identifiable {
+    // Dark Themes
     case dark = "Dark"
-    case light = "Light"
-    case titanium = "Titanium"
-    case liquidGlass = "Liquid Glass"
     case midnightCobalt = "Midnight Cobalt"
     case emerald = "Emerald Matrix"
     case solarAmber = "Solar Amber"
     case hyperViolet = "Neon Violet"
+    case titanium = "Titanium"
+    case liquidGlass = "Liquid Glass"
+
+    // Light Themes
+    case light = "Light"
+    case rose = "Rose"
+    case cream = "Cream"
+    case sage = "Sage"
 
     var id: String { rawValue }
+
+    var isDark: Bool {
+        switch self {
+        case .dark, .midnightCobalt, .emerald, .solarAmber, .hyperViolet, .titanium, .liquidGlass:
+            return true
+        case .light, .rose, .cream, .sage:
+            return false
+        }
+    }
+
+    var isLight: Bool { !isDark }
+
+    static var darkThemes: [AppTheme] {
+        [.dark, .midnightCobalt, .emerald, .solarAmber, .hyperViolet, .titanium, .liquidGlass]
+    }
+
+    static var lightThemes: [AppTheme] {
+        [.light, .rose, .cream, .sage]
+    }
 
     var displayName: String {
         switch self {
         case .dark: return "Monochrome Black"
-        case .light: return "Monochrome White"
-        case .titanium: return "Brushed Titanium"
+        case .midnightCobalt: return "Cobalt"
+        case .emerald: return "Emerald"
+        case .solarAmber: return "Amber"
+        case .hyperViolet: return "Violet"
+        case .titanium: return "Titanium"
         case .liquidGlass: return "Liquid Glass"
-        case .midnightCobalt: return "Midnight Cobalt"
-        case .emerald: return "Terminal Emerald"
-        case .solarAmber: return "Solar Amber"
-        case .hyperViolet: return "Neon Violet"
+        case .light: return "Monochrome White"
+        case .rose: return "Rose"
+        case .cream: return "Cream"
+        case .sage: return "Sage"
         }
     }
 
     var icon: String {
-        switch self {
-        case .dark: return "moon.fill"
-        case .light: return "sun.max.fill"
-        case .titanium: return "shield.righthalf.filled"
-        case .liquidGlass: return "drop.fill"
-        case .midnightCobalt: return "water.waves"
-        case .emerald: return "terminal.fill"
-        case .solarAmber: return "flame.fill"
-        case .hyperViolet: return "sparkles"
-        }
+        isDark ? "moon.fill" : "sun.max.fill"
     }
 }
 

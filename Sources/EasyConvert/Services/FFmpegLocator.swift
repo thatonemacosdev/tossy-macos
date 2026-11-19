@@ -26,6 +26,16 @@ enum FFmpegLocator {
         }
 
         // Last resort: whatever's on PATH.
+        if Thread.isMainThread {
+            return DispatchQueue.global(qos: .userInitiated).sync {
+                runWhich(binaryName: binaryName)
+            }
+        } else {
+            return runWhich(binaryName: binaryName)
+        }
+    }
+
+    private static func runWhich(binaryName: String) -> String? {
         let which = Process()
         which.executableURL = URL(fileURLWithPath: "/usr/bin/which")
         which.arguments = [binaryName]

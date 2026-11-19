@@ -62,7 +62,7 @@ struct SettingsView: View {
         .frame(width: 620, height: 500)
         .padding(20)
         .background(TossyColor.pitchBlack)
-        .preferredColorScheme(settings.appTheme == .light ? .light : .dark)
+        .preferredColorScheme(settings.appTheme.isDark ? .dark : .light)
     }
 }
 
@@ -74,9 +74,16 @@ struct GeneralSettingsTab: View {
     var body: some View {
         Form {
             Section("Appearance & Theme") {
-                Picker("Theme Mode", selection: $settings.appTheme) {
-                    ForEach(AppTheme.allCases) { theme in
-                        Label(theme.displayName, systemImage: theme.icon).tag(theme)
+                Picker("Theme", selection: $settings.appTheme) {
+                    Section("Dark Themes") {
+                        ForEach(AppTheme.darkThemes) { theme in
+                            Text(theme.displayName).tag(theme)
+                        }
+                    }
+                    Section("Light Themes") {
+                        ForEach(AppTheme.lightThemes) { theme in
+                            Text(theme.displayName).tag(theme)
+                        }
                     }
                 }
                 .pickerStyle(.menu)

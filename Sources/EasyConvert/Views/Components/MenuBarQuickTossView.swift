@@ -404,7 +404,7 @@ struct MenuBarQuickTossView: View {
         }
         .frame(width: 340)
         .background(TossyColor.pitchBlack)
-        .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
+        .preferredColorScheme(AppSettings.shared.appTheme.isDark ? .dark : .light)
         .onHover { isHovering in
             if isHovering {
                 MenuBarManager.shared.cancelCloseTimer()

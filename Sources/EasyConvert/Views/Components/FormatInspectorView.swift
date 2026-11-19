@@ -71,7 +71,7 @@ struct FormatInspectorView: View {
             TossyColor.pitchBlack
         )
         .brushedTitaniumCard(cornerRadius: 12, isElevated: true)
-        .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
+        .preferredColorScheme(AppSettings.shared.appTheme.isDark ? .dark : .light)
     }
     
     private var headerTitle: String {

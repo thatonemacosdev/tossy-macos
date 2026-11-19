@@ -101,7 +101,7 @@ struct BeforeAfterComparisonView: View {
         }
         .frame(minWidth: isFullscreen ? 1100 : 800, minHeight: isFullscreen ? 750 : 580)
         .background(TossyColor.pitchBlack)
-        .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
+        .preferredColorScheme(AppSettings.shared.appTheme.isDark ? .dark : .light)
         .onAppear {
             setupMedia()
         }

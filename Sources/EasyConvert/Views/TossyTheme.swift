@@ -16,6 +16,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.02, green: 0.05, blue: 0.03)
         case .solarAmber: return Color(red: 0.06, green: 0.04, blue: 0.03)
         case .hyperViolet: return Color(red: 0.05, green: 0.03, blue: 0.09)
+        case .rose: return Color(red: 0.99, green: 0.96, blue: 0.97)
+        case .cream: return Color(red: 0.99, green: 0.98, blue: 0.93)
+        case .sage: return Color(red: 0.96, green: 0.98, blue: 0.96)
         }
     }
 
@@ -29,6 +32,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.03, green: 0.08, blue: 0.05)
         case .solarAmber: return Color(red: 0.09, green: 0.06, blue: 0.04)
         case .hyperViolet: return Color(red: 0.08, green: 0.05, blue: 0.14)
+        case .rose: return Color(red: 0.95, green: 0.89, blue: 0.91)
+        case .cream: return Color(red: 0.94, green: 0.92, blue: 0.84)
+        case .sage: return Color(red: 0.88, green: 0.93, blue: 0.89)
         }
     }
 
@@ -42,6 +48,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.05, green: 0.11, blue: 0.07)
         case .solarAmber: return Color(red: 0.12, green: 0.09, blue: 0.06)
         case .hyperViolet: return Color(red: 0.11, green: 0.07, blue: 0.18)
+        case .rose: return Color(red: 0.97, green: 0.93, blue: 0.94)
+        case .cream: return Color(red: 0.97, green: 0.95, blue: 0.89)
+        case .sage: return Color(red: 0.92, green: 0.96, blue: 0.92)
         }
     }
 
@@ -55,6 +64,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.07, green: 0.15, blue: 0.10)
         case .solarAmber: return Color(red: 0.17, green: 0.12, blue: 0.09)
         case .hyperViolet: return Color(red: 0.15, green: 0.10, blue: 0.24)
+        case .rose: return Color(red: 0.92, green: 0.84, blue: 0.87)
+        case .cream: return Color(red: 0.91, green: 0.88, blue: 0.79)
+        case .sage: return Color(red: 0.84, green: 0.90, blue: 0.85)
         }
     }
 
@@ -68,6 +80,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.10, green: 0.22, blue: 0.14)
         case .solarAmber: return Color(red: 0.24, green: 0.18, blue: 0.13)
         case .hyperViolet: return Color(red: 0.22, green: 0.15, blue: 0.33)
+        case .rose: return Color(red: 0.86, green: 0.75, blue: 0.80)
+        case .cream: return Color(red: 0.85, green: 0.81, blue: 0.70)
+        case .sage: return Color(red: 0.76, green: 0.84, blue: 0.78)
         }
     }
 
@@ -81,6 +96,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.13, green: 0.28, blue: 0.18)
         case .solarAmber: return Color(red: 0.30, green: 0.22, blue: 0.16)
         case .hyperViolet: return Color(red: 0.28, green: 0.20, blue: 0.42)
+        case .rose: return Color(red: 0.89, green: 0.80, blue: 0.84)
+        case .cream: return Color(red: 0.88, green: 0.84, blue: 0.74)
+        case .sage: return Color(red: 0.80, green: 0.87, blue: 0.82)
         }
     }
 
@@ -94,6 +112,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.10, green: 0.26, blue: 0.15)
         case .solarAmber: return Color(red: 0.26, green: 0.18, blue: 0.12)
         case .hyperViolet: return Color(red: 0.25, green: 0.16, blue: 0.38)
+        case .rose: return Color(red: 0.88, green: 0.80, blue: 0.83)
+        case .cream: return Color(red: 0.86, green: 0.82, blue: 0.72)
+        case .sage: return Color(red: 0.80, green: 0.87, blue: 0.82)
         }
     }
 
@@ -107,6 +128,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.14, green: 0.38, blue: 0.22)
         case .solarAmber: return Color(red: 0.38, green: 0.26, blue: 0.16)
         case .hyperViolet: return Color(red: 0.36, green: 0.24, blue: 0.55)
+        case .rose: return Color(red: 0.78, green: 0.65, blue: 0.70)
+        case .cream: return Color(red: 0.74, green: 0.68, blue: 0.54)
+        case .sage: return Color(red: 0.65, green: 0.76, blue: 0.68)
         }
     }
 
@@ -120,6 +144,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.20, green: 0.70, blue: 0.38)
         case .solarAmber: return Color(red: 0.75, green: 0.48, blue: 0.20)
         case .hyperViolet: return Color(red: 0.65, green: 0.40, blue: 0.90)
+        case .rose: return Color(red: 0.65, green: 0.40, blue: 0.52)
+        case .cream: return Color(red: 0.62, green: 0.52, blue: 0.32)
+        case .sage: return Color(red: 0.40, green: 0.60, blue: 0.45)
         }
     }
 
@@ -129,6 +156,12 @@ enum TossyColor {
             return Color.white
         case .light:
             return Color.black
+        case .rose:
+            return Color(red: 0.16, green: 0.08, blue: 0.12)
+        case .cream:
+            return Color(red: 0.14, green: 0.11, blue: 0.06)
+        case .sage:
+            return Color(red: 0.08, green: 0.14, blue: 0.10)
         }
     }
 
@@ -142,6 +175,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.62, green: 0.82, blue: 0.68)
         case .solarAmber: return Color(red: 0.84, green: 0.72, blue: 0.62)
         case .hyperViolet: return Color(red: 0.80, green: 0.70, blue: 0.92)
+        case .rose: return Color(red: 0.42, green: 0.28, blue: 0.35)
+        case .cream: return Color(red: 0.40, green: 0.34, blue: 0.22)
+        case .sage: return Color(red: 0.26, green: 0.38, blue: 0.28)
         }
     }
 
@@ -155,6 +191,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.38, green: 0.55, blue: 0.42)
         case .solarAmber: return Color(red: 0.58, green: 0.46, blue: 0.38)
         case .hyperViolet: return Color(red: 0.55, green: 0.44, blue: 0.68)
+        case .rose: return Color(red: 0.58, green: 0.44, blue: 0.50)
+        case .cream: return Color(red: 0.56, green: 0.50, blue: 0.36)
+        case .sage: return Color(red: 0.42, green: 0.54, blue: 0.45)
         }
     }
 
@@ -168,6 +207,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.22, green: 0.35, blue: 0.25)
         case .solarAmber: return Color(red: 0.38, green: 0.28, blue: 0.22)
         case .hyperViolet: return Color(red: 0.35, green: 0.26, blue: 0.45)
+        case .rose: return Color(red: 0.72, green: 0.60, blue: 0.65)
+        case .cream: return Color(red: 0.70, green: 0.64, blue: 0.52)
+        case .sage: return Color(red: 0.60, green: 0.68, blue: 0.62)
         }
     }
 
@@ -181,6 +223,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.08, green: 0.85, blue: 0.45)
         case .solarAmber: return Color(red: 0.96, green: 0.62, blue: 0.12)
         case .hyperViolet: return Color(red: 0.72, green: 0.35, blue: 0.98)
+        case .rose: return Color(red: 0.85, green: 0.25, blue: 0.45)
+        case .cream: return Color(red: 0.78, green: 0.54, blue: 0.10)
+        case .sage: return Color(red: 0.16, green: 0.55, blue: 0.30)
         }
     }
 
@@ -194,6 +239,9 @@ enum TossyColor {
         case .emerald: return Color(red: 0.02, green: 0.15, blue: 0.06)
         case .solarAmber: return Color(red: 0.15, green: 0.08, blue: 0.02)
         case .hyperViolet: return Color.white
+        case .rose: return Color.white
+        case .cream: return Color.white
+        case .sage: return Color.white
         }
     }
 

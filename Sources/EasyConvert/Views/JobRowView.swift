@@ -283,6 +283,6 @@ struct JobRowView: View {
         .padding(14)
         .frame(width: 320)
         .background(TossyColor.pitchBlack)
-        .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
+        .preferredColorScheme(AppSettings.shared.appTheme.isDark ? .dark : .light)
     }
 }

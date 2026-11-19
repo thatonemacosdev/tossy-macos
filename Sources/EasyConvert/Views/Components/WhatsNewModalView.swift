@@ -92,7 +92,7 @@ struct WhatsNewModalView: View {
         }
         .frame(minWidth: 620, minHeight: 560)
         .background(TossyColor.pitchBlack)
-        .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
+        .preferredColorScheme(AppSettings.shared.appTheme.isDark ? .dark : .light)
     }
     
     // MARK: - Monochromatic Black & White Quick Start Guide

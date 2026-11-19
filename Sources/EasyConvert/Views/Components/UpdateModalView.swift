@@ -144,7 +144,7 @@ struct UpdateModalView: View {
         }
         .frame(width: 520)
         .background(TossyColor.pitchBlack)
-        .preferredColorScheme(AppSettings.shared.appTheme == .light ? .light : .dark)
+        .preferredColorScheme(AppSettings.shared.appTheme.isDark ? .dark : .light)
     }
     
     private func cleanReleaseNotes(_ text: String) -> String {

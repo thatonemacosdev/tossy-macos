@@ -118,7 +118,19 @@ final class FFmpegService {
 
     /// Runs `ffmpeg`/a tool synchronously to completion and returns captured stdout (used for
     /// one-shot capability queries like `-encoders`, not for actual conversions).
+    /// If invoked on the main thread, offloads process waiting to a background queue to prevent
+    /// Process.waitUntilExit from pumping the main RunLoop and triggering recursive SwiftUI layout cycles.
     static func runCapturingOutput(executablePath: String, arguments: [String]) -> String {
+        if Thread.isMainThread {
+            return DispatchQueue.global(qos: .userInitiated).sync {
+                runCapturingOutputInternal(executablePath: executablePath, arguments: arguments)
+            }
+        } else {
+            return runCapturingOutputInternal(executablePath: executablePath, arguments: arguments)
+        }
+    }
+
+    private static func runCapturingOutputInternal(executablePath: String, arguments: [String]) -> String {
         let process = Process()
         process.standardInput = FileHandle.nullDevice
         process.executableURL = URL(fileURLWithPath: executablePath)

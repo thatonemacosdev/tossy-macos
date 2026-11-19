@@ -165,22 +165,40 @@ struct RootView: View {
 
                         // Quick Theme Switcher
                         Menu {
-                            ForEach(AppTheme.allCases) { theme in
-                                Button {
-                                    withAnimation(TossyMotion.springSmooth) {
-                                        settings.appTheme = theme
+                            Section("Dark Themes") {
+                                ForEach(AppTheme.darkThemes) { theme in
+                                    Button {
+                                        withAnimation(TossyMotion.springSmooth) {
+                                            settings.appTheme = theme
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Text(theme.displayName)
+                                            if settings.appTheme == theme {
+                                                Image(systemName: "checkmark")
+                                            }
+                                        }
                                     }
-                                } label: {
-                                    HStack {
-                                        Label(theme.displayName, systemImage: theme.icon)
-                                        if settings.appTheme == theme {
-                                            Image(systemName: "checkmark")
+                                }
+                            }
+                            Section("Light Themes") {
+                                ForEach(AppTheme.lightThemes) { theme in
+                                    Button {
+                                        withAnimation(TossyMotion.springSmooth) {
+                                            settings.appTheme = theme
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Text(theme.displayName)
+                                            if settings.appTheme == theme {
+                                                Image(systemName: "checkmark")
+                                            }
                                         }
                                     }
                                 }
                             }
                         } label: {
-                            Image(systemName: settings.appTheme.icon)
+                            Image(systemName: settings.appTheme.isDark ? "moon.fill" : "sun.max.fill")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(TossyColor.textSecondary)
                                 .padding(6)
@@ -189,7 +207,7 @@ struct RootView: View {
                         .menuStyle(.borderlessButton)
                         .menuIndicator(.hidden)
                         .frame(width: 26, height: 26)
-                        .help("Change Theme Appearance (Monochrome Black, Monochrome White, or Creative Themes)")
+                        .help("Theme Appearance (\(settings.appTheme.displayName))")
 
                         // Settings Button (Cmd+,)
                         Button {
@@ -236,7 +254,7 @@ struct RootView: View {
                 )
             }
         }
-        .preferredColorScheme(settings.appTheme == .light ? .light : .dark)
+        .preferredColorScheme(settings.appTheme.isDark ? .dark : .light)
         .tint(TossyColor.accentProminentBg)
         .overlay(alignment: .bottomTrailing) {
             Text("v\(AppVersion.string)")
