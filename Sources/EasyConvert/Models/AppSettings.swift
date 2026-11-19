@@ -334,29 +334,116 @@ final class AppSettings {
     }
     
     // MARK: - Format Specific Settings
+    private var _webpConfig: WebPConfig?
     var webpConfig: WebPConfig {
-        didSet { saveJSON(webpConfig, forKey: "webpConfig") }
+        get {
+            if let cached = _webpConfig { return cached }
+            let loaded: WebPConfig = Self.loadJSON(forKey: "webpConfig") ?? WebPConfig()
+            _webpConfig = loaded
+            return loaded
+        }
+        set {
+            _webpConfig = newValue
+            saveJSON(newValue, forKey: "webpConfig")
+        }
     }
+
+    private var _jxlConfig: JXLConfig?
     var jxlConfig: JXLConfig {
-        didSet { saveJSON(jxlConfig, forKey: "jxlConfig") }
+        get {
+            if let cached = _jxlConfig { return cached }
+            let loaded: JXLConfig = Self.loadJSON(forKey: "jxlConfig") ?? JXLConfig()
+            _jxlConfig = loaded
+            return loaded
+        }
+        set {
+            _jxlConfig = newValue
+            saveJSON(newValue, forKey: "jxlConfig")
+        }
     }
+
+    private var _jpegConfig: JPEGConfig?
     var jpegConfig: JPEGConfig {
-        didSet { saveJSON(jpegConfig, forKey: "jpegConfig") }
+        get {
+            if let cached = _jpegConfig { return cached }
+            let loaded: JPEGConfig = Self.loadJSON(forKey: "jpegConfig") ?? JPEGConfig()
+            _jpegConfig = loaded
+            return loaded
+        }
+        set {
+            _jpegConfig = newValue
+            saveJSON(newValue, forKey: "jpegConfig")
+        }
     }
+
+    private var _pngConfig: PNGConfig?
     var pngConfig: PNGConfig {
-        didSet { saveJSON(pngConfig, forKey: "pngConfig") }
+        get {
+            if let cached = _pngConfig { return cached }
+            let loaded: PNGConfig = Self.loadJSON(forKey: "pngConfig") ?? PNGConfig()
+            _pngConfig = loaded
+            return loaded
+        }
+        set {
+            _pngConfig = newValue
+            saveJSON(newValue, forKey: "pngConfig")
+        }
     }
+
+    private var _tiffConfig: TIFFConfig?
     var tiffConfig: TIFFConfig {
-        didSet { saveJSON(tiffConfig, forKey: "tiffConfig") }
+        get {
+            if let cached = _tiffConfig { return cached }
+            let loaded: TIFFConfig = Self.loadJSON(forKey: "tiffConfig") ?? TIFFConfig()
+            _tiffConfig = loaded
+            return loaded
+        }
+        set {
+            _tiffConfig = newValue
+            saveJSON(newValue, forKey: "tiffConfig")
+        }
     }
+
+    private var _gifConfig: GIFConfig?
     var gifConfig: GIFConfig {
-        didSet { saveJSON(gifConfig, forKey: "gifConfig") }
+        get {
+            if let cached = _gifConfig { return cached }
+            let loaded: GIFConfig = Self.loadJSON(forKey: "gifConfig") ?? GIFConfig()
+            _gifConfig = loaded
+            return loaded
+        }
+        set {
+            _gifConfig = newValue
+            saveJSON(newValue, forKey: "gifConfig")
+        }
     }
+
+    private var _videoConfig: VideoConfig?
     var videoConfig: VideoConfig {
-        didSet { saveJSON(videoConfig, forKey: "videoConfig") }
+        get {
+            if let cached = _videoConfig { return cached }
+            let loaded: VideoConfig = Self.loadJSON(forKey: "videoConfig") ?? VideoConfig()
+            _videoConfig = loaded
+            return loaded
+        }
+        set {
+            _videoConfig = newValue
+            saveJSON(newValue, forKey: "videoConfig")
+        }
     }
+
+    private var _audioConfig: AudioConfig?
     var audioConfig: AudioConfig {
-        didSet { saveJSON(audioConfig, forKey: "audioConfig") }
+        get {
+            if let cached = _audioConfig { return cached }
+            let loaded: AudioConfig = Self.loadJSON(forKey: "audioConfig") ?? AudioConfig()
+            _audioConfig = loaded
+            return loaded
+        }
+        set {
+            _audioConfig = newValue
+            saveJSON(newValue, forKey: "audioConfig")
+        }
     }
     
     // MARK: - Initializer
@@ -379,18 +466,17 @@ final class AppSettings {
         self.autoRevealInFinder = defaults.object(forKey: "autoRevealInFinder") as? Bool ?? false
         self.deleteSourceAfterConversion = defaults.object(forKey: "deleteSourceAfterConversion") as? Bool ?? false
         self.showMenuBarDropzone = defaults.object(forKey: "showMenuBarDropzone") as? Bool ?? false
+        self.launchAtLogin = defaults.bool(forKey: "launchAtLogin")
 
         if #available(macOS 13.0, *) {
-            let status = SMAppService.mainApp.status
-            if status == .enabled {
-                self.launchAtLogin = true
-            } else if status == .notRegistered {
-                self.launchAtLogin = false
-            } else {
-                self.launchAtLogin = defaults.bool(forKey: "launchAtLogin")
+            Task.detached(priority: .utility) {
+                let status = SMAppService.mainApp.status
+                if status == .enabled {
+                    await MainActor.run { AppSettings.shared.launchAtLogin = true }
+                } else if status == .notRegistered {
+                    await MainActor.run { AppSettings.shared.launchAtLogin = false }
+                }
             }
-        } else {
-            self.launchAtLogin = defaults.bool(forKey: "launchAtLogin")
         }
 
         let templateRaw = defaults.string(forKey: "namingTemplate") ?? OutputNamingTemplate.standard.rawValue
@@ -423,15 +509,6 @@ final class AppSettings {
         } else {
             self.maxFileSizeBytes = 4_000_000_000
         }
-        
-        self.webpConfig = Self.loadJSON(forKey: "webpConfig") ?? WebPConfig()
-        self.jxlConfig = Self.loadJSON(forKey: "jxlConfig") ?? JXLConfig()
-        self.jpegConfig = Self.loadJSON(forKey: "jpegConfig") ?? JPEGConfig()
-        self.pngConfig = Self.loadJSON(forKey: "pngConfig") ?? PNGConfig()
-        self.tiffConfig = Self.loadJSON(forKey: "tiffConfig") ?? TIFFConfig()
-        self.gifConfig = Self.loadJSON(forKey: "gifConfig") ?? GIFConfig()
-        self.videoConfig = Self.loadJSON(forKey: "videoConfig") ?? VideoConfig()
-        self.audioConfig = Self.loadJSON(forKey: "audioConfig") ?? AudioConfig()
     }
     
     func destinationFolder(for sourceURL: URL) -> URL? {

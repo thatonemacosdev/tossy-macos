@@ -55,7 +55,16 @@ final class AnimatedWebPConverter {
             vfFilter += ",scale=480:-2"
         }
 
-        let ffmpegArgs = ["-y", "-i", sourceURL.path, "-vf", vfFilter, "-progress", "pipe:1", "-nostats", framePattern]
+        let ffmpegArgs = [
+            "-y",
+            "-hwaccel", "videotoolbox",
+            "-i", sourceURL.path,
+            "-vf", vfFilter,
+            "-compression_level", "0",
+            "-progress", "pipe:1",
+            "-nostats",
+            framePattern
+        ]
 
         onProgress(0.1)
         do {

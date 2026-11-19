@@ -101,7 +101,7 @@ enum VideoFormat: String, CaseIterable, Identifiable {
         case .movProRes422: return .avFoundation(preset: AVAssetExportPresetAppleProRes422LPCM)
 
         case .mkv: return .ffmpeg(muxer: nil, videoCodec: "libx264", audioCodec: "aac", extraArgs: [])
-        case .webm, .webmVp9: return .ffmpeg(muxer: nil, videoCodec: "libvpx-vp9", audioCodec: "libopus", extraArgs: [])
+        case .webm, .webmVp9: return .ffmpeg(muxer: nil, videoCodec: "libvpx-vp9", audioCodec: "libopus", extraArgs: ["-cpu-used", "4", "-row-mt", "1"])
         // ffmpeg's native vorbis encoder only supports stereo output; force it regardless of source.
         case .webmVp8: return .ffmpeg(muxer: nil, videoCodec: "libvpx", audioCodec: "vorbis", extraArgs: ["-strict", "-2", "-ac", "2"])
         case .avi: return .ffmpeg(muxer: nil, videoCodec: "libx264", audioCodec: "aac", extraArgs: [])

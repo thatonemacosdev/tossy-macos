@@ -5,8 +5,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApplication.shared.servicesProvider = self
         NSRegisterServicesProvider(self, "Tossy")
-        
-        // Handle command line arguments if launched from CLI
         handleCommandLineArguments()
     }
     
@@ -126,6 +124,7 @@ struct WindowAccessor: NSViewRepresentable {
 @main
 struct TossyApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    private static let launchStartTime = CFAbsoluteTimeGetCurrent()
     
     var body: some Scene {
         WindowGroup("Tossy") {
@@ -135,9 +134,16 @@ struct TossyApp: App {
                     MenuBarManager.shared.registerMainWindow(window)
                 })
                 .onAppear {
+                    let elapsedMs = Int((CFAbsoluteTimeGetCurrent() - TossyApp.launchStartTime) * 1000)
+                    #if DEBUG
+                    print("[Tossy Launch] Interactive Dropzone painted in \(elapsedMs) ms")
+                    #endif
                     MenuBarManager.shared.setupIfNeeded()
                     if AppSettings.shared.automaticallyCheckForUpdates {
-                        UpdateManager.shared.checkForUpdates(isUserInitiated: false)
+                        Task.detached(priority: .background) {
+                            try? await Task.sleep(nanoseconds: 2_000_000_000)
+                            UpdateManager.shared.checkForUpdates(isUserInitiated: false)
+                        }
                     }
                 }
                 .onOpenURL { url in

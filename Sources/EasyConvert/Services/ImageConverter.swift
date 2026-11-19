@@ -35,18 +35,23 @@ struct ImageConversionResult {
 /// dedicated helpers; formats ImageIO can't write (WebP, HDR, QOI, ...) fall back to the
 /// bundled ffmpeg or WebP tools.
 final class ImageConverter {
+    private static let defaultCIContext: CIContext = {
+        if let device = MTLCreateSystemDefaultDevice() {
+            return CIContext(mtlDevice: device)
+        }
+        return CIContext(options: [.useSoftwareRenderer: true])
+    }()
+
     private let ciContext: CIContext
     let isGPUAccelerated: Bool
 
-    /// Pass `forceSoftwareRenderer: true` to force the CPU rendering path  -  useful only for
-    /// benchmarking the Metal-backed path against a software baseline.
     init(forceSoftwareRenderer: Bool = false) {
-        if !forceSoftwareRenderer, let device = MTLCreateSystemDefaultDevice() {
-            ciContext = CIContext(mtlDevice: device)
-            isGPUAccelerated = true
+        if !forceSoftwareRenderer {
+            self.ciContext = Self.defaultCIContext
+            self.isGPUAccelerated = true
         } else {
-            ciContext = CIContext(options: [.useSoftwareRenderer: true])
-            isGPUAccelerated = false
+            self.ciContext = CIContext(options: [.useSoftwareRenderer: true])
+            self.isGPUAccelerated = false
         }
     }
 
@@ -87,7 +92,7 @@ final class ImageConverter {
             }
         }
 
-        let sourceImages = try decodeSourceImages(sourceURL: sourceURL)
+        let sourceImages = try decodeSourceImages(sourceURL: sourceURL, targetWidth: targetWidth)
         var outputs: [URL] = []
         var notes: [String] = []
 
@@ -171,6 +176,17 @@ final class ImageConverter {
         targetSizeBytes: Int64,
         metadataDict: [CFString: Any]? = nil
     ) async throws -> (size: Int64, met: Bool) {
+        if format.backend == .imageIO {
+            return try inMemoryBinarySearchImageIO(
+                ciImage: ciImage,
+                format: format,
+                initialQuality: initialQuality,
+                targetSizeBytes: targetSizeBytes,
+                outputURL: outputURL,
+                metadataDict: metadataDict
+            )
+        }
+
         if format.supportsQuality {
             return try await binarySearch(
                 low: 0.02, high: max(initialQuality, 0.05),
@@ -193,6 +209,159 @@ final class ImageConverter {
                 try await self.write(cgImage: cgImage, to: candidateURL, format: format, quality: 1.0, metadataDict: metadataDict)
             }
         }
+    }
+
+    private func inMemoryBinarySearchImageIO(
+        ciImage: CIImage,
+        format: ImageFormat,
+        initialQuality: Double,
+        targetSizeBytes: Int64,
+        outputURL: URL,
+        metadataDict: [CFString: Any]? = nil
+    ) throws -> (size: Int64, met: Bool) {
+        if format.supportsQuality {
+            guard let baseCGImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else {
+                throw ConversionError.renderFailed
+            }
+            var lo = 0.02
+            var hi = max(initialQuality, 0.05)
+            var bestData: Data?
+
+            for _ in 0..<6 {
+                let mid = (lo + hi) / 2
+                guard let candidateData = encodeToMemoryViaImageIO(
+                    cgImage: baseCGImage,
+                    format: format,
+                    quality: mid,
+                    metadataDict: metadataDict
+                ) else { continue }
+
+                if Int64(candidateData.count) <= targetSizeBytes {
+                    bestData = candidateData
+                    lo = mid
+                } else {
+                    hi = mid
+                }
+            }
+
+            if let bestData {
+                try bestData.write(to: outputURL, options: .atomic)
+                return (Int64(bestData.count), true)
+            }
+
+            guard let floorData = encodeToMemoryViaImageIO(
+                cgImage: baseCGImage,
+                format: format,
+                quality: lo,
+                metadataDict: metadataDict
+            ) else {
+                throw ConversionError.writeFailed
+            }
+            try floorData.write(to: outputURL, options: .atomic)
+            return (Int64(floorData.count), false)
+        } else {
+            var lo = 0.05
+            var hi = 1.0
+            var bestData: Data?
+
+            for _ in 0..<6 {
+                let mid = (lo + hi) / 2
+                let scaledCI = mid < 1.0 ? ciImage.transformed(by: CGAffineTransform(scaleX: mid, y: mid)) : ciImage
+                guard let cgImage = ciContext.createCGImage(scaledCI, from: scaledCI.extent),
+                      let candidateData = encodeToMemoryViaImageIO(
+                        cgImage: cgImage,
+                        format: format,
+                        quality: 1.0,
+                        metadataDict: metadataDict
+                      ) else { continue }
+
+                if Int64(candidateData.count) <= targetSizeBytes {
+                    bestData = candidateData
+                    lo = mid
+                } else {
+                    hi = mid
+                }
+            }
+
+            if let bestData {
+                try bestData.write(to: outputURL, options: .atomic)
+                return (Int64(bestData.count), true)
+            }
+
+            let floorCI = ciImage.transformed(by: CGAffineTransform(scaleX: lo, y: lo))
+            guard let floorCG = ciContext.createCGImage(floorCI, from: floorCI.extent),
+                  let floorData = encodeToMemoryViaImageIO(
+                    cgImage: floorCG,
+                    format: format,
+                    quality: 1.0,
+                    metadataDict: metadataDict
+                  ) else {
+                throw ConversionError.writeFailed
+            }
+            try floorData.write(to: outputURL, options: .atomic)
+            return (Int64(floorData.count), false)
+        }
+    }
+
+    private func encodeToMemoryViaImageIO(
+        cgImage: CGImage,
+        format: ImageFormat,
+        quality: Double,
+        metadataDict: [CFString: Any]? = nil
+    ) -> Data? {
+        let data = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(
+            data as CFMutableData,
+            format.utType.identifier as CFString,
+            1,
+            nil
+        ) else {
+            return nil
+        }
+
+        var properties: [CFString: Any] = [:]
+        if format.supportsQuality {
+            properties[kCGImageDestinationLossyCompressionQuality] = quality
+        }
+
+        if format == .jpeg {
+            let jpegCfg = AppSettings.shared.jpegConfig
+            if jpegCfg.isProgressive {
+                properties[kCGImagePropertyJFIFDictionary] = [kCGImagePropertyJFIFIsProgressive: kCFBooleanTrue as Any]
+            }
+        } else if format == .png {
+            let pngCfg = AppSettings.shared.pngConfig
+            if pngCfg.isInterlaced {
+                properties[kCGImagePropertyPNGDictionary] = [kCGImagePropertyPNGInterlaceType: 1]
+            }
+        } else if format == .tiff {
+            let tiffCfg = AppSettings.shared.tiffConfig
+            let compressionValue: Int
+            switch tiffCfg.compression.lowercased() {
+            case "none": compressionValue = 1
+            case "lzw": compressionValue = 5
+            case "deflate", "zip": compressionValue = 8
+            case "packbits": compressionValue = 32773
+            default: compressionValue = 5
+            }
+            var tiffDict = (metadataDict?[kCGImagePropertyTIFFDictionary] as? [CFString: Any]) ?? [:]
+            tiffDict[kCGImagePropertyTIFFCompression] = compressionValue
+            properties[kCGImagePropertyTIFFDictionary] = tiffDict
+        }
+
+        if let metadataDict {
+            for (key, value) in metadataDict {
+                if properties[key] == nil {
+                    properties[key] = value
+                }
+            }
+        }
+
+        CGImageDestinationAddImage(destination, cgImage, properties as CFDictionary)
+        guard CGImageDestinationFinalize(destination) else {
+            return nil
+        }
+        return data as Data
     }
 
     /// Binary-searches `parameter` in `low...high` (quality or resolution scale  -  higher is
@@ -266,7 +435,7 @@ final class ImageConverter {
         (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int64) ?? 0
     }
 
-    private func decodeSourceImages(sourceURL: URL) throws -> [CGImage] {
+    private func decodeSourceImages(sourceURL: URL, targetWidth: Int? = nil) throws -> [CGImage] {
         if let rawCIImage = RawImageDecoder.decode(url: sourceURL) {
             guard let cgImage = ciContext.createCGImage(rawCIImage, from: rawCIImage.extent) else {
                 throw ConversionError.renderFailed
@@ -278,8 +447,29 @@ final class ImageConverter {
             return try VectorImageRenderer.render(url: sourceURL)
         }
 
-        guard let imageSource = CGImageSourceCreateWithURL(sourceURL as CFURL, nil),
-              let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil) else {
+        guard let imageSource = CGImageSourceCreateWithURL(sourceURL as CFURL, nil) else {
+            throw ConversionError.unreadableImage
+        }
+
+        if let targetWidth, targetWidth > 0,
+           let props = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any],
+           let width = props[kCGImagePropertyPixelWidth] as? CGFloat,
+           let height = props[kCGImagePropertyPixelHeight] as? CGFloat,
+           width > 0, height > 0 {
+            let scale = CGFloat(targetWidth) / width
+            let targetHeight = height * scale
+            let maxPixelSize = Int(max(CGFloat(targetWidth), targetHeight).rounded(.up))
+            let options: [CFString: Any] = [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
+                kCGImageSourceCreateThumbnailWithTransform: true
+            ]
+            if let cgImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, options as CFDictionary) {
+                return [cgImage]
+            }
+        }
+
+        guard let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil) else {
             throw ConversionError.unreadableImage
         }
         return [cgImage]
@@ -420,7 +610,7 @@ final class ImageConverter {
         defer { try? FileManager.default.removeItem(at: tempPNG) }
 
         let webpCfg = AppSettings.shared.webpConfig
-        var arguments = ["-quiet"]
+        var arguments = ["-quiet", "-mt"]
         if webpCfg.isLossless {
             arguments += ["-lossless"]
         } else {

@@ -1,6 +1,6 @@
 import UniformTypeIdentifiers
 
-enum ImageBackend {
+enum ImageBackend: Equatable {
     case imageIO
     case ffmpeg(codec: String)
     case webpTool

@@ -44,11 +44,14 @@ final class ConversionJob: Identifiable {
         return ByteSize.displayString(size)
     }
 
+    private var lastProgressDispatch: Date = Date.distantPast
+
     @MainActor
     func resetProgress() {
         startTime = nil
         maxSeenProgress = 0.0
         lastETASec = nil
+        lastProgressDispatch = Date.distantPast
     }
 
     @MainActor
@@ -57,6 +60,14 @@ final class ConversionJob: Identifiable {
         case .done, .failed:
             return
         case .pending, .converting:
+            if let rawProgress, rawProgress > 0 && rawProgress < 1.0 {
+                let now = Date()
+                if now.timeIntervalSince(lastProgressDispatch) < 0.033 {
+                    return
+                }
+                lastProgressDispatch = now
+            }
+
             if startTime == nil {
                 startTime = Date()
                 maxSeenProgress = 0.0

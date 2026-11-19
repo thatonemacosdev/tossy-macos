@@ -2,9 +2,17 @@ import Foundation
 import Vision
 import CoreImage
 import AppKit
+import UniformTypeIdentifiers
 
 final class NeuralSubjectSegmentationService: Sendable {
     static let shared = NeuralSubjectSegmentationService()
+    
+    private static let sharedCIContext: CIContext = {
+        if let device = MTLCreateSystemDefaultDevice() {
+            return CIContext(mtlDevice: device)
+        }
+        return CIContext(options: [.useSoftwareRenderer: false])
+    }()
     
     init() {}
     
@@ -89,18 +97,15 @@ final class NeuralSubjectSegmentationService: Sendable {
     }
     
     private func saveAsTransparentPNG(ciImage: CIImage, destinationURL: URL) throws {
-        let context = CIContext(options: [.useSoftwareRenderer: false])
-        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
+        guard let cgImage = Self.sharedCIContext.createCGImage(ciImage, from: ciImage.extent) else {
             throw MediaStudioError.backgroundRemovalFailed("Failed to render output CGImage")
         }
-        
-        let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
-        guard let tiffData = nsImage.tiffRepresentation,
-              let bitmapRep = NSBitmapImageRep(data: tiffData),
-              let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
+        guard let destination = CGImageDestinationCreateWithURL(destinationURL as CFURL, UTType.png.identifier as CFString, 1, nil) else {
+            throw MediaStudioError.backgroundRemovalFailed("Failed to initialize PNG destination")
+        }
+        CGImageDestinationAddImage(destination, cgImage, nil)
+        guard CGImageDestinationFinalize(destination) else {
             throw MediaStudioError.backgroundRemovalFailed("Failed to encode transparent PNG data")
         }
-        
-        try pngData.write(to: destinationURL, options: .atomic)
     }
 }

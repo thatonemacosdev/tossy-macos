@@ -837,6 +837,7 @@ struct UniversalCanvasView: View {
     private var bottomBar: some View {
         HStack(spacing: 12) {
             Button("Clear List") {
+                TossyHaptic.performFeedback(.generic)
                 withAnimation(TossyMotion.springSmooth) {
                     jobs.removeAll()
                     batchSummaryText = nil
@@ -935,6 +936,7 @@ struct UniversalCanvasView: View {
     }
     
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
+        TossyHaptic.performFeedback(.levelChange)
         Task { @MainActor in
             let urls = await FileDropResolver.resolveURLs(from: providers)
             withAnimation(TossyMotion.springSmooth) {
@@ -1055,6 +1057,7 @@ struct UniversalCanvasView: View {
     
     private func convertAll() async {
         isConverting = true
+        TossyHaptic.performFeedback(.alignment)
         batchSummaryText = "Converting \(jobs.count) items..."
         
         let imgConverter = ImageConverter()
@@ -1095,6 +1098,7 @@ struct UniversalCanvasView: View {
     }
     
     private func convertSingleJob(_ job: ConversionJob) async {
+        TossyHaptic.performFeedback(.alignment)
         let imgConverter = ImageConverter()
         let vidConverter = VideoConverter()
         let audConverter = AudioConverter()

@@ -15,7 +15,7 @@ if [ -z "${SDKROOT:-}" ] && [ -d "/Library/Developer/CommandLineTools/SDKs/MacOS
 fi
 
 echo "Building ${APP_NAME} (${CONFIG})..."
-swift build -c "${CONFIG}"
+swift build -c "${CONFIG}" -Xswiftc -lto=llvm-thin -Xlinker -dead_strip
 
 echo "Packaging ${APP_BUNDLE}..."
 rm -rf "${APP_BUNDLE}"
@@ -23,6 +23,7 @@ mkdir -p "${APP_BUNDLE}/Contents/MacOS"
 mkdir -p "${APP_BUNDLE}/Contents/Resources"
 
 cp "${BUILD_DIR}/${APP_NAME}" "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+strip -x "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
 cp "Info.plist" "${APP_BUNDLE}/Contents/Info.plist"
 cp "AppIcon.icns" "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
 cp "icons/icon_128.png" "${APP_BUNDLE}/Contents/Resources/TossyLogo.png"

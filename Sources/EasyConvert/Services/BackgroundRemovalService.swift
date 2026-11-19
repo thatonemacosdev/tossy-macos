@@ -2,6 +2,7 @@ import Foundation
 import Vision
 import CoreImage
 import AppKit
+import UniformTypeIdentifiers
 
 enum BackgroundRemovalError: LocalizedError, Sendable {
     case imageLoadFailed(URL)
@@ -55,12 +56,13 @@ final class BackgroundRemovalService: Sendable {
         let destFolder = outputDestination.deletingLastPathComponent()
         try? FileManager.default.createDirectory(at: destFolder, withIntermediateDirectories: true)
         
-        let bitmapRep = NSBitmapImageRep(cgImage: outputCGImage)
-        guard let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
+        guard let destination = CGImageDestinationCreateWithURL(outputDestination as CFURL, UTType.png.identifier as CFString, 1, nil) else {
             throw BackgroundRemovalError.outputWriteFailed(outputDestination)
         }
-        
-        try pngData.write(to: outputDestination, options: .atomic)
+        CGImageDestinationAddImage(destination, outputCGImage, nil)
+        guard CGImageDestinationFinalize(destination) else {
+            throw BackgroundRemovalError.outputWriteFailed(outputDestination)
+        }
         return outputDestination
     }
     

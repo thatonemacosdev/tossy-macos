@@ -71,22 +71,24 @@ final class VideoConverter {
 
             // Route through ffmpeg to enable precise bitrate targeting, custom resolution scaling,
             // or to transcode non-Apple formats (WebM, MKV, AVI, etc.) and audio-only inputs
+            let videoCfg = AppSettings.shared.videoConfig
+            let preferHardware = videoCfg.encodingMode != "crf"
             let (vCodec, aCodec, extra): (String, String?, [String])
             switch format {
             case .mp4H264, .movH264:
-                vCodec = "libx264"
+                vCodec = preferHardware ? "h264_videotoolbox" : "libx264"
                 aCodec = "aac"
                 extra = []
             case .mp4Hevc, .movHevc:
-                vCodec = "libx265"
+                vCodec = preferHardware ? "hevc_videotoolbox" : "libx265"
                 aCodec = "aac"
-                extra = []
+                extra = ["-tag:v", "hvc1"]
             case .movProRes422:
-                vCodec = "prores_ks"
+                vCodec = preferHardware ? "prores_videotoolbox" : "prores_ks"
                 aCodec = "pcm_s16le"
                 extra = ["-profile:v", "2"]
             default:
-                vCodec = "libx264"
+                vCodec = preferHardware ? "h264_videotoolbox" : "libx264"
                 aCodec = "aac"
                 extra = []
             }
@@ -137,8 +139,11 @@ final class VideoConverter {
         onProgress: @escaping (Double) -> Void
     ) async throws -> VideoConversionResult {
         let ext = sourceURL.pathExtension.isEmpty ? "mp4" : sourceURL.pathExtension.lowercased()
+        let videoCfg = AppSettings.shared.videoConfig
+        let preferHardware = videoCfg.encodingMode != "crf"
+        let vCodec = preferHardware ? "h264_videotoolbox" : "libx264"
         return try await convertViaFFmpeg(
-            sourceURL: sourceURL, outputExtension: ext, muxer: nil, videoCodec: "libx264",
+            sourceURL: sourceURL, outputExtension: ext, muxer: nil, videoCodec: vCodec,
             audioCodec: "aac", extraArgs: [], destinationFolder: destinationFolder,
             targetSizeBytes: targetSizeBytes, targetWidth: targetWidth, customBaseName: customBaseName,
             preserveMetadata: preserveMetadata, onProgress: onProgress
@@ -224,18 +229,52 @@ final class VideoConverter {
         let hasVideo = probe?.hasVideo ?? true
         let duration = probe?.durationSeconds
 
-        var arguments = ["-y", "-i", sourceURL.path]
+        let videoCfg = AppSettings.shared.videoConfig
+
+        // Zero-reencode stream copy when input streams already match target container
+        if canStreamCopyRemux(sourceURL: sourceURL, targetExtension: outputExtension, probe: probe, videoCfg: videoCfg, targetSizeBytes: targetSizeBytes, targetWidth: targetWidth) {
+            var remuxArgs = ["-y", "-i", sourceURL.path, "-c", "copy", "-movflags", "+faststart"]
+            if !preserveMetadata {
+                remuxArgs += ["-map_metadata", "-1"]
+            }
+            if probe?.videoCodec?.lowercased() == "hevc" && outputExtension.lowercased() == "mp4" {
+                remuxArgs += ["-tag:v", "hvc1"]
+            }
+            remuxArgs += ["-progress", "pipe:1", "-nostats", outputURL.path]
+            do {
+                try await ffmpeg.run(arguments: remuxArgs, totalDuration: duration, onProgress: onProgress)
+                onProgress(1.0)
+                return VideoConversionResult(outputURL: outputURL, note: "Instant Remux (Zero Quality Loss)")
+            } catch {
+                // Fall back to transcoding if stream-copy remux fails
+            }
+        }
+
+        var arguments = ["-y", "-hwaccel", "videotoolbox", "-i", sourceURL.path]
 
         if !preserveMetadata {
             arguments += ["-map_metadata", "-1"]
         }
 
-        let videoCfg = AppSettings.shared.videoConfig
+        let isSoftwareEncoder = videoCodec.starts(with: "lib") || videoCodec == "prores_ks" || videoCodec == "mpeg2video" || videoCodec == "mpeg4"
+        if isSoftwareEncoder && !extraArgs.contains("-threads") {
+            let threadCount = max(1, ProcessInfo.processInfo.activeProcessorCount / 2)
+            arguments += ["-threads", "\(threadCount)"]
+        }
+
+        if videoCodec == "libvpx-vp9" {
+            if !extraArgs.contains("-cpu-used") {
+                arguments += ["-cpu-used", "4"]
+            }
+            if !extraArgs.contains("-row-mt") {
+                arguments += ["-row-mt", "1"]
+            }
+        }
 
         if hasVideo {
             arguments += ["-c:v", videoCodec]
 
-            // Presets & Tuning for supported encoders
+            // Presets & Tuning for supported software encoders
             if videoCodec.contains("libx264") || videoCodec.contains("libx265") {
                 arguments += ["-preset", videoCfg.x264Preset]
                 if videoCfg.x264Tune != "none" {
@@ -247,6 +286,10 @@ final class VideoConverter {
             if !extraArgs.contains("-pix_fmt") {
                 arguments += ["-pix_fmt", videoCfg.pixelFormat]
             }
+
+            if (videoCodec == "hevc_videotoolbox" || videoCodec == "libx265") && !extraArgs.contains("-tag:v") && outputExtension.lowercased() == "mp4" {
+                arguments += ["-tag:v", "hvc1"]
+            }
         } else {
             // Audio-only input: disable video processing
             arguments += ["-vn"]
@@ -257,8 +300,7 @@ final class VideoConverter {
             guard let duration, duration > 0 else { throw VideoConversionError.durationUnknown }
             if hasVideo {
                 let bitrates = Self.computeBitrates(targetSizeBytes: targetSizeBytes, durationSeconds: duration, hasAudio: audioCodec != nil)
-                // Strip any codec-default bitrate args (e.g. DNxHD's fixed -b:v)  -  ours takes priority.
-                arguments += Self.stripBitrateArgs(extraArgs)
+                arguments += Self.stripRateControlArgs(extraArgs)
                 arguments += ["-b:v", "\(bitrates.videoBps)", "-maxrate", "\(Int(Double(bitrates.videoBps) * 1.45))", "-bufsize", "\(bitrates.videoBps * 2)"]
                 if let audioCodec {
                     arguments += ["-c:a", audioCodec, "-b:a", "\(bitrates.audioBps)"]
@@ -275,12 +317,24 @@ final class VideoConverter {
             note = "Targeted \(ByteSize.displayString(targetSizeBytes)) via estimated bitrate (single-pass, not exact)"
         } else {
             if hasVideo {
-                if videoCfg.encodingMode == "crf" && (videoCodec.contains("libx264") || videoCodec.contains("libx265") || videoCodec.contains("libsvtav1") || videoCodec.contains("libvpx")) {
-                    arguments += ["-crf", "\(videoCfg.crfValue)"]
-                } else if videoCfg.encodingMode == "bitrate" && videoCfg.targetBitrateKbps > 0 {
-                    arguments += ["-b:v", "\(videoCfg.targetBitrateKbps)k"]
+                if videoCodec.contains("videotoolbox") {
+                    if videoCfg.encodingMode == "bitrate" && videoCfg.targetBitrateKbps > 0 {
+                        arguments += ["-b:v", "\(videoCfg.targetBitrateKbps)k"]
+                    } else {
+                        arguments += ["-q:v", "65"]
+                    }
+                    arguments += Self.stripRateControlArgs(extraArgs)
+                } else {
+                    if videoCfg.encodingMode == "crf" && (videoCodec.contains("libx264") || videoCodec.contains("libx265") || videoCodec.contains("libsvtav1") || videoCodec.contains("libvpx")) {
+                        arguments += ["-crf", "\(videoCfg.crfValue)"]
+                        arguments += Self.stripRateControlArgs(extraArgs)
+                    } else if videoCfg.encodingMode == "bitrate" && videoCfg.targetBitrateKbps > 0 {
+                        arguments += ["-b:v", "\(videoCfg.targetBitrateKbps)k"]
+                        arguments += Self.stripRateControlArgs(extraArgs)
+                    } else {
+                        arguments += extraArgs
+                    }
                 }
-                arguments += extraArgs
             }
             
             // Audio track selection
@@ -393,12 +447,48 @@ final class VideoConverter {
         return (Int(videoBps), Int(audioBps))
     }
 
-    private static func stripBitrateArgs(_ args: [String]) -> [String] {
+    private func canStreamCopyRemux(
+        sourceURL: URL,
+        targetExtension: String,
+        probe: MediaInfo?,
+        videoCfg: VideoConfig,
+        targetSizeBytes: Int64?,
+        targetWidth: Int?
+    ) -> Bool {
+        guard targetSizeBytes == nil, targetWidth == nil else { return false }
+        guard !videoCfg.deinterlace, videoCfg.frameRate == "keep" else { return false }
+        guard videoCfg.audioCodec == "auto" || videoCfg.audioCodec == "default" || videoCfg.audioCodec == "copy" || videoCfg.audioCodec.isEmpty else { return false }
+        
+        let targetExt = targetExtension.lowercased()
+        guard targetExt == "mp4" || targetExt == "m4v" || targetExt == "mov" else { return false }
+        
+        guard let probe, let vCodec = probe.videoCodec?.lowercased() else { return false }
+        let isCompatibleVideo = vCodec == "h264" || vCodec == "hevc"
+        guard isCompatibleVideo else { return false }
+        
+        if let aCodec = probe.audioCodec?.lowercased() {
+            let isCompatibleAudio = aCodec == "aac" || aCodec == "mp3"
+            guard isCompatibleAudio else { return false }
+        }
+        
+        let sourceExt = sourceURL.pathExtension.lowercased()
+        if sourceExt == targetExt { return false }
+        
+        return true
+    }
+
+    private static func stripRateControlArgs(_ args: [String]) -> [String] {
         var result: [String] = []
         var skipNext = false
         for arg in args {
-            if skipNext { skipNext = false; continue }
-            if arg == "-b:v" { skipNext = true; continue }
+            if skipNext {
+                skipNext = false
+                continue
+            }
+            if arg == "-b:v" || arg == "-crf" || arg == "-maxrate" || arg == "-bufsize" || arg == "-q:v" {
+                skipNext = true
+                continue
+            }
             result.append(arg)
         }
         return result
