@@ -1,6 +1,6 @@
 # Screenshots Inventory
 
-Official 2x Retina screenshots for Tossy 2.0.0 (referenced in `docs/index.html` and `README.md`):
+Official 2x Retina screenshots for Tossy 2.1.0 (referenced in `docs/index.html` and `README.md`):
 
 - `desktop_hero.png` / `desktop_hero.jpg`: Universal Canvas empty state (dropzone, mode pill switcher, format target)
 - `videos.png` / `video.png`: Video Only Panel with queued video jobs, CRF slider, resolution preset

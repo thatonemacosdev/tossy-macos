@@ -207,6 +207,15 @@ final class GitHubChangelogService: @unchecked Sendable {
     
     private func loadFallbackReleases() {
         let fallbackTags: [(tag: String, date: String, items: [String])] = [
+            ("v2.1.0", "November 2026", [
+                "Official 2.1.0 Release: Dropzone-first architecture and handcrafted themes.",
+                "Dropzone-First Homepage: removed studios sidebar for a distraction-free drag-and-drop workspace.",
+                "Contextual Studio Auto-Routing: automatic routing for PDF Studio (.pdf) and Code Card Studio, plus contextual action bars for video and image drops.",
+                "11 Curated Light & Dark Themes: Monochrome Black, Monochrome White, Cobalt, Emerald, Amber, Violet, Titanium, Liquid Glass, Rose, Cream, and Sage with WCAG AAA contrast.",
+                "Redesigned Menu Bar Quick-Toss: category tabs, responsive format chips, middle-truncated file paths, and window lifecycle management.",
+                "Classic Tabs Deadlock Fix: decoupled FFmpeg capability probing from the main runloop to prevent startup freezes.",
+                "One-Time GitHub Star Community Prompt: respectful appreciation banner with permanent dismissal guarantee."
+            ]),
             ("v2.0.0", "October 2026", [
                 "Official 2.0.0 Stable Release: robust, battle-tested media powerhouse.",
                 "Dynamic File-Type Detecting Window: canvas morphs into specialized panels for Video, Audio, Images, or PDF based on dropped files.",

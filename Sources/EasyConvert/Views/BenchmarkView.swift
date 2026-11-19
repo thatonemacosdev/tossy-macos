@@ -64,7 +64,7 @@ struct BenchmarkView: View {
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(TossyColor.textPrimary)
 
-                    TossyPill(text: "v2.0.0 Suite", isSubtle: true)
+                    TossyPill(text: "v2.1.0 Suite", isSubtle: true)
                 }
 
                 Text("Standardized compute, GPU acceleration, and transcode benchmark calibrated to Apple Silicon reference standards.")

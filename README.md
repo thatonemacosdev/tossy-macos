@@ -1,6 +1,6 @@
 # Tossy
 
-[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.0.0)
+[![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.1.0)
 [![License](https://img.shields.io/github/license/thatonemacosdev/tossy-macos)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/thatonemacosdev/tossy-macos)](https://github.com/thatonemacosdev/tossy-macos/releases)
 
@@ -9,7 +9,7 @@
 A free, native macOS utility for converting images, video, and audio without Terminal, without uploading files anywhere, and without installing Homebrew or ffmpeg yourself. Toss files in, pick a format, convert. Handles everyday formats like HEIC, MP4, and MP3 as well as RAW camera files, MKV, WebM, FLAC, animated GIFs, animated WebP, and dozens more.
 
 Website: [thatonemacosdev.github.io/tossy-macos](https://thatonemacosdev.github.io/tossy-macos/)  
-Download: [v2.0.0 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.0.0)
+Download: [v2.1.0 release](https://github.com/thatonemacosdev/tossy-macos/releases/tag/v2.1.0)
 
 ### Opening on macOS (Gatekeeper Notice)
 
@@ -39,10 +39,14 @@ Under the hood: GPU-accelerated image processing (Metal via Core Image) and hard
 
 ## Features
 
+- **Dropzone-First Homepage**: A full-bleed, distraction-free dropzone canvas on the main homepage. The studio sidebar has been removed in favor of clean space and automatic content routing.
+- **Intelligent Drag-and-Drop Auto-Routing**: Dropping `.pdf` files automatically launches **PDF Studio**; dropping source code files (`.swift`, `.py`, `.js`, `.ts`, `.rs`, `.go`, etc.) automatically opens **Carbon Code Card Studio**; dropping images or videos surfaces an inline contextual studio action bar for AI background removal, EXIF sanitizing, or lossless trimming alongside instant conversion.
+- **11 Curated Light & Dark Themes**: Handcrafted themes split into 7 Dark themes (*Monochrome Black, Cobalt, Emerald, Amber, Violet, Titanium, Liquid Glass*) and 4 Light themes (*Monochrome White, Rose, Cream, Sage*). Built with WCAG AAA contrast, natural names, zero decorative emojis, and dynamic system sheet styling.
+- **Redesigned Menu Bar Quick-Toss**: Status bar companion with dedicated category tabs (Image, Video, Audio), responsive format chips, middle-truncated file paths, and reliable window lifecycle management.
 - **Images**: PNG, JPEG, HEIC, TIFF, BMP, GIF, JPEG 2000, AVIF, ICO, TGA, WebP, PSD, ICNS, DDS, OpenEXR, Radiance HDR, PNM, QOI, JPEG XL, and camera RAW (CR2, CR3, NEF, ARW, DNG, and most others Apple's built-in RAW pipeline supports). Also rasterizes SVG and PDF (one image per page with full rotation and crop box handling).
 - **Video**: MP4/MOV (H.264, HEVC, ProRes 422) via hardware encode, plus MKV, WebM, AVI, FLV, MPEG, TS/MTS/M2TS, 3GP, ASF/WMV, MXF, VOB, DV, NUT, AV1, DNxHD, DNxHR, Animated GIF, and Animated WebP via ffmpeg.
 - **Audio**: MP3, AAC, M4A, WAV, FLAC, ALAC, AIFF, OGG, Opus, WMA, AC3, E-AC3, CAF.
-- **TossyMark System Benchmark (v1.5.3)**: High-precision 32-workload benchmarking engine measuring GPU rasterization, lossless compression, hardware vs software video encoding, broadcast audio DSP, and multi-core scaling with noise-resistant median timing and hardware baseline comparisons.
+- **TossyMark System Benchmark (v2.1.0)**: High-precision 32-workload benchmarking engine measuring GPU rasterization, lossless compression, hardware vs software video encoding, broadcast audio DSP, and multi-core scaling with noise-resistant median timing and hardware baseline comparisons.
 - **Dedicated macOS Settings Window (Cmd+,)**: Configure global output directory policies, file conflict handling, concurrency throttling (1-8 tasks), completion notification toggles, sound chimes, auto-reveal in Finder, and delete source after conversion.
 - **Inline Format Inspector (CLI Knobs)**: Fine-tune WebP methods/presets/Sharp YUV, JPEG XL effort/distance, JPEG progressive/subsampling, PNG compression, TIFF algorithms, GIF dithering, Video CRF/presets/pixel formats/audio tracks/deinterlacing, and Audio CBR/VBR/sample rates/EBU R128 normalization.
 - **Per-Job Overrides**: Customize format and compression settings for individual files in the batch queue.
@@ -66,6 +70,19 @@ open ./Tossy.app
 ## Why vendored binaries instead of just Core Image / AVFoundation everywhere?
 
 Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/ProRes. But they do not touch MKV, WebM, most legacy codecs, or most audio formats. For those, this app shells out to a bundled, self-contained copy of `ffmpeg` (and the WebP and JPEG XL reference tools, since this particular ffmpeg build was not compiled with encoders for those). Everything under `Vendor/` was relinked with `dylibbundler` so it runs standalone, with no Homebrew or system `ffmpeg` install required on the machine running the app.
+
+## What's New in v2.1.0
+
+- **Dropzone-First Homepage Architecture**: Removed the studio sidebar from the main window in favor of a clean, dedicated, full-bleed dropzone canvas with zero visual clutter.
+- **Contextual Drag-and-Drop Auto-Routing**:
+  - Dropping `.pdf` documents automatically opens **PDF Studio** (merge, split ranges, burst pages, Quartz compression, Apple Vision OCR).
+  - Dropping code/script files (`.swift`, `.py`, `.js`, `.ts`, `.rs`, `.go`, `.rb`, etc.) automatically opens **Carbon Code Card Studio**.
+  - Dropping images or videos displays an inline contextual action bar to launch Image Studio, Media Studio, or convert immediately.
+- **11 Curated Light & Dark Themes**: Split into 7 Dark themes (*Monochrome Black, Cobalt, Emerald, Amber, Violet, Titanium, Liquid Glass*) and 4 Light themes (*Monochrome White, Rose, Cream, Sage*). Built with natural human names, WCAG AAA contrast, and zero decorative emojis.
+- **Menu Bar Quick-Toss Redesign**: Dedicated category tabs (Image, Video, Audio), responsive format chips, middle-truncated file paths (`filename...part.ext`), and reliable window lifecycle reopening.
+- **Concentric Hover Ring Alignment**: Fixed geometric misalignment of the center sync icon during hover states on the dropzone.
+- **Classic Tabs Mode Deadlock Resolution**: Fixed a startup deadlock crash (`_dispatch_once_wait.cold.1`) in classic layout mode by decoupling `FFmpegCapabilities` subprocess evaluation from the main runloop.
+- **One-Time GitHub Star Community Prompt**: Unobtrusive appreciation banner shown after the first successful file conversion, with guaranteed permanent dismissal.
 
 ## What's New in v2.0.0
 

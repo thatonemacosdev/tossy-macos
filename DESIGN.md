@@ -317,7 +317,7 @@ slightly more mechanical precision.
 
 The brand accent is `{colors.primary}` (`#494fdf`): a saturated cobalt
 violet, but it appears scarcely on marketing surfaces. The actual primary
-CTA on the hero is the **white pill on black** ("Download v2.0.0"),
+CTA on the hero is the **white pill on black** ("Download v2.1.0"),
 and the cobalt violet is reserved for featured plan cards, secondary CTAs in
 white sections, and the brand glyph itself. A wide secondary palette of deep
 teal, light-blue, deep-pink, light-green, warning orange, and yellow appears

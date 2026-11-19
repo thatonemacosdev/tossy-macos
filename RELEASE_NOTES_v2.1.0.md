@@ -3,7 +3,7 @@
 > **Version**: 2.1.0 (Build 2026.11.19)  
 > **Platform**: macOS 14.0+ (Sonoma, Sequoia)  
 > **Architecture**: Apple Silicon & Universal Binary  
-> **Distribution**: `dist/Tossy-2.1.0-macOS.zip` (SHA-256: `6a5064a3610139938a2fd85d8b2afea9fc3a41ddc3efb4dd959238ce5fa7a299`)
+> **Distribution**: `dist/Tossy-2.1.0-macOS.zip` (SHA-256: `118a3a86fa300fe511b1cb22420aa91dde14bb8e0cd2476336916401eb11a34c`)
 
 ---
 

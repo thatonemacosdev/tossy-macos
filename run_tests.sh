@@ -1,5 +1,5 @@
 #!/bin/bash
-# Complete Test Suite Runner for Tossy v2.0.0
+# Complete Test Suite Runner for Tossy v2.1.0
 set -euo pipefail
 
 cd "$(dirname "$0")"
