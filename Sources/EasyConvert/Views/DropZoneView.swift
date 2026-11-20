@@ -113,7 +113,6 @@ struct DropZoneView: View {
                 .background(TossyColor.accentProminentBg)
                 .foregroundStyle(TossyColor.accentProminentFg)
                 .clipShape(RoundedRectangle(cornerRadius: round(8 * scaleMultiplier), style: .continuous))
-                .tossyGlassEffect(cornerRadius: round(8 * scaleMultiplier), interactive: true)
                 .shadow(
                     color: isTargeted ? TossyColor.accentProminentBg.opacity(0.4) : Color.black.opacity(0.2),
                     radius: isTargeted ? 12 : 4,
@@ -123,15 +122,12 @@ struct DropZoneView: View {
                 // Format pills with guaranteed horizontal layout (no vertical character wrapping)
                 if !formatTags.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
-                        TossyGlassContainer(spacing: round(6 * scaleMultiplier), cornerRadius: 10) {
-                            HStack(spacing: round(6 * scaleMultiplier)) {
-                                ForEach(formatTags, id: \.self) { tag in
-                                    tagPill(tag, scale: scaleMultiplier)
-                                }
+                        HStack(spacing: round(6 * scaleMultiplier)) {
+                            ForEach(formatTags, id: \.self) { tag in
+                                tagPill(tag, scale: scaleMultiplier)
                             }
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 2)
                         }
+                        .padding(.horizontal, 4)
                     }
                     .frame(maxWidth: max(280, subtitleMaxWidth + 60))
                     .padding(.top, round(4 * scaleMultiplier))
@@ -154,20 +150,14 @@ struct DropZoneView: View {
                         (isHovered ? TossyColor.borderBright : TossyColor.borderSubtle)
                     )
             )
-            .background {
-                if AppSettings.shared.appTheme == .liquidGlass {
-                    RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
-                        .fill(isTargeted ? Color.white.opacity(0.12) : (isHovered ? Color.white.opacity(0.08) : Color.white.opacity(0.03)))
-                        .tossyGlassEffect(cornerRadius: cardCornerRadius, interactive: true)
-                } else {
-                    RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
-                        .fill(
-                            isTargeted ?
-                            TossyColor.surfaceHighlight :
-                            (isHovered ? TossyColor.surfaceBase.opacity(0.95) : TossyColor.surfaceDeep.opacity(0.85))
-                        )
-                }
-            }
+            .background(
+                RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                    .fill(
+                        AppSettings.shared.appTheme == .liquidGlass ?
+                        (isTargeted ? Color.white.opacity(0.10) : (isHovered ? Color.white.opacity(0.06) : Color.white.opacity(0.03))) :
+                        (isTargeted ? TossyColor.surfaceHighlight : (isHovered ? TossyColor.surfaceBase.opacity(0.95) : TossyColor.surfaceDeep.opacity(0.85)))
+                    )
+            )
             .padding(round(16 * scaleMultiplier))
             .scaleEffect(isTargeted ? 1.015 : 1.0)
             .animation(TossyMotion.springBouncy, value: isTargeted)
@@ -189,12 +179,13 @@ struct DropZoneView: View {
             .foregroundStyle(TossyColor.textSecondary)
             .padding(.horizontal, padH)
             .padding(.vertical, padV)
-            .background(TossyColor.surfaceElevated.opacity(0.85))
-            .clipShape(Capsule())
+            .background(
+                Capsule()
+                    .fill(AppSettings.shared.appTheme == .liquidGlass ? Color.white.opacity(0.08) : TossyColor.surfaceElevated.opacity(0.85))
+            )
             .overlay(
                 Capsule()
-                    .strokeBorder(TossyColor.borderSubtle.opacity(0.5), lineWidth: 0.5)
+                    .strokeBorder(AppSettings.shared.appTheme == .liquidGlass ? Color.white.opacity(0.18) : TossyColor.borderSubtle.opacity(0.5), lineWidth: 0.5)
             )
-            .tossyGlassEffect(cornerRadius: 10, interactive: true)
     }
 }

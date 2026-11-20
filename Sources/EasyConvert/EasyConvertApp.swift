@@ -131,6 +131,7 @@ struct WindowThemeConfigurator: View {
     var body: some View {
         WindowAccessor { window in
             MenuBarManager.shared.registerMainWindow(window)
+            window.titleVisibility = .hidden
             if settings.appTheme == .liquidGlass {
                 window.isOpaque = false
                 window.backgroundColor = .clear

@@ -11,7 +11,7 @@ enum TossyColor {
         case .dark: return Color.black
         case .light: return Color.white
         case .titanium: return Color(red: 0.10, green: 0.105, blue: 0.12)
-        case .liquidGlass: return Color.black.opacity(0.35)
+        case .liquidGlass: return Color.clear
         case .midnightCobalt: return Color(red: 0.03, green: 0.05, blue: 0.09)
         case .emerald: return Color(red: 0.02, green: 0.05, blue: 0.03)
         case .solarAmber: return Color(red: 0.06, green: 0.04, blue: 0.03)
@@ -120,16 +120,16 @@ enum TossyColor {
 
     static var glassTint: Color {
         switch theme {
-        case .liquidGlass: return Color.cyan.opacity(0.14)
-        case .midnightCobalt: return Color(red: 0.12, green: 0.35, blue: 0.85).opacity(0.18)
-        case .emerald: return Color(red: 0.15, green: 0.75, blue: 0.40).opacity(0.18)
-        case .solarAmber: return Color(red: 0.95, green: 0.55, blue: 0.15).opacity(0.18)
-        case .hyperViolet: return Color(red: 0.75, green: 0.25, blue: 0.95).opacity(0.18)
-        case .rose: return Color(red: 0.95, green: 0.35, blue: 0.55).opacity(0.15)
-        case .cream: return Color(red: 0.95, green: 0.85, blue: 0.45).opacity(0.12)
-        case .sage: return Color(red: 0.45, green: 0.85, blue: 0.55).opacity(0.15)
-        case .titanium: return Color(red: 0.65, green: 0.70, blue: 0.80).opacity(0.10)
-        default: return Color.white.opacity(0.08)
+        case .liquidGlass: return Color.clear
+        case .midnightCobalt: return Color(red: 0.12, green: 0.35, blue: 0.85).opacity(0.12)
+        case .emerald: return Color(red: 0.15, green: 0.75, blue: 0.40).opacity(0.12)
+        case .solarAmber: return Color(red: 0.95, green: 0.55, blue: 0.15).opacity(0.12)
+        case .hyperViolet: return Color(red: 0.75, green: 0.25, blue: 0.95).opacity(0.12)
+        case .rose: return Color(red: 0.95, green: 0.35, blue: 0.55).opacity(0.10)
+        case .cream: return Color(red: 0.95, green: 0.85, blue: 0.45).opacity(0.08)
+        case .sage: return Color(red: 0.45, green: 0.85, blue: 0.55).opacity(0.10)
+        case .titanium: return Color(red: 0.65, green: 0.70, blue: 0.80).opacity(0.06)
+        default: return Color.clear
         }
     }
 
@@ -567,7 +567,9 @@ struct TossyGlassModifier: ViewModifier {
         if AppSettings.shared.appTheme == .liquidGlass {
             if #available(macOS 26.0, *) {
                 let tint = tintColor ?? TossyColor.glassTint
-                let glass = interactive ? Glass.regular.tint(tint).interactive() : Glass.regular.tint(tint)
+                let glass = (tint == .clear)
+                    ? (interactive ? Glass.regular.interactive() : Glass.regular)
+                    : (interactive ? Glass.regular.tint(tint).interactive() : Glass.regular.tint(tint))
                 content
                     .glassEffect(glass, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             } else {
@@ -575,16 +577,12 @@ struct TossyGlassModifier: ViewModifier {
                     .background {
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                             .fill(.ultraThinMaterial)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                                    .fill(tintColor ?? TossyColor.glassTint)
-                            )
                     }
                     .overlay(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .strokeBorder(Color.white.opacity(0.20), lineWidth: 0.75)
+                            .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.75)
                     )
-                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+                    .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 4)
             }
         } else {
             content
@@ -643,16 +641,12 @@ struct TossyGlassContainer<Content: View>: View {
                     .background {
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                             .fill(.ultraThinMaterial)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                                    .fill(tintColor ?? TossyColor.glassTint)
-                            )
                     }
                     .overlay(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .strokeBorder(Color.white.opacity(0.22), lineWidth: 0.75)
+                            .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.75)
                     )
-                    .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: 6)
+                    .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 4)
             }
         } else {
             content()
@@ -674,7 +668,7 @@ struct NativeGlassView: NSViewRepresentable {
         if #available(macOS 26.0, *) {
             let glass = NSGlassEffectView()
             glass.cornerRadius = cornerRadius
-            glass.tintColor = tintColor ?? NSColor(TossyColor.glassTint)
+            glass.tintColor = tintColor
             glass.style = .regular
             if #available(macOS 27.0, *) {
                 glass.effectIsInteractive = isInteractive
@@ -694,7 +688,7 @@ struct NativeGlassView: NSViewRepresentable {
     func updateNSView(_ nsView: NSView, context: Context) {
         if #available(macOS 26.0, *), let glass = nsView as? NSGlassEffectView {
             glass.cornerRadius = cornerRadius
-            glass.tintColor = tintColor ?? NSColor(TossyColor.glassTint)
+            glass.tintColor = tintColor
         }
     }
 }

@@ -279,8 +279,25 @@ extension UpdateManager: URLSessionDownloadDelegate {
     }
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        Task {
-            await performInstallation(fromTempFile: location)
+        let fileManager = FileManager.default
+        let safeTemp = fileManager.temporaryDirectory.appendingPathComponent("tossy_installer_\(UUID().uuidString)")
+        do {
+            try fileManager.moveItem(at: location, to: safeTemp)
+            Task {
+                await self.performInstallation(fromTempFile: safeTemp)
+            }
+        } catch {
+            do {
+                try fileManager.copyItem(at: location, to: safeTemp)
+                Task {
+                    await self.performInstallation(fromTempFile: safeTemp)
+                }
+            } catch {
+                Task { @MainActor in
+                    self.isDownloading = false
+                    self.errorMessage = "Failed to cache downloaded update: \(error.localizedDescription)"
+                }
+            }
         }
     }
     
@@ -302,8 +319,13 @@ extension UpdateManager: URLSessionDownloadDelegate {
         }
         
         let fileManager = FileManager.default
+        defer {
+            try? fileManager.removeItem(at: tempLocation)
+        }
+
         let currentAppURL = Bundle.main.bundleURL
-        let isDMG = (downloadTask?.originalRequest?.url?.pathExtension.lowercased() ?? "dmg") == "dmg"
+        let isZip = isZipArchive(at: tempLocation)
+        let isDMG = !isZip && isDMGArchive(at: tempLocation)
         
         let stagingDir = fileManager.temporaryDirectory.appendingPathComponent("TossyUpdateStaging_\(UUID().uuidString)")
         do {
@@ -403,14 +425,35 @@ extension UpdateManager: URLSessionDownloadDelegate {
         }
     }
     
+    private func isZipArchive(at url: URL) -> Bool {
+        if let handle = try? FileHandle(forReadingFrom: url) {
+            let header = handle.readData(ofLength: 4)
+            try? handle.close()
+            if header.count >= 2 && header[0] == 0x50 && header[1] == 0x4B { // "PK"
+                return true
+            }
+        }
+        return url.pathExtension.lowercased() == "zip"
+    }
+
+    private func isDMGArchive(at url: URL) -> Bool {
+        return url.pathExtension.lowercased() == "dmg"
+    }
+
     private func findAppBundle(in directory: URL) -> URL? {
         let standardApp = directory.appendingPathComponent("Tossy.app")
         if FileManager.default.fileExists(atPath: standardApp.path) {
             return standardApp
         }
-        if let items = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) {
-            if let found = items.first(where: { $0.pathExtension.lowercased() == "app" }) {
-                return found
+        if let enumerator = FileManager.default.enumerator(
+            at: directory,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) {
+            for case let fileURL as URL in enumerator {
+                if fileURL.pathExtension.lowercased() == "app" {
+                    return fileURL
+                }
             }
         }
         return nil

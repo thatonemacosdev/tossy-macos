@@ -430,37 +430,35 @@ struct UniversalCanvasView: View {
             
             // Quick tool chips
             ScrollView(.horizontal, showsIndicators: false) {
-                TossyGlassContainer(spacing: 6, cornerRadius: 6) {
-                    HStack(spacing: 6) {
-                        ForEach(0..<chips.count, id: \.self) { idx in
-                            let chip = chips[idx]
-                            Button(action: {
-                                TossyHaptic.performFeedback(.generic)
-                                chip.2()
-                            }) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: chip.1)
-                                        .font(.system(size: 9))
-                                    Text(chip.0)
-                                        .font(.system(size: 10, weight: .medium))
-                                        .lineLimit(1)
-                                        .fixedSize(horizontal: true, vertical: false)
-                                }
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 4)
-                                .background(TossyColor.surfaceElevated)
-                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                        .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
-                                )
-                                .tossyGlassEffect(cornerRadius: 6, interactive: true)
-                                .foregroundStyle(TossyColor.textSecondary)
+                HStack(spacing: 6) {
+                    ForEach(0..<chips.count, id: \.self) { idx in
+                        let chip = chips[idx]
+                        Button(action: {
+                            TossyHaptic.performFeedback(.generic)
+                            chip.2()
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: chip.1)
+                                    .font(.system(size: 9))
+                                Text(chip.0)
+                                    .font(.system(size: 10, weight: .medium))
+                                    .lineLimit(1)
+                                    .fixedSize(horizontal: true, vertical: false)
                             }
-                            .buttonStyle(.plain)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 4)
+                            .background(
+                                AppSettings.shared.appTheme == .liquidGlass ? Color.white.opacity(0.08) : TossyColor.surfaceElevated
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .strokeBorder(AppSettings.shared.appTheme == .liquidGlass ? Color.white.opacity(0.18) : TossyColor.borderSubtle, lineWidth: 1)
+                            )
+                            .foregroundStyle(TossyColor.textSecondary)
                         }
+                        .buttonStyle(.plain)
                     }
-                    .padding(2)
                 }
             }
             

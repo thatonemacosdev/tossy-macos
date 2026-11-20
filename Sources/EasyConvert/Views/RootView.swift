@@ -56,11 +56,11 @@ struct RootView: View {
             // Background Layer
             if settings.appTheme == .liquidGlass {
                 if #available(macOS 26.0, *) {
-                    NativeGlassView(cornerRadius: 0, tintColor: NSColor(TossyColor.glassTint), isInteractive: false)
+                    NativeGlassView(cornerRadius: 0, tintColor: nil, isInteractive: false)
                         .ignoresSafeArea()
                 } else {
                     VisualEffectBackground(material: .hudWindow, blendingMode: .behindWindow)
-                    Color.black.opacity(0.20)
+                        .ignoresSafeArea()
                 }
             } else if settings.appTheme == .titanium {
                 BrushedTitaniumBackground()
@@ -101,27 +101,30 @@ struct RootView: View {
                     Spacer()
 
                     // Sliding Capsule Tab Bar
-                    TossyGlassContainer(spacing: 4, cornerRadius: 11) {
-                        HStack(spacing: 4) {
-                            ForEach(visibleTabs) { tab in
-                                SlidingTabButton(
-                                    tab: tab,
-                                    isSelected: selectedTab == tab,
-                                    namespace: tabNamespace,
-                                    action: {
-                                        withAnimation(TossyMotion.springSmooth) {
-                                            selectedTab = tab
-                                        }
+                    HStack(spacing: 4) {
+                        ForEach(visibleTabs) { tab in
+                            SlidingTabButton(
+                                tab: tab,
+                                isSelected: selectedTab == tab,
+                                namespace: tabNamespace,
+                                action: {
+                                    withAnimation(TossyMotion.springSmooth) {
+                                        selectedTab = tab
                                     }
-                                )
-                            }
+                                }
+                            )
                         }
-                        .padding(4)
                     }
+                    .padding(4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .fill(settings.appTheme == .liquidGlass ? Color.white.opacity(0.08) : TossyColor.surfaceDeep)
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .strokeBorder(isHeaderTargeted ? Color.accentColor : TossyColor.borderSubtle, lineWidth: 1)
+                            .strokeBorder(isHeaderTargeted ? Color.accentColor : (settings.appTheme == .liquidGlass ? Color.white.opacity(0.18) : TossyColor.borderSubtle), lineWidth: 1)
                     )
+                    .tossyGlassEffect(cornerRadius: 11, interactive: true)
                     .onDrop(of: [.fileURL], isTargeted: $isHeaderTargeted) { providers in
                         routeDroppedProviders(providers)
                         return true
@@ -129,127 +132,130 @@ struct RootView: View {
 
                     Spacer()
 
-                    TossyGlassContainer(spacing: 6, cornerRadius: 16) {
-                        HStack(spacing: 6) {
-                            // Quick Layout Switcher (Unified vs Classic Tabs)
-                            Button {
-                                withAnimation(TossyMotion.springSmooth) {
-                                    settings.navigationLayoutMode = (settings.navigationLayoutMode == .unified) ? .classic : .unified
-                                    if settings.navigationLayoutMode == .unified && selectedTab != .benchmark {
-                                        selectedTab = .dropzone
+                    HStack(spacing: 6) {
+                        // Quick Layout Switcher (Unified vs Classic Tabs)
+                        Button {
+                            withAnimation(TossyMotion.springSmooth) {
+                                settings.navigationLayoutMode = (settings.navigationLayoutMode == .unified) ? .classic : .unified
+                                if settings.navigationLayoutMode == .unified && selectedTab != .benchmark {
+                                    selectedTab = .dropzone
+                                }
+                            }
+                        } label: {
+                            Image(systemName: settings.navigationLayoutMode == .unified ? "rectangle.split.3x1" : "rectangle.stack")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(TossyColor.textSecondary)
+                                .padding(6)
+                                .background(Circle().fill(TossyColor.surfaceElevated))
+                        }
+                        .buttonStyle(.plain)
+                        .help(settings.navigationLayoutMode == .unified ? "Switch to Classic Tabs Layout" : "Switch to Unified Dropzone Layout")
+
+                        // High-Resolution Recording & UI Scale Switcher
+                        Menu {
+                            ForEach(RecordingScaleMode.allCases) { scaleMode in
+                                Button {
+                                    withAnimation(TossyMotion.springSmooth) {
+                                        settings.recordingScaleMode = scaleMode
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(scaleMode.rawValue)
+                                        if settings.recordingScaleMode == scaleMode {
+                                            Image(systemName: "checkmark")
+                                        }
                                     }
                                 }
-                            } label: {
-                                Image(systemName: settings.navigationLayoutMode == .unified ? "rectangle.split.3x1" : "rectangle.stack")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(TossyColor.textSecondary)
-                                    .padding(6)
-                                    .background(Circle().fill(TossyColor.surfaceElevated))
-                                    .tossyGlassEffect(cornerRadius: 13, interactive: true)
                             }
-                            .buttonStyle(.plain)
-                            .help(settings.navigationLayoutMode == .unified ? "Switch to Classic Tabs Layout" : "Switch to Unified Dropzone Layout")
+                        } label: {
+                            Image(systemName: "viewfinder.circle")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(
+                                    settings.recordingScaleMode != .responsive && settings.recordingScaleMode != .standard ?
+                                    TossyColor.accentProminentBg : TossyColor.textSecondary
+                                )
+                                .padding(6)
+                                .background(Circle().fill(TossyColor.surfaceElevated))
+                        }
+                        .menuStyle(.borderlessButton)
+                        .menuIndicator(.hidden)
+                        .frame(width: 26, height: 26)
+                        .help("Recording & Display Scale (\(settings.recordingScaleMode.rawValue))")
 
-                            // High-Resolution Recording & UI Scale Switcher
-                            Menu {
-                                ForEach(RecordingScaleMode.allCases) { scaleMode in
+                        // Quick Theme Switcher
+                        Menu {
+                            Toggle("Match macOS Appearance", isOn: $settings.followSystemAppearance)
+                            Divider()
+                            Section("Dark Themes") {
+                                ForEach(AppTheme.darkThemes) { theme in
                                     Button {
                                         withAnimation(TossyMotion.springSmooth) {
-                                            settings.recordingScaleMode = scaleMode
+                                            settings.appTheme = theme
+                                            settings.preferredDarkTheme = theme
                                         }
                                     } label: {
                                         HStack {
-                                            Text(scaleMode.rawValue)
-                                            if settings.recordingScaleMode == scaleMode {
+                                            Text(theme.displayName)
+                                            if settings.appTheme == theme {
                                                 Image(systemName: "checkmark")
                                             }
                                         }
                                     }
                                 }
-                            } label: {
-                                Image(systemName: "viewfinder.circle")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(
-                                        settings.recordingScaleMode != .responsive && settings.recordingScaleMode != .standard ?
-                                        TossyColor.accentProminentBg : TossyColor.textSecondary
-                                    )
-                                    .padding(6)
-                                    .background(Circle().fill(TossyColor.surfaceElevated))
-                                    .tossyGlassEffect(cornerRadius: 13, interactive: true)
                             }
-                            .menuStyle(.borderlessButton)
-                            .menuIndicator(.hidden)
-                            .frame(width: 26, height: 26)
-                            .help("Recording & Display Scale (\(settings.recordingScaleMode.rawValue))")
-
-                            // Quick Theme Switcher
-                            Menu {
-                                Toggle("Match macOS Appearance", isOn: $settings.followSystemAppearance)
-                                Divider()
-                                Section("Dark Themes") {
-                                    ForEach(AppTheme.darkThemes) { theme in
-                                        Button {
-                                            withAnimation(TossyMotion.springSmooth) {
-                                                settings.appTheme = theme
-                                                settings.preferredDarkTheme = theme
-                                            }
-                                        } label: {
-                                            HStack {
-                                                Text(theme.displayName)
-                                                if settings.appTheme == theme {
-                                                    Image(systemName: "checkmark")
-                                                }
+                            Section("Light Themes") {
+                                ForEach(AppTheme.lightThemes) { theme in
+                                    Button {
+                                        withAnimation(TossyMotion.springSmooth) {
+                                            settings.appTheme = theme
+                                            settings.preferredLightTheme = theme
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Text(theme.displayName)
+                                            if settings.appTheme == theme {
+                                                Image(systemName: "checkmark")
                                             }
                                         }
                                     }
                                 }
-                                Section("Light Themes") {
-                                    ForEach(AppTheme.lightThemes) { theme in
-                                        Button {
-                                            withAnimation(TossyMotion.springSmooth) {
-                                                settings.appTheme = theme
-                                                settings.preferredLightTheme = theme
-                                            }
-                                        } label: {
-                                            HStack {
-                                                Text(theme.displayName)
-                                                if settings.appTheme == theme {
-                                                    Image(systemName: "checkmark")
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } label: {
-                                Image(systemName: settings.appTheme.isDark ? "moon.fill" : "sun.max.fill")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(TossyColor.textSecondary)
-                                    .padding(6)
-                                    .background(Circle().fill(TossyColor.surfaceElevated))
-                                    .tossyGlassEffect(cornerRadius: 13, interactive: true)
                             }
-                            .menuStyle(.borderlessButton)
-                            .menuIndicator(.hidden)
-                            .frame(width: 26, height: 26)
-                            .help("Theme Appearance (\(settings.appTheme.displayName))")
-
-                            // Settings Button (Cmd+,)
-                            Button {
-                                openSettings()
-                            } label: {
-                                Image(systemName: "gearshape")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundStyle(TossyColor.textSecondary)
-                                    .padding(6)
-                                    .background(Circle().fill(TossyColor.surfaceElevated))
-                                    .tossyGlassEffect(cornerRadius: 13, interactive: true)
-                            }
-                            .buttonStyle(.plain)
-                            .help("Settings (Cmd+,)")
+                        } label: {
+                            Image(systemName: settings.appTheme.isDark ? "moon.fill" : "sun.max.fill")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(TossyColor.textSecondary)
+                                .padding(6)
+                                .background(Circle().fill(TossyColor.surfaceElevated))
                         }
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 4)
+                        .menuStyle(.borderlessButton)
+                        .menuIndicator(.hidden)
+                        .frame(width: 26, height: 26)
+                        .help("Theme Appearance (\(settings.appTheme.displayName))")
+
+                        // Settings Button (Cmd+,)
+                        Button {
+                            openSettings()
+                        } label: {
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(TossyColor.textSecondary)
+                                .padding(6)
+                                .background(Circle().fill(TossyColor.surfaceElevated))
+                        }
+                        .buttonStyle(.plain)
+                        .help("Settings (Cmd+,)")
                     }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(settings.appTheme == .liquidGlass ? Color.white.opacity(0.06) : Color.clear)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(settings.appTheme == .liquidGlass ? Color.white.opacity(0.18) : Color.clear, lineWidth: 1)
+                    )
+                    .tossyGlassEffect(cornerRadius: 16, interactive: true)
                     .padding(.trailing, 14)
                 }
                 .padding(.vertical, 8)
@@ -407,7 +413,7 @@ struct SlidingTabButton: View {
                 Image(systemName: tab.icon)
                     .font(.system(size: 12, weight: .medium))
                 Text(tab.rawValue)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 6)
@@ -415,14 +421,12 @@ struct SlidingTabButton: View {
             .background {
                 if isSelected {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(AppSettings.shared.appTheme == .liquidGlass ? Color.white.opacity(0.85) : TossyColor.accentProminentBg)
-                        .tossyGlassID("activeTabCapsule", in: namespace)
-                        .tossyGlassEffect(cornerRadius: 8, interactive: true)
-                        .shadow(color: TossyColor.accentProminentBg.opacity(0.2), radius: 6)
+                        .fill(TossyColor.accentProminentBg)
+                        .matchedGeometryEffect(id: "activeTabCapsule", in: namespace)
+                        .shadow(color: Color.black.opacity(0.18), radius: 4, y: 1)
                 } else if isHovered {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(TossyColor.surfaceHighlight)
-                        .tossyGlassEffect(cornerRadius: 8, interactive: true)
                 }
             }
             .contentShape(Rectangle())
