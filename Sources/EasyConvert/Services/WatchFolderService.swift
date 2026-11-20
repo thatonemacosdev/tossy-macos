@@ -18,6 +18,8 @@ final class WatchFolderService: @unchecked Sendable {
 
     private var activeSources: [UUID: DispatchSourceFileSystemObject] = [:]
     private var fileDescriptors: [UUID: Int32] = [:]
+    private var debounceWorkItems: [UUID: DispatchWorkItem] = [:]
+    private var inFlightPaths: Set<String> = []
     private var processedKeys: Set<String> = []
     private let lock = NSLock()
     private let queue = DispatchQueue(label: "com.thatonemacosdev.tossy.watchfolder", qos: .utility)
@@ -35,7 +37,7 @@ final class WatchFolderService: @unchecked Sendable {
         let rules = savedRules()
         stopAll()
         for rule in rules where rule.isEnabled {
-            startMonitoring(rule: rule, skipExisting: true)
+            startMonitoring(rule: rule)
         }
     }
 
@@ -55,12 +57,12 @@ final class WatchFolderService: @unchecked Sendable {
         }
         stopAll()
         for rule in rules where rule.isEnabled {
-            startMonitoring(rule: rule, skipExisting: false)
+            startMonitoring(rule: rule)
         }
     }
 
     /// Starts monitoring a single directory using DispatchSourceFileSystemObject.
-    func startMonitoring(rule: WatchFolderRule, skipExisting: Bool = false) {
+    func startMonitoring(rule: WatchFolderRule) {
         stopMonitoring(ruleId: rule.id)
 
         guard rule.isEnabled, FileManager.default.fileExists(atPath: rule.folderPath) else {
@@ -81,7 +83,7 @@ final class WatchFolderService: @unchecked Sendable {
         )
 
         source.setEventHandler { [weak self] in
-            self?.scanFolder(rule: rule)
+            self?.scheduleDebouncedScan(rule: rule)
         }
 
         source.setCancelHandler {
@@ -90,23 +92,13 @@ final class WatchFolderService: @unchecked Sendable {
 
         lock.lock()
         activeSources[rule.id] = source
-        if skipExisting {
-            if let items = try? FileManager.default.contentsOfDirectory(
-                at: rule.folderURL,
-                includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey],
-                options: [.skipsHiddenFiles]
-            ) {
-                for item in items {
-                    processedKeys.insert(makeKey(for: item, ruleId: rule.id))
-                }
-            }
-        }
         lock.unlock()
 
         source.resume()
 
-        if !skipExisting {
-            scanFolder(rule: rule)
+        // Immediate initial scan to pick up any unconverted files in the folder
+        queue.async { [weak self] in
+            self?.scanFolder(rule: rule)
         }
     }
 
@@ -115,6 +107,9 @@ final class WatchFolderService: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
+        if let item = debounceWorkItems.removeValue(forKey: ruleId) {
+            item.cancel()
+        }
         if let source = activeSources.removeValue(forKey: ruleId) {
             source.cancel()
         }
@@ -134,6 +129,19 @@ final class WatchFolderService: @unchecked Sendable {
         }
     }
 
+    private func scheduleDebouncedScan(rule: WatchFolderRule) {
+        lock.lock()
+        debounceWorkItems[rule.id]?.cancel()
+
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.scanFolder(rule: rule)
+        }
+        debounceWorkItems[rule.id] = workItem
+        lock.unlock()
+
+        queue.asyncAfter(deadline: .now() + 0.15, execute: workItem)
+    }
+
     private func scanFolder(rule: WatchFolderRule) {
         guard let items = try? FileManager.default.contentsOfDirectory(
             at: rule.folderURL,
@@ -141,12 +149,35 @@ final class WatchFolderService: @unchecked Sendable {
             options: [.skipsHiddenFiles]
         ) else { return }
 
+        let settings = AppSettings.shared
+
         for item in items {
+            let path = item.path
+            let destinationFolder = settings.destinationFolder(for: item) ?? rule.folderURL
+
+            lock.lock()
+            if inFlightPaths.contains(path) {
+                lock.unlock()
+                continue
+            }
+
             let key = makeKey(for: item, ruleId: rule.id)
-            if checkAndMarkProcessed(key) { continue }
+            if processedKeys.contains(key) {
+                lock.unlock()
+                continue
+            }
+
+            if isAlreadyConverted(sourceURL: item, rule: rule, destinationFolder: destinationFolder) {
+                processedKeys.insert(key)
+                lock.unlock()
+                continue
+            }
+
+            inFlightPaths.insert(path)
+            lock.unlock()
 
             Task {
-                await self.processFile(item, rule: rule)
+                await self.processFile(item, rule: rule, destinationFolder: destinationFolder, key: key)
             }
         }
     }
@@ -157,17 +188,72 @@ final class WatchFolderService: @unchecked Sendable {
         processedKeys.insert(key)
     }
 
-    private func checkAndMarkProcessed(_ key: String) -> Bool {
+    private func removeFromInFlight(_ path: String) {
         lock.lock()
         defer { lock.unlock() }
-        if processedKeys.contains(key) {
+        inFlightPaths.remove(path)
+    }
+
+    private func isAlreadyConverted(sourceURL: URL, rule: WatchFolderRule, destinationFolder: URL) -> Bool {
+        let ext = sourceURL.pathExtension.lowercased()
+        let fileName = sourceURL.lastPathComponent
+        let baseName = sourceURL.deletingPathExtension().lastPathComponent
+
+        // Ignore temporary or internal files
+        if fileName.hasPrefix(".") || ["tmp", "crdownload", "part", "download", "swp"].contains(ext) {
             return true
         }
-        processedKeys.insert(key)
+
+        var targetURL: URL?
+
+        switch rule.preset {
+        case "Auto-convert Images to WebP", "webp":
+            if ext == "webp" { return true }
+            guard ImageFormat.readableExtensions.contains(ext) else { return true }
+            targetURL = destinationFolder.appendingPathComponent("\(baseName).webp")
+
+        case "Auto-convert Images to PNG", "png":
+            if ext == "png" { return true }
+            guard ImageFormat.readableExtensions.contains(ext) else { return true }
+            targetURL = destinationFolder.appendingPathComponent("\(baseName).png")
+
+        case "Auto-convert Videos to MP4", "mp4":
+            if ext == "mp4" { return true }
+            guard VideoFormat.readableExtensions.contains(ext) else { return true }
+            targetURL = destinationFolder.appendingPathComponent("\(baseName).mp4")
+
+        case "Auto-compress PDFs (150 DPI)", "compress_pdf":
+            if fileName.contains("-compressed") || ext != "pdf" { return true }
+            targetURL = destinationFolder.appendingPathComponent("\(baseName)-compressed.pdf")
+
+        case "Auto-strip EXIF Metadata", "strip_exif":
+            if fileName.contains("-sanitized") { return true }
+            guard ImageFormat.readableExtensions.contains(ext) else { return true }
+            targetURL = destinationFolder.appendingPathComponent("\(baseName)-sanitized.\(ext)")
+
+        case "Auto-extract MP3 Audio", "extract_mp3", "mp3":
+            if ext == "mp3" { return true }
+            guard VideoFormat.readableExtensions.contains(ext) || AudioFormat.readableExtensions.contains(ext) else { return true }
+            targetURL = destinationFolder.appendingPathComponent("\(baseName).mp3")
+
+        default:
+            targetURL = destinationFolder.appendingPathComponent("\(baseName).\(rule.preset)")
+        }
+
+        if let targetURL, FileManager.default.fileExists(atPath: targetURL.path) {
+            if let targetSize = (try? FileManager.default.attributesOfItem(atPath: targetURL.path))?[.size] as? Int64, targetSize > 0 {
+                return true
+            }
+        }
+
         return false
     }
 
-    private func processFile(_ sourceURL: URL, rule: WatchFolderRule) async {
+    private func processFile(_ sourceURL: URL, rule: WatchFolderRule, destinationFolder: URL, key: String) async {
+        defer {
+            removeFromInFlight(sourceURL.path)
+        }
+
         let ext = sourceURL.pathExtension.lowercased()
         let fileName = sourceURL.lastPathComponent
 
@@ -185,8 +271,6 @@ final class WatchFolderService: @unchecked Sendable {
         guard await waitForFileStability(at: sourceURL) else { return }
 
         let settings = AppSettings.shared
-        let destinationFolder = settings.destinationFolder(for: sourceURL) ?? rule.folderURL
-
         var outputURL: URL?
 
         do {
@@ -241,7 +325,7 @@ final class WatchFolderService: @unchecked Sendable {
                 )
 
             case "Auto-extract MP3 Audio", "extract_mp3", "mp3":
-                guard ext != "mp3" && (VideoFormat.readableExtensions.contains(ext) || AudioFormat.readableContentTypes.contains(where: { _ in true })) else { return }
+                guard ext != "mp3" && (VideoFormat.readableExtensions.contains(ext) || AudioFormat.readableExtensions.contains(ext)) else { return }
                 let safeDest = OutputNaming.uniqueOutputURL(for: sourceURL, fileExtension: "mp3", destinationFolder: destinationFolder)
                 outputURL = try await AudioExtractorService.shared.extractAudioTrack(
                     videoURL: sourceURL,
@@ -256,7 +340,8 @@ final class WatchFolderService: @unchecked Sendable {
 
             guard let out = outputURL else { return }
 
-            // Mark output in processed cache so watcher ignores it if destination == watch folder
+            // Mark source and output in processed cache so watcher ignores them
+            markProcessed(key)
             let outKey = makeKey(for: out, ruleId: rule.id)
             markProcessed(outKey)
 
@@ -286,11 +371,22 @@ final class WatchFolderService: @unchecked Sendable {
     }
 
     private func waitForFileStability(at url: URL) async -> Bool {
+        // If file already exists and was modified over 2 seconds ago, verify read handle and return immediately
+        if let attr = try? FileManager.default.attributesOfItem(atPath: url.path),
+           let currentSize = attr[.size] as? Int64, currentSize > 0,
+           let mdate = attr[.modificationDate] as? Date,
+           Date().timeIntervalSince(mdate) > 2.0 {
+            if let handle = try? FileHandle(forReadingFrom: url) {
+                try? handle.close()
+                return true
+            }
+        }
+
         var previousSize: Int64 = -1
-        for _ in 0..<10 {
+        for _ in 0..<20 {
             guard let attr = try? FileManager.default.attributesOfItem(atPath: url.path),
                   let currentSize = attr[.size] as? Int64, currentSize > 0 else {
-                try? await Task.sleep(nanoseconds: 250_000_000)
+                try? await Task.sleep(nanoseconds: 100_000_000)
                 continue
             }
             if currentSize == previousSize {
@@ -300,7 +396,7 @@ final class WatchFolderService: @unchecked Sendable {
                 }
             }
             previousSize = currentSize
-            try? await Task.sleep(nanoseconds: 250_000_000)
+            try? await Task.sleep(nanoseconds: 200_000_000)
         }
         return false
     }

@@ -430,33 +430,37 @@ struct UniversalCanvasView: View {
             
             // Quick tool chips
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach(0..<chips.count, id: \.self) { idx in
-                        let chip = chips[idx]
-                        Button(action: {
-                            TossyHaptic.performFeedback(.generic)
-                            chip.2()
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: chip.1)
-                                    .font(.system(size: 9))
-                                Text(chip.0)
-                                    .font(.system(size: 10, weight: .medium))
-                                    .lineLimit(1)
-                                    .fixedSize(horizontal: true, vertical: false)
+                TossyGlassContainer(spacing: 6, cornerRadius: 6) {
+                    HStack(spacing: 6) {
+                        ForEach(0..<chips.count, id: \.self) { idx in
+                            let chip = chips[idx]
+                            Button(action: {
+                                TossyHaptic.performFeedback(.generic)
+                                chip.2()
+                            }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: chip.1)
+                                        .font(.system(size: 9))
+                                    Text(chip.0)
+                                        .font(.system(size: 10, weight: .medium))
+                                        .lineLimit(1)
+                                        .fixedSize(horizontal: true, vertical: false)
+                                }
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 4)
+                                .background(TossyColor.surfaceElevated)
+                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
+                                )
+                                .tossyGlassEffect(cornerRadius: 6, interactive: true)
+                                .foregroundStyle(TossyColor.textSecondary)
                             }
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 4)
-                            .background(TossyColor.surfaceElevated)
-                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
-                            )
-                            .foregroundStyle(TossyColor.textSecondary)
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .padding(2)
                 }
             }
             
@@ -484,7 +488,10 @@ struct UniversalCanvasView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
-        .background(TossyColor.surfaceDeep)
+        .background(
+            AppSettings.shared.appTheme == .liquidGlass ? Color.clear : TossyColor.surfaceDeep
+        )
+        .tossyGlassEffect(cornerRadius: 0, interactive: false)
         .overlay(
             Rectangle()
                 .frame(height: 1)
@@ -829,7 +836,10 @@ struct UniversalCanvasView: View {
             .foregroundStyle(TossyColor.textSecondary)
         }
         .padding(14)
-        .background(TossyColor.surfaceDeep)
+        .background(
+            AppSettings.shared.appTheme == .liquidGlass ? Color.clear : TossyColor.surfaceDeep
+        )
+        .tossyGlassEffect(cornerRadius: 0, interactive: false)
     }
     
     // MARK: - Bottom Bar (Appears when files are queued)
@@ -912,8 +922,10 @@ struct UniversalCanvasView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(TossyColor.surfaceDeep)
-        .tossyGlassEffect(cornerRadius: 0)
+        .background(
+            AppSettings.shared.appTheme == .liquidGlass ? Color.clear : TossyColor.surfaceDeep
+        )
+        .tossyGlassEffect(cornerRadius: 0, interactive: false)
     }
     
     // MARK: - Helper Methods

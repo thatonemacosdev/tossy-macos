@@ -125,6 +125,25 @@ struct WindowAccessor: NSViewRepresentable {
     }
 }
 
+struct WindowThemeConfigurator: View {
+    @Bindable var settings = AppSettings.shared
+
+    var body: some View {
+        WindowAccessor { window in
+            MenuBarManager.shared.registerMainWindow(window)
+            if settings.appTheme == .liquidGlass {
+                window.isOpaque = false
+                window.backgroundColor = .clear
+                window.titlebarAppearsTransparent = true
+            } else {
+                window.isOpaque = true
+                window.backgroundColor = nil
+                window.titlebarAppearsTransparent = false
+            }
+        }
+    }
+}
+
 @main
 struct TossyApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -134,9 +153,7 @@ struct TossyApp: App {
         WindowGroup("Tossy") {
             RootView()
                 .frame(minWidth: 640, minHeight: 460)
-                .background(WindowAccessor { window in
-                    MenuBarManager.shared.registerMainWindow(window)
-                })
+                .background(WindowThemeConfigurator())
                 .onAppear {
                     let elapsedMs = Int((CFAbsoluteTimeGetCurrent() - TossyApp.launchStartTime) * 1000)
                     #if DEBUG

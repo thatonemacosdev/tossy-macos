@@ -118,6 +118,21 @@ enum TossyColor {
         }
     }
 
+    static var glassTint: Color {
+        switch theme {
+        case .liquidGlass: return Color.cyan.opacity(0.14)
+        case .midnightCobalt: return Color(red: 0.12, green: 0.35, blue: 0.85).opacity(0.18)
+        case .emerald: return Color(red: 0.15, green: 0.75, blue: 0.40).opacity(0.18)
+        case .solarAmber: return Color(red: 0.95, green: 0.55, blue: 0.15).opacity(0.18)
+        case .hyperViolet: return Color(red: 0.75, green: 0.25, blue: 0.95).opacity(0.18)
+        case .rose: return Color(red: 0.95, green: 0.35, blue: 0.55).opacity(0.15)
+        case .cream: return Color(red: 0.95, green: 0.85, blue: 0.45).opacity(0.12)
+        case .sage: return Color(red: 0.45, green: 0.85, blue: 0.55).opacity(0.15)
+        case .titanium: return Color(red: 0.65, green: 0.70, blue: 0.80).opacity(0.10)
+        default: return Color.white.opacity(0.08)
+        }
+    }
+
     static var borderMedium: Color {
         switch theme {
         case .dark: return Color(white: 0.26)
@@ -518,6 +533,7 @@ struct TossyDragChip: View {
                 Capsule()
                     .strokeBorder(isHovered ? TossyColor.borderBright : TossyColor.borderMedium, lineWidth: 1)
             )
+            .tossyGlassEffect(cornerRadius: 12, interactive: true)
             .draggable(url)
             .help("Drag file anywhere (Finder, Desktop, Mail, etc.)")
             .scaleEffect(isHovered ? 1.03 : 1.0)
@@ -544,16 +560,32 @@ struct TossyDragChip: View {
 struct TossyGlassModifier: ViewModifier {
     var cornerRadius: CGFloat = 12
     var interactive: Bool = true
+    var tintColor: Color? = nil
 
+    @ViewBuilder
     func body(content: Content) -> some View {
         if AppSettings.shared.appTheme == .liquidGlass {
-            content
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.5)
-                )
-                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+            if #available(macOS 26.0, *) {
+                let tint = tintColor ?? TossyColor.glassTint
+                let glass = interactive ? Glass.regular.tint(tint).interactive() : Glass.regular.tint(tint)
+                content
+                    .glassEffect(glass, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            } else {
+                content
+                    .background {
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                                    .fill(tintColor ?? TossyColor.glassTint)
+                            )
+                    }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.20), lineWidth: 0.75)
+                    )
+                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+            }
         } else {
             content
         }
@@ -561,24 +593,67 @@ struct TossyGlassModifier: ViewModifier {
 }
 
 extension View {
-    func tossyGlassEffect(cornerRadius: CGFloat = 12, interactive: Bool = true) -> some View {
-        modifier(TossyGlassModifier(cornerRadius: cornerRadius, interactive: interactive))
+    func tossyGlassEffect(cornerRadius: CGFloat = 12, interactive: Bool = true, tint: Color? = nil) -> some View {
+        modifier(TossyGlassModifier(cornerRadius: cornerRadius, interactive: interactive, tintColor: tint))
+    }
+
+    @ViewBuilder
+    func tossyGlassID<ID: Hashable & Sendable>(_ id: ID?, in namespace: Namespace.ID) -> some View {
+        if #available(macOS 26.0, *) {
+            self
+                .matchedGeometryEffect(id: id, in: namespace)
+                .glassEffectID(id, in: namespace)
+        } else {
+            self.matchedGeometryEffect(id: id, in: namespace)
+        }
+    }
+
+    @ViewBuilder
+    func tossyGlassUnion<ID: Hashable & Sendable>(_ id: ID?, in namespace: Namespace.ID) -> some View {
+        if #available(macOS 26.0, *) {
+            self.glassEffectUnion(id: id, namespace: namespace)
+        } else {
+            self
+        }
     }
 }
 
 struct TossyGlassContainer<Content: View>: View {
+    var spacing: CGFloat? = 0
     var cornerRadius: CGFloat = 14
+    var tintColor: Color? = nil
     @ViewBuilder let content: () -> Content
 
     var body: some View {
         if AppSettings.shared.appTheme == .liquidGlass {
-            content()
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            if #available(macOS 26.0, *) {
+                GlassEffectContainer(spacing: spacing) {
+                    content()
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(Color.white.opacity(0.04))
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.18), lineWidth: 0.75)
+                        .strokeBorder(Color.white.opacity(0.14), lineWidth: 0.75)
                 )
-                .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: 6)
+            } else {
+                content()
+                    .background {
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                                    .fill(tintColor ?? TossyColor.glassTint)
+                            )
+                    }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.22), lineWidth: 0.75)
+                    )
+                    .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: 6)
+            }
         } else {
             content()
                 .background(TossyColor.surfaceDeep, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
@@ -586,6 +661,40 @@ struct TossyGlassContainer<Content: View>: View {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
                 )
+        }
+    }
+}
+
+struct NativeGlassView: NSViewRepresentable {
+    var cornerRadius: CGFloat = 0
+    var tintColor: NSColor? = nil
+    var isInteractive: Bool = false
+
+    func makeNSView(context: Context) -> NSView {
+        if #available(macOS 26.0, *) {
+            let glass = NSGlassEffectView()
+            glass.cornerRadius = cornerRadius
+            glass.tintColor = tintColor ?? NSColor(TossyColor.glassTint)
+            glass.style = .regular
+            if #available(macOS 27.0, *) {
+                glass.effectIsInteractive = isInteractive
+            }
+            return glass
+        } else {
+            let visualEffect = NSVisualEffectView()
+            visualEffect.material = .hudWindow
+            visualEffect.blendingMode = .behindWindow
+            visualEffect.state = .active
+            visualEffect.wantsLayer = true
+            visualEffect.layer?.cornerRadius = cornerRadius
+            return visualEffect
+        }
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        if #available(macOS 26.0, *), let glass = nsView as? NSGlassEffectView {
+            glass.cornerRadius = cornerRadius
+            glass.tintColor = tintColor ?? NSColor(TossyColor.glassTint)
         }
     }
 }
