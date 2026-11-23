@@ -38,7 +38,10 @@ struct BenchmarkView: View {
             bottomActionBar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(TossyColor.pitchBlack)
+        .background(
+            AppSettings.shared.appTheme == .titanium || AppSettings.shared.appTheme == .liquidGlass ?
+            Color.clear : TossyColor.pitchBlack
+        )
         .onAppear {
             loadRunHistory()
         }
@@ -64,7 +67,7 @@ struct BenchmarkView: View {
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(TossyColor.textPrimary)
 
-                    TossyPill(text: "v2.2.0 Suite", isSubtle: true)
+                    TossyPill(text: "v2.1.0 Suite", isSubtle: true)
                 }
 
                 Text("Standardized compute, GPU acceleration, and transcode benchmark calibrated to Apple Silicon reference standards.")
@@ -80,7 +83,10 @@ struct BenchmarkView: View {
             }
         }
         .padding(14)
-        .background(TossyColor.pitchBlack)
+        .background(
+            AppSettings.shared.appTheme == .titanium || AppSettings.shared.appTheme == .liquidGlass ?
+            Color.white.opacity(0.04) : TossyColor.pitchBlack
+        )
     }
 
     // MARK: - Running View
@@ -96,7 +102,10 @@ struct BenchmarkView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(TossyColor.pitchBlack)
+        .background(
+            AppSettings.shared.appTheme == .titanium || AppSettings.shared.appTheme == .liquidGlass ?
+            Color.clear : TossyColor.pitchBlack
+        )
     }
 
     // MARK: - Empty State View

@@ -453,7 +453,7 @@ struct UniversalCanvasView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .strokeBorder(AppSettings.shared.appTheme == .liquidGlass ? Color.white.opacity(0.18) : TossyColor.borderSubtle, lineWidth: 1)
+                                    .strokeBorder(TossyColor.borderSubtle, lineWidth: 1)
                             )
                             .foregroundStyle(TossyColor.textSecondary)
                         }

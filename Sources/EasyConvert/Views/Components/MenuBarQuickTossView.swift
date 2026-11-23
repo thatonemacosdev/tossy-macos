@@ -50,7 +50,7 @@ struct MenuBarQuickTossView: View {
                         .foregroundStyle(TossyColor.textPrimary)
                         .fixedSize(horizontal: true, vertical: false)
                     
-                    Text("v2.2")
+                    Text("v2.1")
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
@@ -375,10 +375,10 @@ struct MenuBarQuickTossView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(TossyColor.surfaceDeep)
+            .background(AppSettings.shared.appTheme == .liquidGlass ? Color.white.opacity(0.04) : TossyColor.surfaceDeep)
         }
         .frame(width: 340)
-        .background(TossyColor.pitchBlack)
+        .background(AppSettings.shared.appTheme == .liquidGlass ? Color.clear : TossyColor.pitchBlack)
         .preferredColorScheme(AppSettings.shared.appTheme.isDark ? .dark : .light)
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
             handleDrop(providers)

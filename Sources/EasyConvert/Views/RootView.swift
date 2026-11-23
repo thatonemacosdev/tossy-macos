@@ -55,11 +55,10 @@ struct RootView: View {
         ZStack {
             // Background Layer
             if settings.appTheme == .liquidGlass {
-                if #available(macOS 26.0, *) {
-                    NativeGlassView(cornerRadius: 0, tintColor: nil, isInteractive: false)
-                        .ignoresSafeArea()
-                } else {
+                ZStack {
                     VisualEffectBackground(material: .hudWindow, blendingMode: .behindWindow)
+                        .ignoresSafeArea()
+                    Color.black.opacity(0.12)
                         .ignoresSafeArea()
                 }
             } else if settings.appTheme == .titanium {
@@ -122,9 +121,12 @@ struct RootView: View {
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 11, style: .continuous)
-                            .strokeBorder(isHeaderTargeted ? Color.accentColor : (settings.appTheme == .liquidGlass ? Color.white.opacity(0.18) : TossyColor.borderSubtle), lineWidth: 1)
+                            .strokeBorder(
+                                isHeaderTargeted ? Color.accentColor :
+                                (settings.appTheme == .liquidGlass ? Color.white.opacity(0.06) : TossyColor.borderSubtle),
+                                lineWidth: 1
+                            )
                     )
-                    .tossyGlassEffect(cornerRadius: 11, interactive: true)
                     .onDrop(of: [.fileURL], isTargeted: $isHeaderTargeted) { providers in
                         routeDroppedProviders(providers)
                         return true
@@ -249,13 +251,15 @@ struct RootView: View {
                     .padding(.vertical, 4)
                     .background(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(settings.appTheme == .liquidGlass ? Color.white.opacity(0.06) : Color.clear)
+                            .fill(settings.appTheme == .liquidGlass ? Color.white.opacity(0.08) : Color.clear)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .strokeBorder(settings.appTheme == .liquidGlass ? Color.white.opacity(0.18) : Color.clear, lineWidth: 1)
+                            .strokeBorder(
+                                settings.appTheme == .liquidGlass ? Color.white.opacity(0.06) : Color.clear,
+                                lineWidth: 1
+                            )
                     )
-                    .tossyGlassEffect(cornerRadius: 16, interactive: true)
                     .padding(.trailing, 14)
                 }
                 .padding(.vertical, 8)
@@ -265,7 +269,7 @@ struct RootView: View {
                 )
 
                 Divider()
-                    .overlay(TossyColor.borderSubtle)
+                    .overlay(settings.appTheme == .liquidGlass ? Color.white.opacity(0.10) : TossyColor.borderSubtle)
 
                 if settings.shouldShowGitHubStarPrompt {
                     GitHubStarPromptBanner()
@@ -409,14 +413,16 @@ struct SlidingTabButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Image(systemName: tab.icon)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
                 Text(tab.rawValue)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
             .foregroundStyle(isSelected ? TossyColor.accentProminentFg : (isHovered ? TossyColor.textPrimary : TossyColor.textSecondary))
             .background {
                 if isSelected {

@@ -41,7 +41,7 @@ struct DropZoneView: View {
                             .fill(
                                 RadialGradient(
                                     colors: [
-                                        TossyColor.accentProminentBg.opacity(isTargeted ? 0.35 : 0.15),
+                                        (AppSettings.shared.appTheme == .liquidGlass ? Color.white : TossyColor.accentProminentBg).opacity(isTargeted ? 0.28 : 0.12),
                                         Color.clear
                                     ],
                                     center: .center,
@@ -53,22 +53,33 @@ struct DropZoneView: View {
                             .blur(radius: 8)
                     }
 
-                    Circle()
-                        .fill(
-                            isTargeted ?
-                            TossyColor.accentProminentBg.opacity(0.16) :
-                            (isHovered ? TossyColor.surfaceHighlight : TossyColor.surfaceElevated)
-                        )
-                        .frame(width: circleSize, height: circleSize)
-                        .overlay(
-                            Circle()
-                                .strokeBorder(
-                                    isTargeted ?
-                                    TossyColor.accentProminentBg.opacity(0.6) :
-                                    (isHovered ? TossyColor.borderMedium : TossyColor.borderSubtle),
-                                    lineWidth: 1
-                                )
-                        )
+                    if AppSettings.shared.appTheme == .liquidGlass {
+                        Circle()
+                            .fill(Color.white.opacity(isTargeted ? 0.12 : (isHovered ? 0.08 : 0.05)))
+                            .frame(width: circleSize, height: circleSize)
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Color.white.opacity(isTargeted ? 0.16 : 0.06), lineWidth: 1.0)
+                            )
+                            .shadow(color: Color.black.opacity(0.16), radius: 8, y: 3)
+                    } else {
+                        Circle()
+                            .fill(
+                                isTargeted ?
+                                TossyColor.accentProminentBg.opacity(0.16) :
+                                (isHovered ? TossyColor.surfaceHighlight : TossyColor.surfaceElevated)
+                            )
+                            .frame(width: circleSize, height: circleSize)
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(
+                                        isTargeted ?
+                                        TossyColor.accentProminentBg.opacity(0.6) :
+                                        (isHovered ? TossyColor.borderMedium : TossyColor.borderSubtle),
+                                        lineWidth: 1
+                                    )
+                            )
+                    }
                     
                     Image(systemName: icon)
                         .font(.system(size: iconFontSize, weight: .light))
@@ -110,12 +121,15 @@ struct DropZoneView: View {
                     .padding(.vertical, round(8 * scaleMultiplier))
                 }
                 .buttonStyle(.plain)
-                .background(TossyColor.accentProminentBg)
+                .background(
+                    Capsule()
+                        .fill(TossyColor.accentProminentBg)
+                )
                 .foregroundStyle(TossyColor.accentProminentFg)
-                .clipShape(RoundedRectangle(cornerRadius: round(8 * scaleMultiplier), style: .continuous))
+                .clipShape(Capsule())
                 .shadow(
-                    color: isTargeted ? TossyColor.accentProminentBg.opacity(0.4) : Color.black.opacity(0.2),
-                    radius: isTargeted ? 12 : 4,
+                    color: isTargeted ? TossyColor.accentProminentBg.opacity(0.4) : Color.black.opacity(0.25),
+                    radius: isTargeted ? 12 : 5,
                     y: 2
                 )
 
@@ -136,28 +150,55 @@ struct DropZoneView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
-                    .strokeBorder(
-                        style: StrokeStyle(
-                            lineWidth: isTargeted ? 2.5 : 1.5,
-                            dash: isTargeted ? [10, 6] : [7, 5]
+            .background {
+                if AppSettings.shared.appTheme == .liquidGlass {
+                    ZStack {
+                        // Simple optical glass tint platter
+                        RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                            .fill(Color.white.opacity(isTargeted ? 0.10 : (isHovered ? 0.07 : 0.045)))
+
+                        // Soft dashed guideline (only visible when files are actively dragged over)
+                        if isTargeted {
+                            RoundedRectangle(cornerRadius: max(8, cardCornerRadius - 8), style: .continuous)
+                                .strokeBorder(
+                                    style: StrokeStyle(lineWidth: 1.5, dash: [8, 5])
+                                )
+                                .foregroundStyle(Color.white.opacity(0.35))
+                                .padding(8)
+                        }
+                    }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                            .strokeBorder(Color.white.opacity(isTargeted ? 0.16 : 0.06), lineWidth: 1.0)
+                    )
+                    .shadow(
+                        color: Color.black.opacity(isTargeted ? 0.25 : (isHovered ? 0.18 : 0.12)),
+                        radius: isTargeted ? 20 : (isHovered ? 14 : 10),
+                        x: 0,
+                        y: isTargeted ? 8 : (isHovered ? 5 : 3)
+                    )
+                } else {
+                    RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                        .strokeBorder(
+                            style: StrokeStyle(
+                                lineWidth: isTargeted ? 2.5 : 1.5,
+                                dash: isTargeted ? [10, 6] : [7, 5]
+                            )
                         )
-                    )
-                    .foregroundStyle(
-                        isTargeted ?
-                        TossyColor.accentProminentBg :
-                        (isHovered ? TossyColor.borderBright : TossyColor.borderSubtle)
-                    )
-            )
-            .background(
-                RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
-                    .fill(
-                        AppSettings.shared.appTheme == .liquidGlass ?
-                        (isTargeted ? Color.white.opacity(0.10) : (isHovered ? Color.white.opacity(0.06) : Color.white.opacity(0.03))) :
-                        (isTargeted ? TossyColor.surfaceHighlight : (isHovered ? TossyColor.surfaceBase.opacity(0.95) : TossyColor.surfaceDeep.opacity(0.85)))
-                    )
-            )
+                        .foregroundStyle(
+                            isTargeted ?
+                            TossyColor.accentProminentBg :
+                            (isHovered ? TossyColor.borderBright : TossyColor.borderSubtle)
+                        )
+                        .background(
+                            RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                                .fill(
+                                    isTargeted ? TossyColor.surfaceHighlight :
+                                    (isHovered ? TossyColor.surfaceBase.opacity(0.95) : TossyColor.surfaceDeep.opacity(0.85))
+                                )
+                        )
+                }
+            }
             .padding(round(16 * scaleMultiplier))
             .scaleEffect(isTargeted ? 1.015 : 1.0)
             .animation(TossyMotion.springBouncy, value: isTargeted)
@@ -172,20 +213,26 @@ struct DropZoneView: View {
         let fontSize: CGFloat = round(11 * scale)
         let padH: CGFloat = round(8 * scale)
         let padV: CGFloat = round(4 * scale)
+        let isGlass = AppSettings.shared.appTheme == .liquidGlass
         return Text(tag)
             .font(.system(size: fontSize, weight: .medium, design: .monospaced))
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: false)
-            .foregroundStyle(TossyColor.textSecondary)
+            .foregroundStyle(isGlass ? Color.white.opacity(0.70) : TossyColor.textSecondary)
             .padding(.horizontal, padH)
             .padding(.vertical, padV)
             .background(
                 Capsule()
-                    .fill(AppSettings.shared.appTheme == .liquidGlass ? Color.white.opacity(0.08) : TossyColor.surfaceElevated.opacity(0.85))
+                    .fill(isGlass ? Color.white.opacity(0.06) : TossyColor.surfaceElevated.opacity(0.85))
             )
             .overlay(
                 Capsule()
-                    .strokeBorder(AppSettings.shared.appTheme == .liquidGlass ? Color.white.opacity(0.18) : TossyColor.borderSubtle.opacity(0.5), lineWidth: 0.5)
+                    .strokeBorder(
+                        isGlass ?
+                        AnyShapeStyle(Color.white.opacity(0.06)) :
+                        AnyShapeStyle(TossyColor.borderSubtle.opacity(0.5)),
+                        lineWidth: 1
+                    )
             )
     }
 }

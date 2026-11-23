@@ -136,6 +136,7 @@ struct WindowThemeConfigurator: View {
                 window.isOpaque = false
                 window.backgroundColor = .clear
                 window.titlebarAppearsTransparent = true
+                window.hasShadow = true
             } else {
                 window.isOpaque = true
                 window.backgroundColor = nil

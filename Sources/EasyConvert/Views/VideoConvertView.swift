@@ -68,7 +68,10 @@ struct VideoConvertView: View {
             bottomBar
         }
         .frame(minWidth: 540, minHeight: 440)
-        .background(TossyColor.pitchBlack)
+        .background(
+            AppSettings.shared.appTheme == .titanium || AppSettings.shared.appTheme == .liquidGlass ?
+            Color.clear : TossyColor.pitchBlack
+        )
         .onDrop(of: [.fileURL, .movie, .video, .data, .item], isTargeted: $isTargeted) { providers in
             handleDrop(providers)
         }
