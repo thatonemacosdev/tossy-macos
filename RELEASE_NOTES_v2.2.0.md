@@ -4,7 +4,7 @@
 > **Platform**: macOS 14.0+ (Sonoma, Sequoia, and macOS 26+)  
 > **Architecture**: Apple Silicon (arm64)  
 > **Package Size**: 22.8 MB (Zero new external dependencies)  
-> **Distribution**: `dist/Tossy-v2.2.0-macOS-arm64.zip` (SHA-256: `668c1545e2c2877a8cad3455ff722c258c40d534695a9a52fc356dc2228137a3`)  
+> **Distribution**: `dist/Tossy-v2.2.0-macOS-arm64.zip` (SHA-256: `075f37f9f7fcc7a86a205da01d8fdb6f8265c0cfde016b4adab6fb3ff932d036`)  
 
 ---
 

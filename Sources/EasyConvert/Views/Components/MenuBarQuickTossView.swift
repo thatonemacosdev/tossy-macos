@@ -18,6 +18,8 @@ struct MenuBarQuickTossView: View {
     @State private var conversionProgress: Double = 0.0
     @State private var completedOutputs: [URL] = []
     
+    @Namespace private var categoryNamespace
+    
     enum QuickCategory: String, CaseIterable, Identifiable {
         case image = "Image"
         case video = "Video"
@@ -48,7 +50,7 @@ struct MenuBarQuickTossView: View {
                         .foregroundStyle(TossyColor.textPrimary)
                         .fixedSize(horizontal: true, vertical: false)
                     
-                    Text("v2.1")
+                    Text("v2.2")
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
@@ -79,37 +81,14 @@ struct MenuBarQuickTossView: View {
             // MARK: - Dedicated Full-Width Category Selector
             HStack(spacing: 4) {
                 ForEach(QuickCategory.allCases) { cat in
-                    Button {
-                        withAnimation(TossyMotion.springSnappy) {
-                            selectedCategory = cat
+                    QuickTossCategoryButton(
+                        category: cat,
+                        isSelected: selectedCategory == cat,
+                        namespace: categoryNamespace,
+                        action: {
+                            selectCategory(cat)
                         }
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: cat.icon)
-                                .font(.system(size: 11, weight: .semibold))
-                            Text(cat.rawValue)
-                                .font(.system(size: 11, weight: selectedCategory == cat ? .bold : .medium))
-                                .fixedSize(horizontal: true, vertical: false)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
-                        .background(
-                            selectedCategory == cat ?
-                            TossyColor.surfaceHighlight :
-                            Color.clear
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .strokeBorder(selectedCategory == cat ? TossyColor.borderMedium : Color.clear, lineWidth: 1)
-                        )
-                        .foregroundStyle(
-                            selectedCategory == cat ?
-                            TossyColor.textPrimary :
-                            TossyColor.textSecondary
-                        )
-                    }
-                    .buttonStyle(.plain)
+                    )
                 }
             }
             .padding(4)
@@ -355,10 +334,6 @@ struct MenuBarQuickTossView: View {
                 }
             }
             .padding(.bottom, 12)
-            .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
-                handleDrop(providers)
-                return true
-            }
             
             Divider().overlay(TossyColor.borderSubtle)
             
@@ -405,6 +380,10 @@ struct MenuBarQuickTossView: View {
         .frame(width: 340)
         .background(TossyColor.pitchBlack)
         .preferredColorScheme(AppSettings.shared.appTheme.isDark ? .dark : .light)
+        .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
+            handleDrop(providers)
+            return true
+        }
         .onHover { isHovering in
             if isHovering {
                 MenuBarManager.shared.cancelCloseTimer()
@@ -421,6 +400,13 @@ struct MenuBarQuickTossView: View {
             if let urls = notif.userInfo?["urls"] as? [URL], !urls.isEmpty {
                 routeIncomingURLs(urls)
             }
+        }
+    }
+    
+    private func selectCategory(_ cat: QuickCategory) {
+        TossyHaptic.performFeedback(.generic)
+        withAnimation(TossyMotion.springSmooth) {
+            selectedCategory = cat
         }
     }
     
@@ -442,6 +428,7 @@ struct MenuBarQuickTossView: View {
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .strokeBorder(isSelected ? TossyColor.accentProminentBg : TossyColor.borderSubtle, lineWidth: 1)
                 )
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -496,16 +483,20 @@ struct MenuBarQuickTossView: View {
         
         if let first = urls.first {
             let ext = first.pathExtension.lowercased()
-            if VideoFormat.readableExtensions.contains(ext) {
-                if let probe = MediaProbe.probe(url: first), !probe.hasVideo && probe.hasAudio {
+            withAnimation(TossyMotion.springSmooth) {
+                if ["mov", "mp4", "m4v", "mkv", "webm", "avi", "flv", "wmv", "ts", "mts", "m2ts", "ogv", "3gp", "asf", "vob", "dv"].contains(ext) {
+                    self.selectedCategory = .video
+                } else if ["mp3", "m4a", "wav", "flac", "aac", "ogg", "aiff", "wma", "opus", "alac", "weba", "caf", "m4r", "amr"].contains(ext) {
+                    self.selectedCategory = .audio
+                } else if ["png", "jpg", "jpeg", "heic", "webp", "gif", "svg", "jxl", "avif", "tiff", "bmp", "ico", "raw", "cr2", "nef", "arw", "dng"].contains(ext) {
+                    self.selectedCategory = .image
+                } else if VideoFormat.readableExtensions.contains(ext) {
+                    self.selectedCategory = .video
+                } else if AudioFormat.readableExtensions.contains(ext) {
                     self.selectedCategory = .audio
                 } else {
-                    self.selectedCategory = .video
+                    self.selectedCategory = .image
                 }
-            } else if AudioFormat.readableExtensions.contains(ext) {
-                self.selectedCategory = .audio
-            } else {
-                self.selectedCategory = .image
             }
         }
     }
@@ -561,5 +552,46 @@ struct MenuBarQuickTossView: View {
                 TossySound.playCompletion()
             }
         }
+    }
+}
+
+struct QuickTossCategoryButton: View {
+    let category: MenuBarQuickTossView.QuickCategory
+    let isSelected: Bool
+    var namespace: Namespace.ID
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                Image(systemName: category.icon)
+                    .font(.system(size: 11, weight: .semibold))
+                Text(category.rawValue)
+                    .font(.system(size: 11, weight: isSelected ? .bold : .medium))
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .foregroundStyle(
+                isSelected ? TossyColor.accentProminentFg :
+                (isHovered ? TossyColor.textPrimary : TossyColor.textSecondary)
+            )
+            .background {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(TossyColor.accentProminentBg)
+                        .matchedGeometryEffect(id: "activeCategoryCapsule", in: namespace)
+                        .shadow(color: Color.black.opacity(0.18), radius: 3, y: 1)
+                } else if isHovered {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(TossyColor.surfaceHighlight)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
     }
 }
