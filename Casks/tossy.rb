@@ -1,6 +1,6 @@
 cask "tossy" do
-  version "2.1.0"
-  sha256 "118a3a86fa300fe511b1cb22420aa91dde14bb8e0cd2476336916401eb11a34c"
+  version "2.2.0"
+  sha256 "1034c54a7d4836f122d8be6bd6feb81ef656c02cd46910c1fea21a2981029848"
 
   url "https://github.com/thatonemacosdev/tossy-macos/releases/download/v#{version}/Tossy-#{version}-macOS.zip"
   name "Tossy"

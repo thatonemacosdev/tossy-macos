@@ -3,8 +3,8 @@ import XCTest
 
 final class TossyTests: XCTestCase {
     func testAppVersion() {
-        XCTAssertEqual(AppVersion.displayName, "Tossy 2.1")
-        XCTAssertEqual(AppVersion.string, "2.1.0")
+        XCTAssertEqual(AppVersion.displayName, "Tossy 2.2")
+        XCTAssertEqual(AppVersion.string, "2.2.0")
     }
 
     func testFormatRegistryCategories() {

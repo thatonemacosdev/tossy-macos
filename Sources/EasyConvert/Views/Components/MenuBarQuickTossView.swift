@@ -50,7 +50,7 @@ struct MenuBarQuickTossView: View {
                         .foregroundStyle(TossyColor.textPrimary)
                         .fixedSize(horizontal: true, vertical: false)
                     
-                    Text("v2.1")
+                    Text("v2.2")
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)

@@ -207,6 +207,17 @@ final class GitHubChangelogService: @unchecked Sendable {
     
     private func loadFallbackReleases() {
         let fallbackTags: [(tag: String, date: String, items: [String])] = [
+            ("v2.2.0", "November 2026", [
+                "Tossy 2.2.0: Speed Overhaul & Core Refactor with sub-100ms launches and 0-MB formats.",
+                "Instant Stream-Copy Remux: Repack compatible MKV, MOV, and MP4 containers in ~64 ms (9.2x faster, ~78x realtime) without re-encoding.",
+                "Hardware VideoToolbox Acceleration: 1.8x faster 4K HEVC and H.264 video encoding with 0% CPU burn via Apple Silicon hardware offload.",
+                "Accelerated WebM VP9: Row-based multi-threading (-cpu-used 4 -row-mt 1) yields 2.5x faster encoding across all cores.",
+                "Metal CIContext & In-Memory Resizing: 1.5x faster batch 4K image downscaling with ImageIO decode-level thumbnail extraction.",
+                "Leaner Executable & Faster Launch: Stripped dead symbols with ThinLTO, cutting binary size from 11 MB to 3.4 MB with <100ms cold launch.",
+                "High-Demand 0-MB Formats: Multi-page PDF from images, Documents (DOCX/RTF/ODT/HTML/MD), Subtitles (SRT/VTT), Data (JSON/PLIST/CSV/YAML), and Creator Media (M4R, ProRes 4444, APNG).",
+                "Apple Liquid Glass Polish: Native macOS HUD glass with soft translucent tints, decluttered idle canvas, and Quick Toss auto-tab switching.",
+                "In-App Auto-Updater Fix: Synchronous staging prevents premature unlinking of downloaded update packages."
+            ]),
             ("v2.1.0", "November 2026", [
                 "Official 2.1.0 Release: Dropzone-first architecture and handcrafted themes.",
                 "Dropzone-First Homepage: removed studios sidebar for a distraction-free drag-and-drop workspace.",

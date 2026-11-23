@@ -1,10 +1,13 @@
 # Tossy 2.2.0 Stable Release Notes
 
-> **Version**: 2.2.0 (Build 2026.11.20)  
+> [!IMPORTANT]
+> **Note**: Versions 2.0–2.1 had a broken auto-updater. Please download v2.2 manually from [Releases](https://github.com/thatonemacosdev/tossy-macos/releases) to restore automatic updates.
+
+> **Version**: 2.2.0 (Build 2026.11.23)  
 > **Platform**: macOS 14.0+ (Sonoma, Sequoia, and macOS 26+)  
 > **Architecture**: Apple Silicon (arm64)  
 > **Package Size**: 22.8 MB (Zero new external dependencies)  
-> **Distribution**: `dist/Tossy-v2.2.0-macOS-arm64.zip` (SHA-256: `075f37f9f7fcc7a86a205da01d8fdb6f8265c0cfde016b4adab6fb3ff932d036`)  
+> **Distribution**: `dist/Tossy-v2.2.0-macOS-arm64.zip` (SHA-256: `1034c54a7d4836f122d8be6bd6feb81ef656c02cd46910c1fea21a2981029848`)  
 
 ---
 
@@ -50,19 +53,19 @@ Expanded Tossy's format repertoire across 5 major categories without adding a si
   - **APNG**: Animated PNG export directly via bundled FFmpeg.
 - **Native Archives**: Expanded archive extraction and creation to support `.tar.xz`, `.tar.bz2`, and `.tar.zst` via native macOS compression tools.
 
-### 3. Apple Liquid Glass & Theme Contrast Polish
-- **macOS 26 Native Liquid Glass**: Implemented genuine Apple glass using `NSGlassEffectView` on floating panels and `.glassEffect` with container geometry morphing, with graceful fallback to `.ultraThinMaterial` on macOS 14/15.
-- **Pure Optical Transparency**: Removed murky cyan/green color casts in favor of clean, neutral optical refraction.
-- **Tab Readability**: Replaced hoisted glass capsules with crisp white-on-black active indicator pills for maximum contrast.
-- **Window Chrome**: Hidden window title to eliminate redundant titlebar clutter.
+### 3. Apple Liquid Glass & Interface Refinements
+- **Authentic macOS HUD Glass**: Switched window backdrop to native `NSVisualEffectView.Material.hudWindow` with `.behindWindow` blending, letting desktop backgrounds and underlying windows blur through cleanly.
+- **Soft Translucent Glass Tints**: Replaced heavy, sharp white stroke outlines with soft optical glass tints (`Color.white.opacity(0.045)` to `0.10`).
+- **Idle Canvas De-Cluttering**: Inset dashed guidelines now appear softly only when dragging files actively over the canvas, keeping the idle dropzone calm and distraction-free.
+- **Menu Bar Quick-Toss Companion**: Expanded click hit-targets (`.contentShape(Rectangle())`), added tactile hover states matching the main app, and implemented automatic category tab switching (`.video`, `.audio`, `.image`) when dropping files into the Quick Toss window.
 
 ### 4. Background Watch Folder Ingestion
 - **Automated Processing**: Watch folders now monitor designated directories in the background, automatically converting incoming files using assigned presets.
 - **Zero Duplicates**: Implemented event debouncing, in-flight tracking, and target existence verification so files are never re-converted repeatedly.
 
-### 5. In-App Auto-Updater Fix & 2.0.0 Upgrade Note
+### 5. In-App Auto-Updater Fix & Upgrade Note
 - **The URLSession Delegate Bug Fix**: Resolved an issue where macOS deleted downloaded installer files from `/var/folders/...` prior to async extraction. Updates are now moved synchronously to a persistent temporary path with archive magic byte detection (`PK`).
-- **For Users Currently on Tossy 2.0.0**: Because this Foundation delegate bug was compiled into the 2.0.0 binary, clicking "Update Now" in 2.0.0 displays a `"Could not locate Tossy.app in the downloaded installer"` error. **Click the `[Open In Browser]` button right next to the error** to download `Tossy-v2.2.0-macOS-arm64.zip` directly from GitHub. All future updates from 2.1.0/2.2.0 onwards will install completely in-place automatically.
+- **For Users on Tossy 2.0–2.1**: Because this Foundation delegate bug was present in versions 2.0 through 2.1, clicking "Update Now" may display a `"Could not locate Tossy.app in the downloaded installer"` error or stop fetching update notifications. Please download `Tossy-v2.2.0-macOS-arm64.zip` manually from Releases to restore automatic updates permanently.
 
 ### 6. Updated TossyMark Benchmark Suite (v2.2.0)
 - Expanded the benchmark suite to **34 comprehensive workloads** spanning Metal GPU rasterization, VideoToolbox hardware encoding, Instant Remuxing (`-c copy`), ImageIO hardware thumbnailing, lossless compression, and multi-core thread scaling.
@@ -71,6 +74,6 @@ Expanded Tossy's format repertoire across 5 major categories without adding a si
 ---
 
 ## Verification & Integrity
-- All 10 unit and integration tests passing (`swift test` clean in `0.05s`).
-- Package size: **23.0 MB** compressed.
+- All 10 unit and integration tests passing (`swift test` clean with zero failures).
+- Package size: **22.8 MB** compressed (strictly under 23 MB ceiling).
 - Universal format registry protocol decoupling ViewModels from format switches.
