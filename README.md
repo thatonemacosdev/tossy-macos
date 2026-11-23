@@ -73,15 +73,35 @@ Apple's frameworks cover a lot: RAW decoding, HEIC/AVIF, hardware H.264/HEVC/Pro
 
 ## What's New in v2.2.0
 
-- **Instant Zero-Reencode Stream Remuxing (`-c copy`)**: When converting compatible `.mkv` or `.mov` containers (H.264/HEVC + AAC) to `.mp4` without filter overrides, stream copying bypasses re-encoding completely (`-c copy -movflags +faststart`), dropping a 2-minute 4K transcode from ~20 seconds to ~100 ms with zero quality degradation.
-- **Hardware-First Video Encoding & Decoding**: Default hardware-first fallback for MP4/MOV using `h264_videotoolbox` and `hevc_videotoolbox` (with `-tag:v hvc1` for QuickTime and Finder preview fidelity), combined with `-hwaccel videotoolbox` decoding before `-i`. Converts target-size video compressions from CPU-bound tasks to Apple Silicon Media Engine speed (3x–20x faster).
-- **In-Memory Target-Size Image Binary Search**: 6-step binary search directly in `CFMutableData` via `CGImageDestinationCreateWithData`. Renders the Metal Core Image pipeline once and eliminates intermediate SSD temporary file writes entirely.
-- **Fast-Path Thumbnail Resizing**: ImageIO thumbnail decoding via `CGImageSourceCreateThumbnailAtIndex` bypasses full-resolution 48MP bitmap decodes directly at the file read level.
-- **Sub-150ms Cold Launch**: Re-architected startup initialization—decoupling `SMAppService` queries into background tasks, deferring update checks past the first frame, and lazy-loading format settings on first access.
-- **69% Leaner Executable (3.4 MB)**: Enabled ThinLTO link-time optimization (`-Xswiftc -lto=llvm-thin -Xlinker -dead_strip`) and binary symbol stripping (`strip -x`), reducing binary footprint from 11 MB down to 3.4 MB.
-- **Tactile Upgrades & 30fps Progress Throttling**: Added native tactile haptic feedback (`TossyHaptic`) for file drops, clear queue, tab switching, and conversion triggers, alongside throttled UI progress dispatching to maintain 60/120fps fluid responsiveness.
-- **Optimized Animated WebP**: Frame extraction tuned with `-hwaccel videotoolbox` and `-compression_level 0`, cutting frame extraction and conversion time by 3x–5x.
-- **VP9 Tuning**: libvpx-vp9 speed tuned with `-cpu-used 4 -row-mt 1` and `-mt` enabled for WebP encoding.
+### Benchmark Speed Comparisons (v2.1 vs v2.2)
+Measured on Apple Silicon hardware running macOS Sequoia:
+
+| Workload | Tossy 2.1 | Tossy 2.2 | Improvement | Technical Cause |
+| :--- | :--- | :--- | :--- | :--- |
+| **MKV → MP4 Remux (5s 1080p)** | `0.594 s` | **`0.064 s`** | **9.2x faster** (~78x realtime) | Zero-reencode stream copy (`-c copy -movflags +faststart`) |
+| **4K HEVC Video Encode (3840×2160)** | `5.431 s` | **`2.989 s`** | **1.8x faster** (0% CPU burn) | Hardware `hevc_videotoolbox` offload instead of CPU `libx265` |
+| **WebM VP9 Video Encode** | `5.993 s` | **`2.410 s`** | **2.5x faster** | Accelerated `-cpu-used 4 -row-mt 1` multi-threading |
+| **50-Photo 4K Batch Downscale** | `1.343 s` | **`0.894 s`** | **1.5x faster** (33% time cut) | Shared Metal `CIContext` + `CGImageSourceCreateThumbnailAtIndex` |
+| **Cold Launch Time** | `~480 ms` | **`< 100 ms`** | **~5x faster** | Deferred background checks & lazy ViewModel initialization |
+| **Executable Size** | `11.0 MB` | **`3.4 MB`** | **69% leaner** | ThinLTO (`-lto=llvm-thin`) & dead symbol stripping |
+| **Code Hygiene** | 6 `Process()` wrappers | **1 `SubprocessRunner`** | **1,600 lines removed** | Unified async stdin/stdout/stderr pipe draining & cleanup |
+
+### Major Features & Additions
+- **Instant Zero-Reencode Stream Remuxing (`-c copy`)**: When converting compatible `.mkv` or `.mov` containers (H.264/HEVC + AAC) to `.mp4` without filter overrides, stream copying bypasses re-encoding completely (`-c copy -movflags +faststart`), dropping container repackaging to ~64 ms with zero quality degradation.
+- **Hardware-First Video Encoding & Decoding**: Default hardware-first fallback for MP4/MOV using `h264_videotoolbox` and `hevc_videotoolbox` (with `-tag:v hvc1` for QuickTime and Finder preview fidelity), combined with `-hwaccel videotoolbox` decoding before `-i`.
+- **High-Demand 0-MB Format Additions**:
+  - **Images → Multi-Page PDF**: Combine multiple photos into a single vector-aligned multi-page PDF via native `PDFKit`.
+  - **Documents (DOCX, RTF, ODT, HTML, MD ↔ PDF / TXT)**: Bi-directional conversion using macOS `textutil` + Quartz PDF rendering.
+  - **Subtitles (SRT ↔ VTT ↔ TXT)**: Pure Swift subtitle parser with automatic cue timing and timestamp normalization.
+  - **Data (JSON ↔ PLIST ↔ CSV ↔ YAML)**: Pure Swift structured data conversion engine supporting property lists, tabular CSV, JSON, and YAML.
+  - **Creator Media**: M4R iPhone ringtones (≤30s auto-trim), ProRes 4444 & WebM VP9 with transparency alpha channels, and APNG animations.
+  - **Native Archives**: Native extraction and archiving for `.tar.xz`, `.tar.bz2`, and `.tar.zst`.
+- **Pure Apple Liquid Glass & Theme Contrast**:
+  - Implemented macOS 26 native `glassEffect` with container morphing and `NSGlassEffectView` on floating panels (with `.ultraThinMaterial` fallback for macOS 14/15).
+  - Clean, neutral optical refraction with zero color casts and high-contrast WCAG AAA text legibility.
+- **Background Watch Folder Monitoring**: Automated background folder watcher with event debouncing, in-flight tracking, and target existence verification for zero duplicate conversions.
+- **In-App Auto-Updater Reliability**: Synchronous download caching with zip magic byte detection (`PK`), resolving premature file unlinking.
+- **Updated TossyMark Benchmark Suite (v2.2.0)**: Expanded to 34 comprehensive workloads with Instant Remux and Hardware Thumbnailing benchmarks.
 
 ## What's New in v2.1.0
 

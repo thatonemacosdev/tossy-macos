@@ -147,4 +147,26 @@ final class TossyTests: XCTestCase {
         WatchFolderService.shared.stopAll()
         WatchFolderService.shared.syncRules(initialRules)
     }
+
+    func testBenchmarkExecution() async throws {
+        let service = BenchmarkService()
+        let tmpDir = FileManager.default.temporaryDirectory.appendingPathComponent("bench_test_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmpDir) }
+
+        await service.runWarmup(tempDir: tmpDir) { _ in }
+        let images = await service.runImageBenchmark(tempDir: tmpDir) { _ in }
+        XCTAssertFalse(images.isEmpty, "Image benchmarks should return results")
+
+        let audio = await service.runAudioBenchmark(tempDir: tmpDir) { _ in }
+        XCTAssertFalse(audio.isEmpty, "Audio benchmarks should return results")
+
+        let video = await service.runVideoBenchmark(tempDir: tmpDir) { status in
+            print("Video bench status: \(status)")
+        }
+        XCTAssertFalse(video.isEmpty, "Video benchmarks should return results")
+
+        let concurrency = await service.runConcurrencyBenchmark(tempDir: tmpDir) { _ in }
+        XCTAssertFalse(concurrency.isEmpty, "Concurrency benchmarks should return results")
+    }
 }

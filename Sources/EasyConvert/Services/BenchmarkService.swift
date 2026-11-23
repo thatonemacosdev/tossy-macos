@@ -295,6 +295,42 @@ final class BenchmarkService {
             try? FileManager.default.removeItem(at: pdfURL)
         }
 
+        // Fast Thumbnail Scaling (ImageIO Hardware Assist)
+        let thumbLabel = "4K Fast Thumbnail Scaling (ImageIO Hardware Assist)"
+        onStatus("Benchmarking \(thumbLabel)...")
+        if let timing = await measureMultiPass(iterations: 3, block: {
+            guard let src = CGImageSourceCreateWithURL(source4K as CFURL, nil) else { return }
+            let options: [CFString: Any] = [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceCreateThumbnailWithTransform: true,
+                kCGImageSourceThumbnailMaxPixelSize: 1024
+            ]
+            if let cgThumb = CGImageSourceCreateThumbnailAtIndex(src, 0, options as CFDictionary) {
+                let outUrl = tempDir.appendingPathComponent("bench_thumb_\(UUID().uuidString).jpg")
+                if let dest = CGImageDestinationCreateWithURL(outUrl as CFURL, "public.jpeg" as CFString, 1, nil) {
+                    CGImageDestinationAddImage(dest, cgThumb, nil)
+                    CGImageDestinationFinalize(dest)
+                }
+                try? FileManager.default.removeItem(at: outUrl)
+            }
+        }) {
+            let mpPerSec = megapixels4K / timing.medianDuration
+            let pts = BenchmarkReferences.score(label: thumbLabel, throughput: mpPerSec)
+            results.append(BenchmarkResult(
+                domain: .image,
+                label: thumbLabel,
+                descriptionText: "ImageIO optimized sub-sampled decode and thumbnail generation directly from source stream",
+                duration: timing.medianDuration,
+                iterations: timing.allDurations,
+                throughput: mpPerSec,
+                unit: .megapixelsPerSecond,
+                points: pts,
+                jitterPercentage: timing.jitter,
+                detail: BenchmarkUnit.megapixelsPerSecond.format(value: mpPerSec),
+                scoreGroup: "image_thumbnail"
+            ))
+        }
+
         return results
     }
 
@@ -540,7 +576,7 @@ final class BenchmarkService {
         }
         AppSettings.shared.videoConfig = VideoConfig()
 
-        // 10. Animated WebP / GIF Generation
+        // Animated WebP / GIF Generation
         let animLabel = "Animated WebP / GIF Generation"
         onStatus("Benchmarking \(animLabel)...")
         if let timing = await measureMultiPass(iterations: 3, block: {
@@ -562,6 +598,40 @@ final class BenchmarkService {
                 detail: BenchmarkUnit.realtimeMultiplier.format(value: multiplier),
                 scoreGroup: "video_anim"
             ))
+        }
+
+        // 11. Instant Remux Fast Path (MKV -> MP4 Stream Copy)
+        let remuxLabel = "1080p Instant Remux (MKV -> MP4 Stream Copy)"
+        let sampleMkvURL = tempDir.appendingPathComponent("bench_remux.mkv")
+        if let ffmpegPath = FFmpegLocator.ffmpegPath {
+            _ = try? await SubprocessRunner.run(
+                executablePath: ffmpegPath,
+                arguments: ["-nostdin", "-y", "-i", clip1080pURL.path, "-c", "copy", sampleMkvURL.path]
+            )
+        }
+        if FileManager.default.fileExists(atPath: sampleMkvURL.path) {
+            onStatus("Benchmarking \(remuxLabel)...")
+            if let timing = await measureMultiPass(iterations: 3, block: {
+                let res = try await converter.convert(sourceURL: sampleMkvURL, to: .mp4H264, destinationFolder: tempDir) { _ in }
+                try? FileManager.default.removeItem(at: res.outputURL)
+            }) {
+                let multiplier = clipDuration / timing.medianDuration
+                let pts = BenchmarkReferences.score(label: remuxLabel, throughput: multiplier)
+                results.append(BenchmarkResult(
+                    domain: .video,
+                    label: remuxLabel,
+                    descriptionText: "Zero-reencode stream copy repackaging from MKV into MP4 container with faststart",
+                    duration: timing.medianDuration,
+                    iterations: timing.allDurations,
+                    throughput: multiplier,
+                    unit: .realtimeMultiplier,
+                    points: pts,
+                    jitterPercentage: timing.jitter,
+                    detail: BenchmarkUnit.realtimeMultiplier.format(value: multiplier),
+                    scoreGroup: "video_remux"
+                ))
+            }
+            try? FileManager.default.removeItem(at: sampleMkvURL)
         }
 
         return results
@@ -919,14 +989,8 @@ final class BenchmarkService {
             url.path
         ]
 
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: ffmpegPath)
-        process.standardInput = FileHandle.nullDevice
-        process.arguments = args
-        try process.run()
-        process.waitUntilExit()
-
-        guard process.terminationStatus == 0 && FileManager.default.fileExists(atPath: url.path) else {
+        let result = try await SubprocessRunner.run(executablePath: ffmpegPath, arguments: args)
+        guard result.isSuccess && FileManager.default.fileExists(atPath: url.path) else {
             throw NSError(domain: "Benchmark", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to generate test clip"])
         }
     }

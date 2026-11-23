@@ -5,7 +5,7 @@ struct BenchmarkView: View {
     @State private var results: [BenchmarkResult] = []
     @State private var isRunning = false
     @State private var currentProgress: Double = 0.0
-    @State private var statusText = "Ready to test 32 conversion workloads across Metal GPU, video transcode, audio DSP, and multi-core scaling."
+    @State private var statusText = "Ready to test 34 conversion workloads across Metal GPU, hardware transcode, instant remuxing, audio DSP, and multi-core scaling."
     @State private var activeDomain: BenchmarkDomain = .all
     @State private var runHistory: [BenchmarkRunReport] = []
     @State private var selectedHistoryRun: BenchmarkRunReport?
@@ -64,7 +64,7 @@ struct BenchmarkView: View {
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(TossyColor.textPrimary)
 
-                    TossyPill(text: "v2.1.0 Suite", isSubtle: true)
+                    TossyPill(text: "v2.2.0 Suite", isSubtle: true)
                 }
 
                 Text("Standardized compute, GPU acceleration, and transcode benchmark calibrated to Apple Silicon reference standards.")

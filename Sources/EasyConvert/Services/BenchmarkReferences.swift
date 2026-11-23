@@ -33,6 +33,7 @@ enum BenchmarkReferences {
         "Deep Lossless JPEG XL (Effort 9, Lossless)": 18.0,
         "Deep Lossless PNG (Deflate 9, Adam7)": 28.0,
         "Multi-page PDF Document Rasterization": 35.0,
+        "4K Fast Thumbnail Scaling (ImageIO Hardware Assist)": 520.0,
 
         // Video Transcoding (x Realtime Multiplier)
         "1080p30 Hardware H.264 (VideoToolbox)": 18.5,
@@ -45,6 +46,7 @@ enum BenchmarkReferences {
         "1080p Container Multiplex (MKV Transcode)": 12.0,
         "Video Filter (Yadif Deinterlace + Lanczos Downscale)": 5.2,
         "Animated WebP / GIF Generation": 4.5,
+        "1080p Instant Remux (MKV -> MP4 Stream Copy)": 75.0,
 
         // Audio Processing (x Realtime Multiplier)
         "Tone -> MP3 (320kbps CBR)": 145.0,
