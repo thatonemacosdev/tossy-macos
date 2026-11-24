@@ -911,6 +911,314 @@
     border-bottom: none;
   }
 
+  /* Adaptive Target-Size Fitting & Compression Showcase */
+  .compression-section {
+    margin-top: 80px;
+    margin-bottom: 96px;
+  }
+
+  .compression-section h2 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--color-ink);
+    margin-bottom: 12px;
+  }
+
+  .compression-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 24px 0 28px;
+  }
+
+  .comp-pill {
+    background: var(--color-surface-soft);
+    color: var(--color-charcoal);
+    border: 1px solid var(--color-hairline-light);
+    border-radius: var(--rounded-full);
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .comp-pill:hover {
+    border-color: var(--color-stone);
+    color: var(--color-ink);
+  }
+
+  .comp-pill.active {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border-color: var(--color-primary-bright);
+    font-weight: 600;
+  }
+
+  .compression-stage {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 860px) {
+    .compression-stage {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .comp-card {
+    background: #ffffff;
+    border: 1px solid var(--color-hairline-light);
+    border-radius: var(--rounded-lg);
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  }
+
+  .comp-card.comp-card-source {
+    background: var(--color-surface-soft);
+  }
+
+  .comp-card.comp-card-output {
+    background: #ffffff;
+    border-color: rgba(73, 79, 223, 0.32);
+    box-shadow: 0 4px 20px rgba(73, 79, 223, 0.06);
+  }
+
+  .comp-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .comp-card-pill {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: var(--rounded-full);
+  }
+
+  .comp-card-pill-source {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--color-charcoal);
+  }
+
+  .comp-card-pill-output {
+    background: #ededff;
+    color: var(--color-primary-deep);
+  }
+
+  .comp-file-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-ink);
+    margin-bottom: 8px;
+    word-break: break-all;
+  }
+
+  .comp-size-display {
+    font-family: var(--font-display);
+    font-size: 42px;
+    font-weight: 600;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .comp-size-display.source-size {
+    color: var(--color-ink);
+  }
+
+  .comp-size-display.output-size {
+    color: var(--color-primary);
+  }
+
+  .comp-specs-list {
+    font-size: 13px;
+    color: var(--color-mute);
+    line-height: 1.6;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-hairline-light);
+  }
+
+  .comp-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: var(--rounded-sm);
+  }
+
+  .comp-status-blocked {
+    background: rgba(226, 59, 74, 0.12);
+    color: var(--color-accent-danger);
+  }
+
+  .comp-status-ready {
+    background: rgba(0, 168, 126, 0.12);
+    color: var(--color-accent-teal);
+  }
+
+  /* Center Connector */
+  .comp-bridge {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 16px;
+    min-width: 170px;
+    text-align: center;
+  }
+
+  .comp-bridge-target {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--color-charcoal);
+    margin-bottom: 8px;
+  }
+
+  .comp-bridge-reduction {
+    background: var(--color-accent-teal);
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: var(--rounded-full);
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+    box-shadow: 0 2px 8px rgba(0, 168, 126, 0.25);
+  }
+
+  .comp-bridge-note {
+    font-size: 12px;
+    color: var(--color-mute);
+    max-width: 170px;
+    line-height: 1.4;
+  }
+
+  .comp-bridge-arrow {
+    font-size: 20px;
+    color: var(--color-stone);
+    margin: 4px 0;
+  }
+
+  /* Interactive Bitrate Calculator */
+  .comp-calc-box {
+    background: var(--color-surface-soft);
+    border: 1px solid var(--color-hairline-light);
+    border-radius: var(--rounded-lg);
+    padding: 28px 32px;
+    margin-top: 20px;
+  }
+
+  .comp-calc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .comp-calc-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-ink);
+    margin-bottom: 4px;
+  }
+
+  .comp-calc-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .comp-calc-group label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-charcoal);
+    margin-bottom: 10px;
+  }
+
+  .comp-calc-presets {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .comp-calc-preset-btn {
+    background: #ffffff;
+    border: 1px solid var(--color-hairline-light);
+    border-radius: var(--rounded-sm);
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-charcoal);
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+
+  .comp-calc-preset-btn:hover {
+    border-color: var(--color-stone);
+    color: var(--color-ink);
+  }
+
+  .comp-calc-slider {
+    width: 100%;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+  }
+
+  .comp-calc-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-hairline-light);
+  }
+
+  .comp-result-item {
+    background: #ffffff;
+    border: 1px solid var(--color-hairline-light);
+    border-radius: var(--rounded-md);
+    padding: 14px 18px;
+  }
+
+  .comp-result-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-mute);
+    margin-bottom: 6px;
+    letter-spacing: 0.4px;
+  }
+
+  .comp-result-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-ink);
+  }
+
   /* FAQ Accordion / Grid */
   .faq-section h2 {
     font-family: var(--font-display);
@@ -1026,6 +1334,7 @@
     <nav class="nav-links">
       <a class="nav-link" id="linkNavShowcase" href="#showcase">Showcase</a>
       <a class="nav-link" id="linkNavFeatures" href="#features">Features</a>
+      <a class="nav-link" id="linkNavCompression" href="#compression-showcase">Compression</a>
       <a class="nav-link" id="linkNavComparison" href="#comparison">Comparison</a>
       <a class="nav-link" id="linkNavFaq" href="#faq">FAQ</a>
       <a class="nav-link" id="linkNavGithub" href="https://github.com/thatonemacosdev/tossy-macos" target="_blank" rel="noopener">GitHub</a>
@@ -1397,6 +1706,123 @@
         </div>
       </div>
 
+      <!-- Adaptive Target-Size Fitting & Compression Showcase -->
+      <div class="compression-section" id="compression-showcase">
+        <span class="catalogue-tag">Adaptive Compression</span>
+        <h2>Target-size fitting with zero guesswork.</h2>
+        <p style="color: var(--color-mute); margin-bottom: 8px; max-width: 68ch;">
+          Enter any target ceiling—25 MB for Discord, 10 MB for email, 2 MB for web. Tossy calculates exact video/audio bitrate budgets and executes decode-level in-RAM binary searches to fit strictly under your limit while maximizing visual fidelity.
+        </p>
+
+        <!-- Scenario Switcher Pills -->
+        <div class="compression-pills" id="compressionPills">
+          <button class="comp-pill active" onclick="switchCompressionScenario(0)">4K Video &rarr; Discord 25 MB</button>
+          <button class="comp-pill" onclick="switchCompressionScenario(1)">Scanned PDF &rarr; Email 5 MB</button>
+          <button class="comp-pill" onclick="switchCompressionScenario(2)">61MP Camera RAW &rarr; Web 2 MB</button>
+          <button class="comp-pill" onclick="switchCompressionScenario(3)">Master WAV &rarr; Mobile 32 MB</button>
+        </div>
+
+        <!-- Before / After Split Stage -->
+        <div class="compression-stage">
+          <!-- Before Card -->
+          <div class="comp-card comp-card-source">
+            <div>
+              <div class="comp-card-header">
+                <span class="comp-card-pill comp-card-pill-source">Source File</span>
+                <span style="font-size: 12px; color: var(--color-mute);">Original Capture</span>
+              </div>
+              <div class="comp-file-title" id="compBeforeName">cinematic_mountain_4k.mov</div>
+              <div class="comp-size-display source-size" id="compBeforeSize">172.5 MB</div>
+              <div class="comp-specs-list" id="compBeforeSpecs">
+                3840 &times; 2160 &bull; 60 fps &bull; 48 Mbps ProRes 422 &bull; Linear PCM Audio
+              </div>
+            </div>
+            <div>
+              <span class="comp-status-badge comp-status-blocked" id="compBeforeAlert">
+                &times; Exceeds 25 MB Discord limit
+              </span>
+            </div>
+          </div>
+
+          <!-- Bridge / Engine Indicator -->
+          <div class="comp-bridge">
+            <span class="comp-bridge-target" id="compTargetBadge">Target: 25.0 MB</span>
+            <div class="comp-bridge-arrow">&darr;</div>
+            <div class="comp-bridge-reduction" id="compReductionBadge">&minus;86% Smaller</div>
+            <div class="comp-bridge-note" id="compEngineNote">
+              VideoToolbox hardware encode &bull; 5% container muxing reserve
+            </div>
+          </div>
+
+          <!-- After Card -->
+          <div class="comp-card comp-card-output">
+            <div>
+              <div class="comp-card-header">
+                <span class="comp-card-pill comp-card-pill-output">Tossy Output</span>
+                <span class="feature-pill-badge badge-teal" style="font-size: 11px; padding: 2px 8px;">Guaranteed &le; Target</span>
+              </div>
+              <div class="comp-file-title" id="compAfterName">cinematic_mountain_4k_discord.mp4</div>
+              <div class="comp-size-display output-size" id="compAfterSize">24.2 MB</div>
+              <div class="comp-specs-list" id="compAfterSpecs">
+                1920 &times; 1080 &bull; 60 fps &bull; 6.1 Mbps H.264 &bull; 128 kbps AAC Audio
+              </div>
+            </div>
+            <div>
+              <span class="comp-status-badge comp-status-ready" id="compAfterStatus">
+                &check; Fits Discord 25 MB limit &bull; Instant upload
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Calculator Box -->
+        <div class="comp-calc-box">
+          <div class="comp-calc-header">
+            <div>
+              <div class="comp-calc-title">Interactive Target-Size Bitrate Calculator</div>
+              <div style="font-size: 13px; color: var(--color-mute);">Test the exact math Tossy executes during target-size video conversion.</div>
+            </div>
+            <div class="comp-calc-presets">
+              <button class="comp-calc-preset-btn" onclick="setCalcPreset(8)">8 MB (Discord Free)</button>
+              <button class="comp-calc-preset-btn" onclick="setCalcPreset(10)">10 MB (Email)</button>
+              <button class="comp-calc-preset-btn" onclick="setCalcPreset(16)">16 MB (WhatsApp)</button>
+              <button class="comp-calc-preset-btn" onclick="setCalcPreset(25)">25 MB (Discord)</button>
+              <button class="comp-calc-preset-btn" onclick="setCalcPreset(50)">50 MB (Slack)</button>
+            </div>
+          </div>
+
+          <div class="comp-calc-controls">
+            <div class="comp-calc-group">
+              <label for="calcSizeInput"><span>Target File Size</span><strong id="calcSizeLabel">25 MB</strong></label>
+              <input type="range" class="comp-calc-slider" id="calcSizeInput" min="5" max="100" value="25" step="1" oninput="updateBitrateCalc()" />
+            </div>
+            <div class="comp-calc-group">
+              <label for="calcDurationInput"><span>Video Duration</span><strong id="calcDurationLabel">30 seconds</strong></label>
+              <input type="range" class="comp-calc-slider" id="calcDurationInput" min="5" max="180" value="30" step="5" oninput="updateBitrateCalc()" />
+            </div>
+          </div>
+
+          <div class="comp-calc-results">
+            <div class="comp-result-item">
+              <div class="comp-result-label">Allocated Video Bitrate</div>
+              <div class="comp-result-value" id="calcVideoBitrate">6,187 kbps</div>
+            </div>
+            <div class="comp-result-item">
+              <div class="comp-result-label">Audio Track Budget</div>
+              <div class="comp-result-value" id="calcAudioBitrate">128 kbps AAC</div>
+            </div>
+            <div class="comp-result-item">
+              <div class="comp-result-label">5% Container Reserve</div>
+              <div class="comp-result-value" id="calcContainerReserve">1.25 MB</div>
+            </div>
+            <div class="comp-result-item">
+              <div class="comp-result-label">Guaranteed Ceiling</div>
+              <div class="comp-result-value" style="color: var(--color-accent-teal);" id="calcOutputGuaranteed">&le; 25.0 MB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Packaging and Release Options -->
       <div class="packaging-grid">
 
@@ -1637,6 +2063,144 @@
 
     setInterval(cycle, 2800);
   })();
+
+  // Compression Showcase Scenarios & Calculator
+  var compScenarios = [
+    {
+      beforeName: 'cinematic_mountain_4k.mov',
+      beforeSize: '172.5 MB',
+      beforeSpecs: '3840 \u00d7 2160 \u2022 60 fps \u2022 48 Mbps ProRes 422 \u2022 Linear PCM Audio',
+      beforeAlert: '\u00d7 Exceeds 25 MB Discord limit',
+      targetBadge: 'Target: 25.0 MB',
+      reductionBadge: '\u221286% Smaller',
+      engineNote: 'VideoToolbox hardware encode \u2022 5% container muxing reserve',
+      afterName: 'cinematic_mountain_4k_discord.mp4',
+      afterSize: '24.2 MB',
+      afterSpecs: '1920 \u00d7 1080 \u2022 60 fps \u2022 6.1 Mbps H.264 \u2022 128 kbps AAC Audio',
+      afterStatus: '\u2713 Fits Discord 25 MB limit \u2022 Instant upload'
+    },
+    {
+      beforeName: 'annual_audit_contract_2026.pdf',
+      beforeSize: '34.8 MB',
+      beforeSpecs: '16 Pages \u2022 Uncompressed 300 DPI Scans \u2022 24-bit RGB Bitmaps',
+      beforeAlert: '\u00d7 Exceeds 10 MB Email attachment limit',
+      targetBadge: 'Target: 5.0 MB',
+      reductionBadge: '\u221289% Smaller',
+      engineNote: 'Native Quartz 2D render loop \u2022 150 DPI adaptive downsampling',
+      afterName: 'annual_audit_contract_compressed.pdf',
+      afterSize: '3.9 MB',
+      afterSpecs: '16 Pages \u2022 Vector text preserved \u2022 Clean Quartz Flate stream',
+      afterStatus: '\u2713 Fits Email 5 MB limit \u2022 Crisp text legibility'
+    },
+    {
+      beforeName: 'portrait_studio_session.arw',
+      beforeSize: '46.2 MB',
+      beforeSpecs: '61 Megapixels (9504 \u00d7 6336) \u2022 14-bit Uncompressed Sony RAW',
+      beforeAlert: '\u00d7 Too heavy for web / CDN bandwidth waste',
+      targetBadge: 'Target: 2.0 MB',
+      reductionBadge: '\u221296% Smaller',
+      engineNote: 'In-memory CFMutableData binary quality search \u2022 Sharp YUV',
+      afterName: 'portrait_studio_session.webp',
+      afterSize: '1.85 MB',
+      afterSpecs: '9504 \u00d7 6336 \u2022 10-bit Wide P3 \u2022 Lossy WebP Quality 88',
+      afterStatus: '\u2713 Under 2 MB limit \u2022 Full dynamic range retained'
+    },
+    {
+      beforeName: 'podcast_episode_42_master.wav',
+      beforeSize: '312.0 MB',
+      beforeSpecs: '60 Minutes \u2022 24-bit 96 kHz Stereo Uncompressed PCM',
+      beforeAlert: '\u00d7 Unsuitable for mobile sharing or streaming',
+      targetBadge: 'Target: 32.0 MB',
+      reductionBadge: '\u221290% Smaller',
+      engineNote: 'Integrated EBU R128 loudness DSP \u2022 libmp3lame rate control',
+      afterName: 'podcast_episode_42_master.mp3',
+      afterSize: '30.8 MB',
+      afterSpecs: '60 Minutes \u2022 192 kbps CBR \u2022 EBU R128 Normalized (-14 LUFS)',
+      afterStatus: '\u2713 Mobile ready \u2022 Broadcast loudness standard'
+    }
+  ];
+
+  function switchCompressionScenario(index) {
+    var scenario = compScenarios[index];
+    if (!scenario) return;
+
+    var beforeName = document.getElementById('compBeforeName');
+    var beforeSize = document.getElementById('compBeforeSize');
+    var beforeSpecs = document.getElementById('compBeforeSpecs');
+    var beforeAlert = document.getElementById('compBeforeAlert');
+    var targetBadge = document.getElementById('compTargetBadge');
+    var reductionBadge = document.getElementById('compReductionBadge');
+    var engineNote = document.getElementById('compEngineNote');
+    var afterName = document.getElementById('compAfterName');
+    var afterSize = document.getElementById('compAfterSize');
+    var afterSpecs = document.getElementById('compAfterSpecs');
+    var afterStatus = document.getElementById('compAfterStatus');
+
+    if (beforeName) beforeName.textContent = scenario.beforeName;
+    if (beforeSize) beforeSize.textContent = scenario.beforeSize;
+    if (beforeSpecs) beforeSpecs.textContent = scenario.beforeSpecs;
+    if (beforeAlert) beforeAlert.textContent = scenario.beforeAlert;
+    if (targetBadge) targetBadge.textContent = scenario.targetBadge;
+    if (reductionBadge) reductionBadge.textContent = scenario.reductionBadge;
+    if (engineNote) engineNote.textContent = scenario.engineNote;
+    if (afterName) afterName.textContent = scenario.afterName;
+    if (afterSize) afterSize.textContent = scenario.afterSize;
+    if (afterSpecs) afterSpecs.textContent = scenario.afterSpecs;
+    if (afterStatus) afterStatus.textContent = scenario.afterStatus;
+
+    var pills = document.querySelectorAll('.comp-pill');
+    pills.forEach(function (pill, idx) {
+      if (idx === index) {
+        pill.classList.add('active');
+      } else {
+        pill.classList.remove('active');
+      }
+    });
+  }
+
+  function setCalcPreset(sizeMB) {
+    var input = document.getElementById('calcSizeInput');
+    if (input) {
+      input.value = sizeMB;
+      updateBitrateCalc();
+    }
+  }
+
+  function updateBitrateCalc() {
+    var sizeInput = document.getElementById('calcSizeInput');
+    var durationInput = document.getElementById('calcDurationInput');
+    if (!sizeInput || !durationInput) return;
+
+    var sizeMB = parseFloat(sizeInput.value) || 25;
+    var durationSec = parseFloat(durationInput.value) || 30;
+
+    var sizeLabel = document.getElementById('calcSizeLabel');
+    var durationLabel = document.getElementById('calcDurationLabel');
+    if (sizeLabel) sizeLabel.textContent = sizeMB + ' MB';
+    if (durationLabel) durationLabel.textContent = durationSec + ' seconds';
+
+    // 5% container & muxing reserve (as implemented in VideoConverter.swift)
+    var totalBits = sizeMB * 8 * 1024 * 1024 * 0.95;
+    var totalBps = totalBits / durationSec;
+    var audioBps = 128 * 1024; // 128 kbps standard
+    var videoBps = Math.max(250 * 1024, totalBps - audioBps);
+
+    var videoKbps = Math.round(videoBps / 1024);
+    var audioKbps = Math.round(audioBps / 1024);
+    var reserveMB = (sizeMB * 0.05).toFixed(2);
+
+    var videoEl = document.getElementById('calcVideoBitrate');
+    var audioEl = document.getElementById('calcAudioBitrate');
+    var reserveEl = document.getElementById('calcContainerReserve');
+    var outputEl = document.getElementById('calcOutputGuaranteed');
+
+    if (videoEl) videoEl.textContent = videoKbps.toLocaleString() + ' kbps';
+    if (audioEl) audioEl.textContent = audioKbps + ' kbps AAC';
+    if (reserveEl) reserveEl.textContent = reserveMB + ' MB';
+    if (outputEl) outputEl.textContent = '\u2264 ' + sizeMB + '.0 MB';
+  }
+
+  updateBitrateCalc();
 </script>
 
 </body>
